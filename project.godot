@@ -1,22 +1,65 @@
 ; Engine configuration file.
+; It's best edited using the editor UI and not directly,
+; since the parameters that go here are not all obvious.
+;
+; Format:
+;   [section] ; section goes between []
+;   param=value ; assign values to parameters
+
 config_version=5
+
+[animation]
+
+compatibility/default_parent_skeleton_in_mesh_instance_3d=true
 
 [application]
 
 config/name="Last Train Home"
-run/main_scene="res://scenes/menu.tscn"
-config/features=PackedStringArray("4.3")
+config/version="1.1.0"
+run/main_scene="res://scenes/boot/Boot.tscn"
+config/features=PackedStringArray("4.7", "GL Compatibility")
+run/max_fps=60
+config/icon="res://assets/sprites/ui/icon.png"
 
 [autoload]
 
-Game="*res://scripts/game.gd"
+Events="*res://scripts/autoload/events.gd"
+Settings="*res://scripts/autoload/settings.gd"
+GameState="*res://scripts/autoload/game_state.gd"
+TrainClock="*res://scripts/autoload/train_clock.gd"
+AudioManager="*res://scripts/autoload/audio_manager.gd"
+SceneRouter="*res://scripts/autoload/scene_router.gd"
+BulletManager="*res://scripts/systems/bullet_manager.gd"
 
 [display]
 
-window/size/viewport_width=1280
-window/size/viewport_height=720
+window/size/viewport_width=480
+window/size/viewport_height=270
+window/size/window_width_override=1440
+window/size/window_height_override=810
 window/stretch/mode="canvas_items"
+window/stretch/scale_mode="integer"
+
+[gui]
+
+theme/default_font_size=10
+
+[layer_names]
+
+2d_physics/layer_1="world"
+2d_physics/layer_2="player_body"
+2d_physics/layer_3="player_hurtbox"
+2d_physics/layer_4="player_bullets"
+2d_physics/layer_5="enemy_body"
+2d_physics/layer_6="enemy_bullets"
+2d_physics/layer_7="hazards"
+2d_physics/layer_8="interactables"
+2d_physics/layer_9="pickups"
 
 [rendering]
 
-environment/defaults/default_clear_color=Color(0.05, 0.04, 0.06, 1)
+textures/canvas_textures/default_texture_filter=0
+renderer/rendering_method="gl_compatibility"
+renderer/rendering_method.mobile="gl_compatibility"
+2d/snap/snap_2d_transforms_to_pixel=true
+2d/snap/snap_2d_vertices_to_pixel=true

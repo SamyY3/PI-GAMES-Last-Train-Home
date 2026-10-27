@@ -1,0 +1,112 @@
+{
+  "intro": [
+    {"speaker": "Teo", "color": 11, "text": "Finalmente. Último trem. Hoje eu chego em casa."},
+    {"speaker": "Sistema", "color": 9, "text": "ATENÇÃO. DESTINO: ESTAÇÃO ZERO."},
+    {"speaker": "Teo", "color": 11, "text": "Isso é um detonador. Os cabos seguem pelo teto, para a frente do trem."},
+    {"speaker": "Teo", "color": 11, "text": "A Estação Zero fica colada na minha cidade. Minha casa. Minha família."},
+    {"speaker": "Teo", "color": 11, "text": "Eu preciso achar essa bomba."}
+  ],
+  "wagon1_nervous": [
+    {"speaker": "Passageiro Nervoso", "color": 10, "text": "Eu só queria chegar em casa! O trem não devia passar direto pelas paradas!"},
+    {"speaker": "Teo", "color": 11, "text": "Calma, senhor. Fique abaixado perto dos bancos, eu vou descobrir o que está havendo."}
+  ],
+  "wagon1_nervous_after": [
+    {"speaker": "Passageiro Nervoso", "color": 10, "text": "Pelos céus, os autômatos de segurança enlouqueceram! Vá até a locomotiva e pare este trem!"}
+  ],
+  "wagon1_suspicious": [
+    {"speaker": "Passageiro Suspeito", "color": 8, "text": "Não sei de nada sobre esse alarme. Cuide da sua vida, mecânico."},
+    {"speaker": "Teo", "color": 11, "text": "Segurando essa maleta desse jeito? Fique onde eu possa ver suas mãos."}
+  ],
+  "wagon1_suspicious_after": [
+    {"speaker": "Passageiro Suspeito", "color": 8, "text": "Tsc... Até as máquinas querem nos matar. Se procura o culpado, olhe nos vagões da frente."}
+  ],
+  "wagon1_curious": [
+    {"speaker": "Passageiro Curioso", "color": 9, "text": "Ei, mecânico! Você também ouviu aquele barulho metálico? Veio lá da frente!"},
+    {"speaker": "Teo", "color": 11, "text": "Fiquem todos abaixados. Eu vou ver."}
+  ],
+  "wagon1_curious_after": [
+    {"speaker": "Passageiro Curioso", "color": 9, "text": "Bela pontaria! A porta da direita destravou, siga em frente antes que o tempo acabe!"}
+  ],
+  "wagon1_clang": [
+    {"speaker": "Teo", "color": 11, "text": "As portas travaram! Autômatos vindo pela direita!"}
+  ],
+  "wagon1_gear": [
+    {"speaker": "Teo", "color": 11, "text": "Peça boa. Dá pra melhorar a arma."}
+  ],
+  "wagon2_worker": [
+    {"speaker": "Funcionário", "color": 8, "text": "Psiu! Aqui atrás! Alguém invadiu o sistema central do trem."},
+    {"speaker": "Teo", "color": 11, "text": "Você viu quem foi?"},
+    {"speaker": "Funcionário", "color": 8, "text": "Vi uma pessoa carregando uma caixa pesada para os vagões de carga lá na frente."},
+    {"speaker": "Teo", "color": 11, "text": "Então a bomba está no vagão de carga."},
+    {"speaker": "Funcionário", "color": 8, "text": "Cuidado! As máquinas e tubulações estão fora de controle!"}
+  ],
+  "wagon2_worker_after": [
+    {"speaker": "Funcionário", "color": 8, "text": "O vagão de carga logo à frente está cheio de caixas. Use o som do radar para achar a bomba rápido!"},
+    {"speaker": "Teo", "color": 11, "text": "Obrigado pelo aviso. Fique escondido aí até eu parar a locomotiva."}
+  ],
+  "wagon2_woman": [
+    {"speaker": "Mulher Misteriosa", "color": 13, "text": "Você não vai conseguir chegar à locomotiva a tempo."},
+    {"speaker": "Teo", "color": 11, "text": "Por quê?"},
+    {"speaker": "Mulher Misteriosa", "color": 13, "text": "Porque quem colocou a bomba já sabe que você está procurando por ela."},
+    {"speaker": "Mulher Misteriosa", "color": 13, "text": "Use esta chave para abrir o vagão de carga."},
+    {"speaker": "Teo", "color": 11, "text": "Espere! Quem é você?"}
+  ],
+  "wagon3_unlock": [
+    {"speaker": "Teo", "color": 11, "text": "A chave serviu. Abriu."}
+  ],
+  "wagon3_bomb_found": [
+    {"speaker": "Teo", "color": 11, "text": "Encontrei! Mas o gatilho está ligado ao painel da locomotiva. Preciso chegar à cabine!"}
+  ],
+  "wagon4_start": [
+    {"speaker": "Sistema", "color": 9, "text": "ATENÇÃO. VELOCIDADE AUMENTANDO."}
+  ],
+  "cabin_intro": [
+    {"speaker": "Teo", "color": 11, "text": "Pare o trem agora!"},
+    {"speaker": "Maquinista", "color": 14, "text": "Não posso."},
+    {"speaker": "Teo", "color": 11, "text": "Por quê?!"},
+    {"speaker": "Maquinista", "color": 14, "text": "Porque quando chegarmos à Estação Zero, alguém precisa pagar pelo que fizeram."},
+    {"speaker": "Teo", "color": 11, "text": "Ninguém vai morrer hoje. Nem eu, nem a minha cidade."}
+  ],
+  "boss_float_p2": "Você não entende o que está em jogo!",
+  "boss_float_p3": "ENTÃO MORRA COM ELES!",
+  "post_boss": [
+    {"speaker": "Maquinista", "color": 14, "text": "A contagem final já começou... Não dá mais para parar."},
+    {"speaker": "Teo", "color": 11, "text": "Dá, sim."}
+  ],
+  "ending_quote": "Às vezes, chegar em casa significa impedir que ela desapareça.",
+  "ending_reunion": [
+    {"speaker": "Lia", "color": 9, "text": "TEO! Você voltou! Eu disse pra eles que você ia voltar!"},
+    {"speaker": "Mãe", "color": 10, "text": "Ouvimos as sirenes a noite inteira... Achamos que o último trem não ia chegar."},
+    {"speaker": "Teo", "color": 11, "text": "Ele chegou. Eu prometi que voltaria pra casa, não prometi?"},
+    {"speaker": "Pai", "color": 8, "text": "Olha só esse casaco chamuscado... Esse é o meu garoto."},
+    {"speaker": "Lia", "color": 9, "text": "Agora você vai me contar TUDO. Desde o começo!"},
+    {"speaker": "Teo", "color": 11, "text": "Conto. Mas primeiro... vamos pra casa."}
+  ],
+  "boss_p2_talk": [
+    {"speaker": "Maquinista", "color": 14, "text": "Sabe quantos homens morreram assentando estes trilhos? A cidade nunca nem disse obrigado."},
+    {"speaker": "Teo", "color": 11, "text": "E por isso você vai explodir todo mundo?! Minha família mora lá!"},
+    {"speaker": "Maquinista", "color": 14, "text": "Hoje, pela primeira vez, alguém vai pagar a passagem."}
+  ],
+  "boss_p3_talk": [
+    {"speaker": "Maquinista", "color": 14, "text": "A caldeira está no vermelho, garoto. Se eu cair, o trem cai comigo!"},
+    {"speaker": "Teo", "color": 11, "text": "Então eu paro os dois. Sou aprendiz de maquinista, lembra? É o meu trabalho."}
+  ],
+  "boss_barks": {
+    "inicio": ["O trem não para. Nem por você.", "Passagem, por favor... Ah. Você não tem."],
+    "apito": ["Atenção à partida!", "Fiiiiu! Último aviso!", "Afastem-se da plataforma!"],
+    "bilhete": ["Seu bilhete foi carimbado.", "Perfurando bilhetes!", "Fila única, por favor."],
+    "pendulo": ["Tic... tac... O horário é sagrado.", "Pontualidade, garoto!"],
+    "vapor": ["Sinta a pressão!", "As válvulas não aguentam mais!"],
+    "investida": ["SAIA DOS TRILHOS!", "Locomotiva passando!"],
+    "trilhos": ["Mudança de via!", "Fique no seu trilho!"],
+    "roda": ["As rodas não param de girar!", "Mais carvão na caldeira!"],
+    "carvao": ["Chuva de brasas!", "Queime junto com o resto!"],
+    "anel": ["Não há saída nesta linha!", "Fecha o cerco!"],
+    "contagem": ["CONTAGEM FINAL!", "Dez... nove... oito..."],
+    "acertou": ["Atrasado.", "Ponto para a ferrovia.", "Volte para o seu assento!", "Bilhete cancelado."],
+    "ferido_80": ["Hmph. Aprendiz teimoso."],
+    "ferido_45": ["Você não sabe o que fizeram com esta cidade!"],
+    "ferido_15": ["Não... ainda não... A estação está tão perto!"],
+    "derrota": ["O apito... silenciou..."]
+  }
+}

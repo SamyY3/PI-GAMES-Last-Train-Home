@@ -1,0 +1,135 @@
+{
+  "rarity_weights": {
+    "common": 60,
+    "rare": 30,
+    "epic": 10
+  },
+  "upgrades": [
+    {
+      "id": "tiro_duplo",
+      "name": "Tiro Duplo",
+      "description": "Nv 1: 2 balas paralelas (70% dano).\nNv 2: leque de 3 balas (60% dano).",
+      "max_level": 2,
+      "rarity": "rare",
+      "category": "Ataque",
+      "values": [2, 3]
+    },
+    {
+      "id": "cadencia",
+      "name": "Pistões Aprimorados",
+      "description": "+20% de cadência de tiro por nível.",
+      "max_level": 3,
+      "rarity": "common",
+      "category": "Ataque",
+      "values": [0.20, 0.40, 0.60]
+    },
+    {
+      "id": "dano",
+      "name": "Pólvora Reforçada",
+      "description": "+25% de dano nas balas por nível.",
+      "max_level": 3,
+      "rarity": "common",
+      "category": "Ataque",
+      "values": [0.25, 0.50, 0.75]
+    },
+    {
+      "id": "velocidade",
+      "name": "Botas de Engrenagem",
+      "description": "+12% de velocidade de movimento por nível.",
+      "max_level": 3,
+      "rarity": "common",
+      "category": "Mobilidade",
+      "values": [0.12, 0.24, 0.36]
+    },
+    {
+      "id": "perfurante",
+      "name": "Munição Perfurante",
+      "description": "Atravessa +1 inimigo por nível (-10% dano após atravessar).",
+      "max_level": 2,
+      "rarity": "rare",
+      "category": "Ataque",
+      "values": [1, 2]
+    },
+    {
+      "id": "caldeira",
+      "name": "Caldeira Extra",
+      "description": "+1 coração máximo e restaura 1 de vida imediata.",
+      "max_level": 2,
+      "rarity": "common",
+      "category": "Defesa",
+      "values": [1, 2]
+    },
+    {
+      "id": "escudo",
+      "name": "Placa de Aço",
+      "description": "Bloqueia 1 dano. Recarrega em 20s (-4s no Nv 2).",
+      "max_level": 2,
+      "rarity": "rare",
+      "category": "Defesa",
+      "values": [20.0, 16.0]
+    },
+    {
+      "id": "valvula",
+      "name": "Válvula de Escape",
+      "description": "Reduz a recarga do Dash em 25% por nível.",
+      "max_level": 2,
+      "rarity": "common",
+      "category": "Mobilidade",
+      "values": [0.25, 0.50]
+    },
+    {
+      "id": "pressao",
+      "name": "Pressão Contínua",
+      "description": "Reduz a recarga do Pulso de Vapor em 30% por nível.",
+      "max_level": 2,
+      "rarity": "rare",
+      "category": "Utilidade",
+      "values": [0.30, 0.60]
+    },
+    {
+      "id": "ricochete",
+      "name": "Balas Elásticas",
+      "description": "Suas balas ricocheteiam 1 vez nas paredes.",
+      "max_level": 1,
+      "rarity": "rare",
+      "category": "Ataque",
+      "values": [1]
+    },
+    {
+      "id": "giroscopio",
+      "name": "Mira Giroscópica",
+      "description": "Balas curvam para o inimigo mais próximo (110°/s por nível).",
+      "max_level": 2,
+      "rarity": "epic",
+      "category": "Ataque",
+      "values": [110.0, 220.0]
+    },
+    {
+      "id": "instavel",
+      "name": "Pólvora Instável",
+      "description": "15% de chance por nível de a bala explodir em área.",
+      "max_level": 2,
+      "rarity": "epic",
+      "category": "Ataque",
+      "values": [0.15, 0.30]
+    },
+    {
+      "id": "sucata",
+      "name": "Sucata Viva",
+      "description": "A cada 15 inimigos derrotados, restaura 1 coração.",
+      "max_level": 1,
+      "rarity": "epic",
+      "category": "Utilidade",
+      "values": [15]
+    },
+    {
+      "id": "casaco",
+      "name": "Casaco Justo",
+      "description": "Reduz hurtbox para 2 px e +20% velocidade no modo foco.",
+      "max_level": 1,
+      "rarity": "rare",
+      "category": "Defesa",
+      "values": [2.0]
+    }
+  ]
+}

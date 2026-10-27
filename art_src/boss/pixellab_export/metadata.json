@@ -1,0 +1,408 @@
+{
+  "group_id": "2260a7ad-b7ee-47c8-a6fd-194630a7ac7c",
+  "states": [
+    {
+      "character": {
+        "id": "067acb58-85fb-475e-8da4-45f9a8085b05",
+        "name": "Idle",
+        "prompt": "O Maquinista, a tall imposing villain train conductor: tall black top hat with a brass gear emblem, brass plague-doctor beak mask with glowing round red goggles, long black double-breasted conductor coat with brass buttons and a red lining, leather belt with brass buckle, BOTH arms clearly visible with black leather gloves, a brass pocket watch chain, heavy black boots. Menacing upright posture, wide shoulders, broad silhouette.",
+        "size": {
+          "width": 80,
+          "height": 80
+        },
+        "template_id": "mannequin",
+        "directions": 8,
+        "view": "low top-down",
+        "created_at": "2026-10-15T02:28:37.610468+00:00"
+      },
+      "folder": "Idle",
+      "frames": {
+        "rotations": {
+          "south": "Idle/rotations/south.png",
+          "south-east": "Idle/rotations/south-east.png",
+          "east": "Idle/rotations/east.png",
+          "north-east": "Idle/rotations/north-east.png",
+          "north": "Idle/rotations/north.png",
+          "north-west": "Idle/rotations/north-west.png",
+          "west": "Idle/rotations/west.png",
+          "south-west": "Idle/rotations/south-west.png"
+        },
+        "animations": {
+          "idle": {
+            "south": [
+              "Idle/animations/idle/south/frame_000.png",
+              "Idle/animations/idle/south/frame_001.png",
+              "Idle/animations/idle/south/frame_002.png",
+              "Idle/animations/idle/south/frame_003.png",
+              "Idle/animations/idle/south/frame_004.png",
+              "Idle/animations/idle/south/frame_005.png",
+              "Idle/animations/idle/south/frame_006.png",
+              "Idle/animations/idle/south/frame_007.png"
+            ]
+          },
+          "cast": {
+            "south": [
+              "Idle/animations/cast/south/frame_000.png",
+              "Idle/animations/cast/south/frame_001.png",
+              "Idle/animations/cast/south/frame_002.png",
+              "Idle/animations/cast/south/frame_003.png",
+              "Idle/animations/cast/south/frame_004.png",
+              "Idle/animations/cast/south/frame_005.png"
+            ]
+          },
+          "hurt": {
+            "south": [
+              "Idle/animations/hurt/south/frame_000.png",
+              "Idle/animations/hurt/south/frame_001.png",
+              "Idle/animations/hurt/south/frame_002.png",
+              "Idle/animations/hurt/south/frame_003.png",
+              "Idle/animations/hurt/south/frame_004.png",
+              "Idle/animations/hurt/south/frame_005.png"
+            ]
+          },
+          "run": {
+            "west": [
+              "Idle/animations/run/west/frame_000.png",
+              "Idle/animations/run/west/frame_001.png",
+              "Idle/animations/run/west/frame_002.png",
+              "Idle/animations/run/west/frame_003.png",
+              "Idle/animations/run/west/frame_004.png",
+              "Idle/animations/run/west/frame_005.png"
+            ],
+            "south": [
+              "Idle/animations/run/south/frame_000.png",
+              "Idle/animations/run/south/frame_001.png",
+              "Idle/animations/run/south/frame_002.png",
+              "Idle/animations/run/south/frame_003.png",
+              "Idle/animations/run/south/frame_004.png",
+              "Idle/animations/run/south/frame_005.png"
+            ],
+            "east": [
+              "Idle/animations/run/east/frame_000.png",
+              "Idle/animations/run/east/frame_001.png",
+              "Idle/animations/run/east/frame_002.png",
+              "Idle/animations/run/east/frame_003.png",
+              "Idle/animations/run/east/frame_004.png",
+              "Idle/animations/run/east/frame_005.png"
+            ]
+          },
+          "walk": {
+            "west": [
+              "Idle/animations/walk/west/frame_000.png",
+              "Idle/animations/walk/west/frame_001.png",
+              "Idle/animations/walk/west/frame_002.png",
+              "Idle/animations/walk/west/frame_003.png",
+              "Idle/animations/walk/west/frame_004.png",
+              "Idle/animations/walk/west/frame_005.png"
+            ],
+            "east": [
+              "Idle/animations/walk/east/frame_000.png",
+              "Idle/animations/walk/east/frame_001.png",
+              "Idle/animations/walk/east/frame_002.png",
+              "Idle/animations/walk/east/frame_003.png",
+              "Idle/animations/walk/east/frame_004.png",
+              "Idle/animations/walk/east/frame_005.png"
+            ]
+          },
+          "roar": {
+            "south": [
+              "Idle/animations/roar/south/frame_000.png",
+              "Idle/animations/roar/south/frame_001.png",
+              "Idle/animations/roar/south/frame_002.png",
+              "Idle/animations/roar/south/frame_003.png",
+              "Idle/animations/roar/south/frame_004.png",
+              "Idle/animations/roar/south/frame_005.png",
+              "Idle/animations/roar/south/frame_006.png",
+              "Idle/animations/roar/south/frame_007.png"
+            ]
+          },
+          "slam": {
+            "south": [
+              "Idle/animations/slam/south/frame_000.png",
+              "Idle/animations/slam/south/frame_001.png",
+              "Idle/animations/slam/south/frame_002.png",
+              "Idle/animations/slam/south/frame_003.png",
+              "Idle/animations/slam/south/frame_004.png",
+              "Idle/animations/slam/south/frame_005.png",
+              "Idle/animations/slam/south/frame_006.png",
+              "Idle/animations/slam/south/frame_007.png"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "character": {
+        "id": "44535eda-da90-4210-817c-525676e5bfe4",
+        "name": "Fase 2 - Pressao",
+        "prompt": "O Maquinista, a tall imposing villain train conductor: tall black top hat with a brass gear emblem, brass plague-doctor beak mask with glowing round red goggles, long black double-breasted conductor coat with brass buttons and a red lining, leather belt with brass buckle, BOTH arms clearly visible with black leather gloves, a brass pocket watch chain, heavy black boots. Menacing upright posture, wide shoulders, broad silhouette.",
+        "size": {
+          "width": 80,
+          "height": 80
+        },
+        "template_id": "mannequin",
+        "directions": 8,
+        "view": "low top-down",
+        "created_at": "2026-10-15T02:34:30.344646+00:00"
+      },
+      "folder": "Fase_2_-_Pressao",
+      "frames": {
+        "rotations": {
+          "south": "Fase_2_-_Pressao/rotations/south.png",
+          "south-east": "Fase_2_-_Pressao/rotations/south-east.png",
+          "east": "Fase_2_-_Pressao/rotations/east.png",
+          "north-east": "Fase_2_-_Pressao/rotations/north-east.png",
+          "north": "Fase_2_-_Pressao/rotations/north.png",
+          "north-west": "Fase_2_-_Pressao/rotations/north-west.png",
+          "west": "Fase_2_-_Pressao/rotations/west.png",
+          "south-west": "Fase_2_-_Pressao/rotations/south-west.png"
+        },
+        "animations": {
+          "roar": {
+            "south": [
+              "Fase_2_-_Pressao/animations/roar/south/frame_000.png",
+              "Fase_2_-_Pressao/animations/roar/south/frame_001.png",
+              "Fase_2_-_Pressao/animations/roar/south/frame_002.png",
+              "Fase_2_-_Pressao/animations/roar/south/frame_003.png",
+              "Fase_2_-_Pressao/animations/roar/south/frame_004.png",
+              "Fase_2_-_Pressao/animations/roar/south/frame_005.png",
+              "Fase_2_-_Pressao/animations/roar/south/frame_006.png",
+              "Fase_2_-_Pressao/animations/roar/south/frame_007.png"
+            ]
+          },
+          "idle": {
+            "south": [
+              "Fase_2_-_Pressao/animations/idle/south/frame_000.png",
+              "Fase_2_-_Pressao/animations/idle/south/frame_001.png",
+              "Fase_2_-_Pressao/animations/idle/south/frame_002.png",
+              "Fase_2_-_Pressao/animations/idle/south/frame_003.png",
+              "Fase_2_-_Pressao/animations/idle/south/frame_004.png",
+              "Fase_2_-_Pressao/animations/idle/south/frame_005.png",
+              "Fase_2_-_Pressao/animations/idle/south/frame_006.png",
+              "Fase_2_-_Pressao/animations/idle/south/frame_007.png"
+            ]
+          },
+          "cast": {
+            "south": [
+              "Fase_2_-_Pressao/animations/cast/south/frame_000.png",
+              "Fase_2_-_Pressao/animations/cast/south/frame_001.png",
+              "Fase_2_-_Pressao/animations/cast/south/frame_002.png",
+              "Fase_2_-_Pressao/animations/cast/south/frame_003.png",
+              "Fase_2_-_Pressao/animations/cast/south/frame_004.png",
+              "Fase_2_-_Pressao/animations/cast/south/frame_005.png"
+            ]
+          },
+          "run": {
+            "south": [
+              "Fase_2_-_Pressao/animations/run/south/frame_000.png",
+              "Fase_2_-_Pressao/animations/run/south/frame_001.png",
+              "Fase_2_-_Pressao/animations/run/south/frame_002.png",
+              "Fase_2_-_Pressao/animations/run/south/frame_003.png",
+              "Fase_2_-_Pressao/animations/run/south/frame_004.png",
+              "Fase_2_-_Pressao/animations/run/south/frame_005.png"
+            ],
+            "east": [
+              "Fase_2_-_Pressao/animations/run/east/frame_000.png",
+              "Fase_2_-_Pressao/animations/run/east/frame_001.png",
+              "Fase_2_-_Pressao/animations/run/east/frame_002.png",
+              "Fase_2_-_Pressao/animations/run/east/frame_003.png",
+              "Fase_2_-_Pressao/animations/run/east/frame_004.png",
+              "Fase_2_-_Pressao/animations/run/east/frame_005.png"
+            ],
+            "west": [
+              "Fase_2_-_Pressao/animations/run/west/frame_000.png",
+              "Fase_2_-_Pressao/animations/run/west/frame_001.png",
+              "Fase_2_-_Pressao/animations/run/west/frame_002.png",
+              "Fase_2_-_Pressao/animations/run/west/frame_003.png",
+              "Fase_2_-_Pressao/animations/run/west/frame_004.png",
+              "Fase_2_-_Pressao/animations/run/west/frame_005.png"
+            ]
+          },
+          "walk": {
+            "east": [
+              "Fase_2_-_Pressao/animations/walk/east/frame_000.png",
+              "Fase_2_-_Pressao/animations/walk/east/frame_001.png",
+              "Fase_2_-_Pressao/animations/walk/east/frame_002.png",
+              "Fase_2_-_Pressao/animations/walk/east/frame_003.png",
+              "Fase_2_-_Pressao/animations/walk/east/frame_004.png",
+              "Fase_2_-_Pressao/animations/walk/east/frame_005.png"
+            ],
+            "west": [
+              "Fase_2_-_Pressao/animations/walk/west/frame_000.png",
+              "Fase_2_-_Pressao/animations/walk/west/frame_001.png",
+              "Fase_2_-_Pressao/animations/walk/west/frame_002.png",
+              "Fase_2_-_Pressao/animations/walk/west/frame_003.png",
+              "Fase_2_-_Pressao/animations/walk/west/frame_004.png",
+              "Fase_2_-_Pressao/animations/walk/west/frame_005.png"
+            ]
+          },
+          "slam": {
+            "south": [
+              "Fase_2_-_Pressao/animations/slam/south/frame_000.png",
+              "Fase_2_-_Pressao/animations/slam/south/frame_001.png",
+              "Fase_2_-_Pressao/animations/slam/south/frame_002.png",
+              "Fase_2_-_Pressao/animations/slam/south/frame_003.png",
+              "Fase_2_-_Pressao/animations/slam/south/frame_004.png",
+              "Fase_2_-_Pressao/animations/slam/south/frame_005.png",
+              "Fase_2_-_Pressao/animations/slam/south/frame_006.png",
+              "Fase_2_-_Pressao/animations/slam/south/frame_007.png"
+            ]
+          },
+          "hurt": {
+            "south": [
+              "Fase_2_-_Pressao/animations/hurt/south/frame_000.png",
+              "Fase_2_-_Pressao/animations/hurt/south/frame_001.png",
+              "Fase_2_-_Pressao/animations/hurt/south/frame_002.png",
+              "Fase_2_-_Pressao/animations/hurt/south/frame_003.png",
+              "Fase_2_-_Pressao/animations/hurt/south/frame_004.png",
+              "Fase_2_-_Pressao/animations/hurt/south/frame_005.png"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "character": {
+        "id": "3354a68f-6451-4526-834f-c38c7c5661f0",
+        "name": "Fase 3 - Caldeira",
+        "prompt": "O Maquinista, a tall imposing villain train conductor: tall black top hat with a brass gear emblem, brass plague-doctor beak mask with glowing round red goggles, long black double-breasted conductor coat with brass buttons and a red lining, leather belt with brass buckle, BOTH arms clearly visible with black leather gloves, a brass pocket watch chain, heavy black boots. Menacing upright posture, wide shoulders, broad silhouette.",
+        "size": {
+          "width": 80,
+          "height": 80
+        },
+        "template_id": "mannequin",
+        "directions": 8,
+        "view": "low top-down",
+        "created_at": "2026-10-15T02:34:40.941127+00:00"
+      },
+      "folder": "Fase_3_-_Caldeira",
+      "frames": {
+        "rotations": {
+          "south": "Fase_3_-_Caldeira/rotations/south.png",
+          "south-east": "Fase_3_-_Caldeira/rotations/south-east.png",
+          "east": "Fase_3_-_Caldeira/rotations/east.png",
+          "north-east": "Fase_3_-_Caldeira/rotations/north-east.png",
+          "north": "Fase_3_-_Caldeira/rotations/north.png",
+          "north-west": "Fase_3_-_Caldeira/rotations/north-west.png",
+          "west": "Fase_3_-_Caldeira/rotations/west.png",
+          "south-west": "Fase_3_-_Caldeira/rotations/south-west.png"
+        },
+        "animations": {
+          "death": {
+            "south": [
+              "Fase_3_-_Caldeira/animations/death/south/frame_000.png",
+              "Fase_3_-_Caldeira/animations/death/south/frame_001.png",
+              "Fase_3_-_Caldeira/animations/death/south/frame_002.png",
+              "Fase_3_-_Caldeira/animations/death/south/frame_003.png",
+              "Fase_3_-_Caldeira/animations/death/south/frame_004.png",
+              "Fase_3_-_Caldeira/animations/death/south/frame_005.png",
+              "Fase_3_-_Caldeira/animations/death/south/frame_006.png"
+            ]
+          },
+          "walk": {
+            "west": [
+              "Fase_3_-_Caldeira/animations/walk/west/frame_000.png",
+              "Fase_3_-_Caldeira/animations/walk/west/frame_001.png",
+              "Fase_3_-_Caldeira/animations/walk/west/frame_002.png",
+              "Fase_3_-_Caldeira/animations/walk/west/frame_003.png",
+              "Fase_3_-_Caldeira/animations/walk/west/frame_004.png",
+              "Fase_3_-_Caldeira/animations/walk/west/frame_005.png"
+            ],
+            "east": [
+              "Fase_3_-_Caldeira/animations/walk/east/frame_000.png",
+              "Fase_3_-_Caldeira/animations/walk/east/frame_001.png",
+              "Fase_3_-_Caldeira/animations/walk/east/frame_002.png",
+              "Fase_3_-_Caldeira/animations/walk/east/frame_003.png",
+              "Fase_3_-_Caldeira/animations/walk/east/frame_004.png",
+              "Fase_3_-_Caldeira/animations/walk/east/frame_005.png"
+            ]
+          },
+          "run": {
+            "south": [
+              "Fase_3_-_Caldeira/animations/run/south/frame_000.png",
+              "Fase_3_-_Caldeira/animations/run/south/frame_001.png",
+              "Fase_3_-_Caldeira/animations/run/south/frame_002.png",
+              "Fase_3_-_Caldeira/animations/run/south/frame_003.png",
+              "Fase_3_-_Caldeira/animations/run/south/frame_004.png",
+              "Fase_3_-_Caldeira/animations/run/south/frame_005.png"
+            ],
+            "east": [
+              "Fase_3_-_Caldeira/animations/run/east/frame_000.png",
+              "Fase_3_-_Caldeira/animations/run/east/frame_001.png",
+              "Fase_3_-_Caldeira/animations/run/east/frame_002.png",
+              "Fase_3_-_Caldeira/animations/run/east/frame_003.png",
+              "Fase_3_-_Caldeira/animations/run/east/frame_004.png",
+              "Fase_3_-_Caldeira/animations/run/east/frame_005.png"
+            ],
+            "west": [
+              "Fase_3_-_Caldeira/animations/run/west/frame_000.png",
+              "Fase_3_-_Caldeira/animations/run/west/frame_001.png",
+              "Fase_3_-_Caldeira/animations/run/west/frame_002.png",
+              "Fase_3_-_Caldeira/animations/run/west/frame_003.png",
+              "Fase_3_-_Caldeira/animations/run/west/frame_004.png",
+              "Fase_3_-_Caldeira/animations/run/west/frame_005.png"
+            ]
+          },
+          "idle": {
+            "south": [
+              "Fase_3_-_Caldeira/animations/idle/south/frame_000.png",
+              "Fase_3_-_Caldeira/animations/idle/south/frame_001.png",
+              "Fase_3_-_Caldeira/animations/idle/south/frame_002.png",
+              "Fase_3_-_Caldeira/animations/idle/south/frame_003.png",
+              "Fase_3_-_Caldeira/animations/idle/south/frame_004.png",
+              "Fase_3_-_Caldeira/animations/idle/south/frame_005.png",
+              "Fase_3_-_Caldeira/animations/idle/south/frame_006.png",
+              "Fase_3_-_Caldeira/animations/idle/south/frame_007.png"
+            ]
+          },
+          "cast": {
+            "south": [
+              "Fase_3_-_Caldeira/animations/cast/south/frame_000.png",
+              "Fase_3_-_Caldeira/animations/cast/south/frame_001.png",
+              "Fase_3_-_Caldeira/animations/cast/south/frame_002.png",
+              "Fase_3_-_Caldeira/animations/cast/south/frame_003.png",
+              "Fase_3_-_Caldeira/animations/cast/south/frame_004.png",
+              "Fase_3_-_Caldeira/animations/cast/south/frame_005.png"
+            ]
+          },
+          "roar": {
+            "south": [
+              "Fase_3_-_Caldeira/animations/roar/south/frame_000.png",
+              "Fase_3_-_Caldeira/animations/roar/south/frame_001.png",
+              "Fase_3_-_Caldeira/animations/roar/south/frame_002.png",
+              "Fase_3_-_Caldeira/animations/roar/south/frame_003.png",
+              "Fase_3_-_Caldeira/animations/roar/south/frame_004.png",
+              "Fase_3_-_Caldeira/animations/roar/south/frame_005.png",
+              "Fase_3_-_Caldeira/animations/roar/south/frame_006.png",
+              "Fase_3_-_Caldeira/animations/roar/south/frame_007.png"
+            ]
+          },
+          "slam": {
+            "south": [
+              "Fase_3_-_Caldeira/animations/slam/south/frame_000.png",
+              "Fase_3_-_Caldeira/animations/slam/south/frame_001.png",
+              "Fase_3_-_Caldeira/animations/slam/south/frame_002.png",
+              "Fase_3_-_Caldeira/animations/slam/south/frame_003.png",
+              "Fase_3_-_Caldeira/animations/slam/south/frame_004.png",
+              "Fase_3_-_Caldeira/animations/slam/south/frame_005.png",
+              "Fase_3_-_Caldeira/animations/slam/south/frame_006.png",
+              "Fase_3_-_Caldeira/animations/slam/south/frame_007.png"
+            ]
+          },
+          "hurt": {
+            "south": [
+              "Fase_3_-_Caldeira/animations/hurt/south/frame_000.png",
+              "Fase_3_-_Caldeira/animations/hurt/south/frame_001.png",
+              "Fase_3_-_Caldeira/animations/hurt/south/frame_002.png",
+              "Fase_3_-_Caldeira/animations/hurt/south/frame_003.png",
+              "Fase_3_-_Caldeira/animations/hurt/south/frame_004.png",
+              "Fase_3_-_Caldeira/animations/hurt/south/frame_005.png"
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "export_version": "3.1",
+  "export_date": "2026-10-15T02:57:49.965793"
+}

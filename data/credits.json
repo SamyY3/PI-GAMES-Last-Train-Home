@@ -1,0 +1,119 @@
+{
+  "title": "LAST TRAIN HOME",
+  "subtitle": "— RUMO À ESTAÇÃO ZERO —",
+  "sections": [
+    {
+      "role": "Design e Programação",
+      "name": "Equipe Last Train Home"
+    },
+    {
+      "role": "Roteiro e Diálogos",
+      "name": "Equipe Last Train Home"
+    },
+    {
+      "role": "Pixel Art",
+      "name": "Equipe Last Train Home\ncom PixelLab"
+    },
+    {
+      "role": "Cutscenes e Ilustrações",
+      "name": "Equipe Last Train Home\ncom PixelLab"
+    },
+    {
+      "role": "Música Chiptune",
+      "name": "Equipe Last Train Home\n«A Caminho de Casa» (créditos)"
+    },
+    {
+      "role": "Efeitos Sonoros",
+      "name": "Sintetizados pela equipe:\nvapor, latão e engrenagens"
+    },
+    {
+      "role": "Engine",
+      "name": "Godot Engine 4"
+    },
+    {
+      "role": "Tipografia",
+      "name": "DotGothic16 e Jersey 10\n(SIL Open Font License)"
+    }
+  ],
+  "media": [
+    {
+      "type": "video",
+      "file": "video_menu_train",
+      "caption": "O último trem parte na noite"
+    },
+    {
+      "type": "photo",
+      "file": "photo_boarding",
+      "caption": "Embarque na plataforma"
+    },
+    {
+      "type": "photo",
+      "file": "photo_passengers",
+      "caption": "Vagão 1 — os passageiros"
+    },
+    {
+      "type": "video",
+      "file": "video_wagon2",
+      "caption": "Vagão 2 — tubulações de vapor"
+    },
+    {
+      "type": "photo",
+      "file": "photo_wagon3",
+      "caption": "Vagão 3 — o cargueiro"
+    },
+    {
+      "type": "photo",
+      "file": "photo_wagon4",
+      "caption": "Vagão 4 — velocidade máxima"
+    },
+    {
+      "type": "photo",
+      "file": "photo_boss_card",
+      "caption": "O Maquinista se apresenta"
+    },
+    {
+      "type": "video",
+      "file": "video_boss",
+      "caption": "Fase 3 — caldeira em chamas"
+    },
+    {
+      "type": "photo",
+      "file": "photo_disarm",
+      "caption": "Desarmando a bomba"
+    }
+  ],
+  "cast": [
+    {
+      "name": "Teo",
+      "role": "aprendiz de maquinista",
+      "sprite": "teo"
+    },
+    {
+      "name": "Lia",
+      "role": "a irmã caçula",
+      "sprite": "lia"
+    },
+    {
+      "name": "Mãe",
+      "role": "esperou a noite toda",
+      "sprite": "mae"
+    },
+    {
+      "name": "Pai",
+      "role": "mecânico da ferrovia",
+      "sprite": "pai"
+    },
+    {
+      "name": "O Maquinista",
+      "role": "pontual até o fim do mundo",
+      "sprite": "boss"
+    },
+    {
+      "name": "Os Passageiros",
+      "role": "nervoso, suspeito e curioso",
+      "sprite": "npcs"
+    }
+  ],
+  "thanks": "Agradecimentos especiais a todos que embarcaram\nneste último trem até o fim da linha.",
+  "footer": "Obrigado por jogar!"
+}

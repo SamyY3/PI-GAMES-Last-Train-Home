@@ -1,0 +1,67 @@
+{
+  "group_id": "b9784e92-fd66-4fae-9430-1ba391b799e8",
+  "states": [
+    {
+      "character": {
+        "id": "508315e1-fa94-4d84-b23e-a9c20dbe4630",
+        "name": "Idle",
+        "prompt": "Lia, Teo's 8-year-old little sister: two short brown pigtails, mustard yellow coat, teal-grey knitted scarf, brown skirt, small boots",
+        "size": {
+          "width": 32,
+          "height": 32
+        },
+        "template_id": "mannequin",
+        "directions": 8,
+        "view": "low top-down",
+        "created_at": "2026-10-15T02:01:41.985880+00:00"
+      },
+      "folder": "Idle",
+      "frames": {
+        "rotations": {
+          "south": "Idle/rotations/south.png",
+          "south-east": "Idle/rotations/south-east.png",
+          "east": "Idle/rotations/east.png",
+          "north-east": "Idle/rotations/north-east.png",
+          "north": "Idle/rotations/north.png",
+          "north-west": "Idle/rotations/north-west.png",
+          "west": "Idle/rotations/west.png",
+          "south-west": "Idle/rotations/south-west.png"
+        },
+        "animations": {
+          "wave": {
+            "west": [
+              "Idle/animations/wave/west/frame_000.png",
+              "Idle/animations/wave/west/frame_001.png",
+              "Idle/animations/wave/west/frame_002.png",
+              "Idle/animations/wave/west/frame_003.png",
+              "Idle/animations/wave/west/frame_004.png",
+              "Idle/animations/wave/west/frame_005.png"
+            ]
+          },
+          "walk": {
+            "east": [
+              "Idle/animations/walk/east/frame_000.png",
+              "Idle/animations/walk/east/frame_001.png",
+              "Idle/animations/walk/east/frame_002.png",
+              "Idle/animations/walk/east/frame_003.png",
+              "Idle/animations/walk/east/frame_004.png",
+              "Idle/animations/walk/east/frame_005.png"
+            ]
+          },
+          "run": {
+            "west": [
+              "Idle/animations/run/west/frame_000.png",
+              "Idle/animations/run/west/frame_001.png",
+              "Idle/animations/run/west/frame_002.png",
+              "Idle/animations/run/west/frame_003.png",
+              "Idle/animations/run/west/frame_004.png",
+              "Idle/animations/run/west/frame_005.png"
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "export_version": "3.1",
+  "export_date": "2026-10-15T02:05:59.441165"
+}

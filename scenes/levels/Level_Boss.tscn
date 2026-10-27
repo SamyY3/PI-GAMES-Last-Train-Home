@@ -1,0 +1,11 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/levels/level_boss.gd" id="1_s"]
+[ext_resource type="Texture2D" path="res://assets/sprites/backgrounds/wagon_5.png" id="2_bg"]
+
+[node name="Level_Boss" type="Node2D"]
+script = ExtResource("1_s")
+
+[node name="Background" type="Sprite2D" parent="."]
+position = Vector2(240, 135)
+texture = ExtResource("2_bg")

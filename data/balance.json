@@ -1,0 +1,162 @@
+{
+  "player": {
+    "base_hp": 5,
+    "invuln_time": 1.2,
+    "knockback_dist": 24.0,
+    "hitstop_time": 0.06,
+    "move_speed": 110.0,
+    "focus_speed": 55.0,
+    "accel": 900.0,
+    "friction": 1200.0,
+    "hurtbox_radius": 3.0,
+    "pickup_radius": 10.0,
+    "fire_rate": 5.0,
+    "base_damage": 10.0,
+    "bullet_speed": 320.0,
+    "bullet_lifetime": 1.2,
+    "auto_aim_range": 220.0,
+    "dash_distance": 56.0,
+    "dash_duration": 0.18,
+    "dash_post_invuln": 0.06,
+    "dash_cooldown": 1.0,
+    "dash_buffer": 0.12,
+    "dash_coyote": 0.06,
+    "pulse_radius": 80.0,
+    "pulse_duration": 0.35,
+    "pulse_damage": 40.0,
+    "pulse_pushback": 32.0,
+    "pulse_cooldown": 14.0,
+    "interact_hold_time": 0.6
+  },
+  "difficulties": {
+    "easy": {
+      "label": "Fácil",
+      "summary": "Vida 6 · Tempo 08:00",
+      "player_hp": 6,
+      "enemy_hp_mult": 0.8,
+      "bullet_speed_mult": 0.85,
+      "enemy_fire_rate_mult": 0.8,
+      "initial_time": 480.0,
+      "target_scale": 1.23,
+      "allow_random_drops": true,
+      "guaranteed_wagon2_drop": true
+    },
+    "medium": {
+      "label": "Média",
+      "summary": "Vida 5 · Tempo 06:30",
+      "player_hp": 5,
+      "enemy_hp_mult": 1.0,
+      "bullet_speed_mult": 1.0,
+      "enemy_fire_rate_mult": 1.0,
+      "initial_time": 390.0,
+      "target_scale": 1.0,
+      "allow_random_drops": true,
+      "guaranteed_wagon2_drop": false
+    },
+    "hard": {
+      "label": "Difícil",
+      "summary": "Vida 4 · Tempo 05:30",
+      "player_hp": 4,
+      "enemy_hp_mult": 1.25,
+      "bullet_speed_mult": 1.15,
+      "enemy_fire_rate_mult": 1.2,
+      "initial_time": 330.0,
+      "target_scale": 0.85,
+      "allow_random_drops": false,
+      "guaranteed_wagon2_drop": false
+    }
+  },
+  "clock_targets_medium": {
+    "wagon_1": 390.0,
+    "wagon_2": 335.0,
+    "wagon_3": 275.0,
+    "wagon_4": 205.0,
+    "cabin": 160.0,
+    "boss_start": 150.0,
+    "boss_phase_3": 55.0,
+    "disarm": 14.0
+  },
+  "enemies": {
+    "sentinel": {
+      "hp": 30,
+      "speed": 40.0,
+      "stop_dist": 110.0,
+      "telegraph": 0.5,
+      "cooldown": 2.2,
+      "strafe_time": 0.8,
+      "bullet_count": 3,
+      "spread_deg": 18.0,
+      "bullet_speed": 90.0,
+      "contact_damage": false
+    },
+    "drone": {
+      "hp": 20,
+      "speed": 70.0,
+      "orbit_min": 120.0,
+      "orbit_max": 160.0,
+      "sine_amp": 24.0,
+      "sine_freq": 1.5,
+      "cooldown": 1.8,
+      "bullet_speed": 110.0,
+      "contact_damage": false
+    },
+    "wrench": {
+      "hp": 60,
+      "speed": 50.0,
+      "trigger_dist": 180.0,
+      "telegraph": 0.6,
+      "charge_speed": 200.0,
+      "charge_duration": 0.5,
+      "stun_duration": 0.8,
+      "ring_bullets": 8,
+      "ring_bullet_speed": 80.0,
+      "cooldown": 3.0,
+      "contact_damage": true
+    },
+    "turret": {
+      "hp": 45,
+      "speed": 0.0,
+      "arms": 2,
+      "shot_interval": 0.15,
+      "fire_duration": 2.0,
+      "rot_speed_deg": 140.0,
+      "bullet_speed": 85.0,
+      "rest_duration": 2.0,
+      "contact_damage": false
+    },
+    "sniper": {
+      "hp": 40,
+      "speed": 35.0,
+      "min_dist": 180.0,
+      "max_dist": 220.0,
+      "aim_time": 0.8,
+      "track_time": 0.5,
+      "bullet_speed": 220.0,
+      "cooldown": 2.8,
+      "reposition_time": 1.0,
+      "contact_damage": false
+    },
+    "freighter": {
+      "hp": 350,
+      "speed": 30.0,
+      "cycle_time": 6.0,
+      "ring_count": 3,
+      "ring_bullets": 14,
+      "ring_speed": 75.0,
+      "ring_interval": 0.4,
+      "ring_rot_step": 12.0,
+      "charge_telegraph": 0.8,
+      "charge_speed": 240.0,
+      "charge_duration": 0.6,
+      "contact_damage": true
+    }
+  },
+  "boss": {
+    "hp": 2400,
+    "phase2_threshold": 0.6,
+    "phase3_threshold": 0.3,
+    "patrol_speed": 30.0,
+    "patrol_min_x": 160.0,
+    "patrol_max_x": 320.0
+  }
+}

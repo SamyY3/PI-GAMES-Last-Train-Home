@@ -1,0 +1,583 @@
+{
+  "group_id": "1ed4b38c-4bde-48a6-af68-da92a038e5ca",
+  "states": [
+    {
+      "character": {
+        "id": "6682c916-66d0-4f2c-b438-abfe06e13d6a",
+        "name": "Idle",
+        "prompt": "Teo, young apprentice steam mechanic: messy spiky dark-brown hair with small brass goggles pushed up into the hair, blue-grey eyes, teal-grey padded high-collar coat with a brass-trimmed zipper placket down the front, dark leather belt with brass buckle, dark slate trousers, brown work boots. Slim youthful build, same body proportions as the style reference.",
+        "size": {
+          "width": 48,
+          "height": 48
+        },
+        "template_id": "mannequin",
+        "directions": 8,
+        "view": "low top-down",
+        "created_at": "2026-10-15T01:00:49.796571+00:00"
+      },
+      "folder": "Idle",
+      "frames": {
+        "rotations": {
+          "south": "Idle/rotations/south.png",
+          "south-east": "Idle/rotations/south-east.png",
+          "east": "Idle/rotations/east.png",
+          "north-east": "Idle/rotations/north-east.png",
+          "north": "Idle/rotations/north.png",
+          "north-west": "Idle/rotations/north-west.png",
+          "west": "Idle/rotations/west.png",
+          "south-west": "Idle/rotations/south-west.png"
+        },
+        "animations": {
+          "dash": {
+            "south-west": [
+              "Idle/animations/dash/south-west/frame_000.png",
+              "Idle/animations/dash/south-west/frame_001.png",
+              "Idle/animations/dash/south-west/frame_002.png",
+              "Idle/animations/dash/south-west/frame_003.png",
+              "Idle/animations/dash/south-west/frame_004.png",
+              "Idle/animations/dash/south-west/frame_005.png"
+            ],
+            "east": [
+              "Idle/animations/dash/east/frame_000.png",
+              "Idle/animations/dash/east/frame_001.png",
+              "Idle/animations/dash/east/frame_002.png",
+              "Idle/animations/dash/east/frame_003.png",
+              "Idle/animations/dash/east/frame_004.png",
+              "Idle/animations/dash/east/frame_005.png"
+            ],
+            "west": [
+              "Idle/animations/dash/west/frame_000.png",
+              "Idle/animations/dash/west/frame_001.png",
+              "Idle/animations/dash/west/frame_002.png",
+              "Idle/animations/dash/west/frame_003.png",
+              "Idle/animations/dash/west/frame_004.png",
+              "Idle/animations/dash/west/frame_005.png"
+            ],
+            "north-east": [
+              "Idle/animations/dash/north-east/frame_000.png",
+              "Idle/animations/dash/north-east/frame_001.png",
+              "Idle/animations/dash/north-east/frame_002.png",
+              "Idle/animations/dash/north-east/frame_003.png",
+              "Idle/animations/dash/north-east/frame_004.png",
+              "Idle/animations/dash/north-east/frame_005.png"
+            ],
+            "south-east": [
+              "Idle/animations/dash/south-east/frame_000.png",
+              "Idle/animations/dash/south-east/frame_001.png",
+              "Idle/animations/dash/south-east/frame_002.png",
+              "Idle/animations/dash/south-east/frame_003.png",
+              "Idle/animations/dash/south-east/frame_004.png",
+              "Idle/animations/dash/south-east/frame_005.png"
+            ],
+            "north": [
+              "Idle/animations/dash/north/frame_000.png",
+              "Idle/animations/dash/north/frame_001.png",
+              "Idle/animations/dash/north/frame_002.png",
+              "Idle/animations/dash/north/frame_003.png",
+              "Idle/animations/dash/north/frame_004.png",
+              "Idle/animations/dash/north/frame_005.png"
+            ],
+            "north-west": [
+              "Idle/animations/dash/north-west/frame_000.png",
+              "Idle/animations/dash/north-west/frame_001.png",
+              "Idle/animations/dash/north-west/frame_002.png",
+              "Idle/animations/dash/north-west/frame_003.png",
+              "Idle/animations/dash/north-west/frame_004.png",
+              "Idle/animations/dash/north-west/frame_005.png"
+            ],
+            "south": [
+              "Idle/animations/dash/south/frame_000.png",
+              "Idle/animations/dash/south/frame_001.png",
+              "Idle/animations/dash/south/frame_002.png",
+              "Idle/animations/dash/south/frame_003.png",
+              "Idle/animations/dash/south/frame_004.png",
+              "Idle/animations/dash/south/frame_005.png"
+            ]
+          },
+          "hurt": {
+            "south-west": [
+              "Idle/animations/hurt/south-west/frame_000.png",
+              "Idle/animations/hurt/south-west/frame_001.png",
+              "Idle/animations/hurt/south-west/frame_002.png",
+              "Idle/animations/hurt/south-west/frame_003.png",
+              "Idle/animations/hurt/south-west/frame_004.png",
+              "Idle/animations/hurt/south-west/frame_005.png"
+            ],
+            "south-east": [
+              "Idle/animations/hurt/south-east/frame_000.png",
+              "Idle/animations/hurt/south-east/frame_001.png",
+              "Idle/animations/hurt/south-east/frame_002.png",
+              "Idle/animations/hurt/south-east/frame_003.png",
+              "Idle/animations/hurt/south-east/frame_004.png",
+              "Idle/animations/hurt/south-east/frame_005.png"
+            ],
+            "north": [
+              "Idle/animations/hurt/north/frame_000.png",
+              "Idle/animations/hurt/north/frame_001.png",
+              "Idle/animations/hurt/north/frame_002.png",
+              "Idle/animations/hurt/north/frame_003.png",
+              "Idle/animations/hurt/north/frame_004.png",
+              "Idle/animations/hurt/north/frame_005.png"
+            ],
+            "north-west": [
+              "Idle/animations/hurt/north-west/frame_000.png",
+              "Idle/animations/hurt/north-west/frame_001.png",
+              "Idle/animations/hurt/north-west/frame_002.png",
+              "Idle/animations/hurt/north-west/frame_003.png",
+              "Idle/animations/hurt/north-west/frame_004.png",
+              "Idle/animations/hurt/north-west/frame_005.png"
+            ],
+            "west": [
+              "Idle/animations/hurt/west/frame_000.png",
+              "Idle/animations/hurt/west/frame_001.png",
+              "Idle/animations/hurt/west/frame_002.png",
+              "Idle/animations/hurt/west/frame_003.png",
+              "Idle/animations/hurt/west/frame_004.png",
+              "Idle/animations/hurt/west/frame_005.png"
+            ],
+            "east": [
+              "Idle/animations/hurt/east/frame_000.png",
+              "Idle/animations/hurt/east/frame_001.png",
+              "Idle/animations/hurt/east/frame_002.png",
+              "Idle/animations/hurt/east/frame_003.png",
+              "Idle/animations/hurt/east/frame_004.png",
+              "Idle/animations/hurt/east/frame_005.png"
+            ],
+            "south": [
+              "Idle/animations/hurt/south/frame_000.png",
+              "Idle/animations/hurt/south/frame_001.png",
+              "Idle/animations/hurt/south/frame_002.png",
+              "Idle/animations/hurt/south/frame_003.png",
+              "Idle/animations/hurt/south/frame_004.png",
+              "Idle/animations/hurt/south/frame_005.png"
+            ],
+            "north-east": [
+              "Idle/animations/hurt/north-east/frame_000.png",
+              "Idle/animations/hurt/north-east/frame_001.png",
+              "Idle/animations/hurt/north-east/frame_002.png",
+              "Idle/animations/hurt/north-east/frame_003.png",
+              "Idle/animations/hurt/north-east/frame_004.png",
+              "Idle/animations/hurt/north-east/frame_005.png"
+            ]
+          },
+          "idle": {
+            "east": [
+              "Idle/animations/idle/east/frame_000.png",
+              "Idle/animations/idle/east/frame_001.png",
+              "Idle/animations/idle/east/frame_002.png",
+              "Idle/animations/idle/east/frame_003.png"
+            ],
+            "south-east": [
+              "Idle/animations/idle/south-east/frame_000.png",
+              "Idle/animations/idle/south-east/frame_001.png",
+              "Idle/animations/idle/south-east/frame_002.png",
+              "Idle/animations/idle/south-east/frame_003.png"
+            ],
+            "south": [
+              "Idle/animations/idle/south/frame_000.png",
+              "Idle/animations/idle/south/frame_001.png",
+              "Idle/animations/idle/south/frame_002.png",
+              "Idle/animations/idle/south/frame_003.png"
+            ],
+            "west": [
+              "Idle/animations/idle/west/frame_000.png",
+              "Idle/animations/idle/west/frame_001.png",
+              "Idle/animations/idle/west/frame_002.png",
+              "Idle/animations/idle/west/frame_003.png"
+            ],
+            "north-east": [
+              "Idle/animations/idle/north-east/frame_000.png",
+              "Idle/animations/idle/north-east/frame_001.png",
+              "Idle/animations/idle/north-east/frame_002.png",
+              "Idle/animations/idle/north-east/frame_003.png"
+            ],
+            "south-west": [
+              "Idle/animations/idle/south-west/frame_000.png",
+              "Idle/animations/idle/south-west/frame_001.png",
+              "Idle/animations/idle/south-west/frame_002.png",
+              "Idle/animations/idle/south-west/frame_003.png"
+            ],
+            "north": [
+              "Idle/animations/idle/north/frame_000.png",
+              "Idle/animations/idle/north/frame_001.png",
+              "Idle/animations/idle/north/frame_002.png",
+              "Idle/animations/idle/north/frame_003.png"
+            ],
+            "north-west": [
+              "Idle/animations/idle/north-west/frame_000.png",
+              "Idle/animations/idle/north-west/frame_001.png",
+              "Idle/animations/idle/north-west/frame_002.png",
+              "Idle/animations/idle/north-west/frame_003.png"
+            ]
+          },
+          "walk": {
+            "north": [
+              "Idle/animations/walk/north/frame_000.png",
+              "Idle/animations/walk/north/frame_001.png",
+              "Idle/animations/walk/north/frame_002.png",
+              "Idle/animations/walk/north/frame_003.png",
+              "Idle/animations/walk/north/frame_004.png",
+              "Idle/animations/walk/north/frame_005.png"
+            ],
+            "south": [
+              "Idle/animations/walk/south/frame_000.png",
+              "Idle/animations/walk/south/frame_001.png",
+              "Idle/animations/walk/south/frame_002.png",
+              "Idle/animations/walk/south/frame_003.png",
+              "Idle/animations/walk/south/frame_004.png",
+              "Idle/animations/walk/south/frame_005.png"
+            ],
+            "north-east": [
+              "Idle/animations/walk/north-east/frame_000.png",
+              "Idle/animations/walk/north-east/frame_001.png",
+              "Idle/animations/walk/north-east/frame_002.png",
+              "Idle/animations/walk/north-east/frame_003.png",
+              "Idle/animations/walk/north-east/frame_004.png",
+              "Idle/animations/walk/north-east/frame_005.png"
+            ],
+            "east": [
+              "Idle/animations/walk/east/frame_000.png",
+              "Idle/animations/walk/east/frame_001.png",
+              "Idle/animations/walk/east/frame_002.png",
+              "Idle/animations/walk/east/frame_003.png",
+              "Idle/animations/walk/east/frame_004.png",
+              "Idle/animations/walk/east/frame_005.png"
+            ],
+            "south-west": [
+              "Idle/animations/walk/south-west/frame_000.png",
+              "Idle/animations/walk/south-west/frame_001.png",
+              "Idle/animations/walk/south-west/frame_002.png",
+              "Idle/animations/walk/south-west/frame_003.png",
+              "Idle/animations/walk/south-west/frame_004.png",
+              "Idle/animations/walk/south-west/frame_005.png"
+            ],
+            "west": [
+              "Idle/animations/walk/west/frame_000.png",
+              "Idle/animations/walk/west/frame_001.png",
+              "Idle/animations/walk/west/frame_002.png",
+              "Idle/animations/walk/west/frame_003.png",
+              "Idle/animations/walk/west/frame_004.png",
+              "Idle/animations/walk/west/frame_005.png"
+            ],
+            "south-east": [
+              "Idle/animations/walk/south-east/frame_000.png",
+              "Idle/animations/walk/south-east/frame_001.png",
+              "Idle/animations/walk/south-east/frame_002.png",
+              "Idle/animations/walk/south-east/frame_003.png",
+              "Idle/animations/walk/south-east/frame_004.png",
+              "Idle/animations/walk/south-east/frame_005.png"
+            ],
+            "north-west": [
+              "Idle/animations/walk/north-west/frame_000.png",
+              "Idle/animations/walk/north-west/frame_001.png",
+              "Idle/animations/walk/north-west/frame_002.png",
+              "Idle/animations/walk/north-west/frame_003.png",
+              "Idle/animations/walk/north-west/frame_004.png",
+              "Idle/animations/walk/north-west/frame_005.png"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "character": {
+        "id": "184d6a09-8284-4821-bb4f-4a52630e8d27",
+        "name": "Aiming Wrench Gun",
+        "prompt": "Teo, young apprentice steam mechanic: messy spiky dark-brown hair with small brass goggles pushed up into the hair, blue-grey eyes, teal-grey padded high-collar coat with a brass-trimmed zipper placket down the front, dark leather belt with brass buckle, dark slate trousers, brown work boots. Slim youthful build, same body proportions as the style reference.",
+        "size": {
+          "width": 48,
+          "height": 48
+        },
+        "template_id": "mannequin",
+        "directions": 8,
+        "view": "low top-down",
+        "created_at": "2026-10-15T01:15:49.845088+00:00"
+      },
+      "folder": "Aiming_Wrench_Gun",
+      "frames": {
+        "rotations": {
+          "south": "Aiming_Wrench_Gun/rotations/south.png",
+          "south-east": "Aiming_Wrench_Gun/rotations/south-east.png",
+          "east": "Aiming_Wrench_Gun/rotations/east.png",
+          "north-east": "Aiming_Wrench_Gun/rotations/north-east.png",
+          "north": "Aiming_Wrench_Gun/rotations/north.png",
+          "north-west": "Aiming_Wrench_Gun/rotations/north-west.png",
+          "west": "Aiming_Wrench_Gun/rotations/west.png",
+          "south-west": "Aiming_Wrench_Gun/rotations/south-west.png"
+        },
+        "animations": {
+          "aim_walk": {
+            "south-west": [
+              "Aiming_Wrench_Gun/animations/aim_walk/south-west/frame_000.png",
+              "Aiming_Wrench_Gun/animations/aim_walk/south-west/frame_001.png",
+              "Aiming_Wrench_Gun/animations/aim_walk/south-west/frame_002.png",
+              "Aiming_Wrench_Gun/animations/aim_walk/south-west/frame_003.png",
+              "Aiming_Wrench_Gun/animations/aim_walk/south-west/frame_004.png",
+              "Aiming_Wrench_Gun/animations/aim_walk/south-west/frame_005.png"
+            ],
+            "west": [
+              "Aiming_Wrench_Gun/animations/aim_walk/west/frame_000.png",
+              "Aiming_Wrench_Gun/animations/aim_walk/west/frame_001.png",
+              "Aiming_Wrench_Gun/animations/aim_walk/west/frame_002.png",
+              "Aiming_Wrench_Gun/animations/aim_walk/west/frame_003.png",
+              "Aiming_Wrench_Gun/animations/aim_walk/west/frame_004.png",
+              "Aiming_Wrench_Gun/animations/aim_walk/west/frame_005.png"
+            ],
+            "north": [
+              "Aiming_Wrench_Gun/animations/aim_walk/north/frame_000.png",
+              "Aiming_Wrench_Gun/animations/aim_walk/north/frame_001.png",
+              "Aiming_Wrench_Gun/animations/aim_walk/north/frame_002.png",
+              "Aiming_Wrench_Gun/animations/aim_walk/north/frame_003.png",
+              "Aiming_Wrench_Gun/animations/aim_walk/north/frame_004.png",
+              "Aiming_Wrench_Gun/animations/aim_walk/north/frame_005.png"
+            ],
+            "north-west": [
+              "Aiming_Wrench_Gun/animations/aim_walk/north-west/frame_000.png",
+              "Aiming_Wrench_Gun/animations/aim_walk/north-west/frame_001.png",
+              "Aiming_Wrench_Gun/animations/aim_walk/north-west/frame_002.png",
+              "Aiming_Wrench_Gun/animations/aim_walk/north-west/frame_003.png",
+              "Aiming_Wrench_Gun/animations/aim_walk/north-west/frame_004.png",
+              "Aiming_Wrench_Gun/animations/aim_walk/north-west/frame_005.png"
+            ],
+            "east": [
+              "Aiming_Wrench_Gun/animations/aim_walk/east/frame_000.png",
+              "Aiming_Wrench_Gun/animations/aim_walk/east/frame_001.png",
+              "Aiming_Wrench_Gun/animations/aim_walk/east/frame_002.png",
+              "Aiming_Wrench_Gun/animations/aim_walk/east/frame_003.png",
+              "Aiming_Wrench_Gun/animations/aim_walk/east/frame_004.png",
+              "Aiming_Wrench_Gun/animations/aim_walk/east/frame_005.png"
+            ],
+            "north-east": [
+              "Aiming_Wrench_Gun/animations/aim_walk/north-east/frame_000.png",
+              "Aiming_Wrench_Gun/animations/aim_walk/north-east/frame_001.png",
+              "Aiming_Wrench_Gun/animations/aim_walk/north-east/frame_002.png",
+              "Aiming_Wrench_Gun/animations/aim_walk/north-east/frame_003.png",
+              "Aiming_Wrench_Gun/animations/aim_walk/north-east/frame_004.png",
+              "Aiming_Wrench_Gun/animations/aim_walk/north-east/frame_005.png"
+            ],
+            "south": [
+              "Aiming_Wrench_Gun/animations/aim_walk/south/frame_000.png",
+              "Aiming_Wrench_Gun/animations/aim_walk/south/frame_001.png",
+              "Aiming_Wrench_Gun/animations/aim_walk/south/frame_002.png",
+              "Aiming_Wrench_Gun/animations/aim_walk/south/frame_003.png",
+              "Aiming_Wrench_Gun/animations/aim_walk/south/frame_004.png",
+              "Aiming_Wrench_Gun/animations/aim_walk/south/frame_005.png"
+            ],
+            "south-east": [
+              "Aiming_Wrench_Gun/animations/aim_walk/south-east/frame_000.png",
+              "Aiming_Wrench_Gun/animations/aim_walk/south-east/frame_001.png",
+              "Aiming_Wrench_Gun/animations/aim_walk/south-east/frame_002.png",
+              "Aiming_Wrench_Gun/animations/aim_walk/south-east/frame_003.png",
+              "Aiming_Wrench_Gun/animations/aim_walk/south-east/frame_004.png",
+              "Aiming_Wrench_Gun/animations/aim_walk/south-east/frame_005.png"
+            ]
+          },
+          "pulse": {
+            "north-east": [
+              "Aiming_Wrench_Gun/animations/pulse/north-east/frame_000.png",
+              "Aiming_Wrench_Gun/animations/pulse/north-east/frame_001.png",
+              "Aiming_Wrench_Gun/animations/pulse/north-east/frame_002.png",
+              "Aiming_Wrench_Gun/animations/pulse/north-east/frame_003.png",
+              "Aiming_Wrench_Gun/animations/pulse/north-east/frame_004.png",
+              "Aiming_Wrench_Gun/animations/pulse/north-east/frame_005.png"
+            ],
+            "south-west": [
+              "Aiming_Wrench_Gun/animations/pulse/south-west/frame_000.png",
+              "Aiming_Wrench_Gun/animations/pulse/south-west/frame_001.png",
+              "Aiming_Wrench_Gun/animations/pulse/south-west/frame_002.png",
+              "Aiming_Wrench_Gun/animations/pulse/south-west/frame_003.png",
+              "Aiming_Wrench_Gun/animations/pulse/south-west/frame_004.png",
+              "Aiming_Wrench_Gun/animations/pulse/south-west/frame_005.png"
+            ],
+            "south": [
+              "Aiming_Wrench_Gun/animations/pulse/south/frame_000.png",
+              "Aiming_Wrench_Gun/animations/pulse/south/frame_001.png",
+              "Aiming_Wrench_Gun/animations/pulse/south/frame_002.png",
+              "Aiming_Wrench_Gun/animations/pulse/south/frame_003.png",
+              "Aiming_Wrench_Gun/animations/pulse/south/frame_004.png",
+              "Aiming_Wrench_Gun/animations/pulse/south/frame_005.png"
+            ],
+            "east": [
+              "Aiming_Wrench_Gun/animations/pulse/east/frame_000.png",
+              "Aiming_Wrench_Gun/animations/pulse/east/frame_001.png",
+              "Aiming_Wrench_Gun/animations/pulse/east/frame_002.png",
+              "Aiming_Wrench_Gun/animations/pulse/east/frame_003.png",
+              "Aiming_Wrench_Gun/animations/pulse/east/frame_004.png",
+              "Aiming_Wrench_Gun/animations/pulse/east/frame_005.png"
+            ],
+            "north": [
+              "Aiming_Wrench_Gun/animations/pulse/north/frame_000.png",
+              "Aiming_Wrench_Gun/animations/pulse/north/frame_001.png",
+              "Aiming_Wrench_Gun/animations/pulse/north/frame_002.png",
+              "Aiming_Wrench_Gun/animations/pulse/north/frame_003.png",
+              "Aiming_Wrench_Gun/animations/pulse/north/frame_004.png",
+              "Aiming_Wrench_Gun/animations/pulse/north/frame_005.png"
+            ],
+            "north-west": [
+              "Aiming_Wrench_Gun/animations/pulse/north-west/frame_000.png",
+              "Aiming_Wrench_Gun/animations/pulse/north-west/frame_001.png",
+              "Aiming_Wrench_Gun/animations/pulse/north-west/frame_002.png",
+              "Aiming_Wrench_Gun/animations/pulse/north-west/frame_003.png",
+              "Aiming_Wrench_Gun/animations/pulse/north-west/frame_004.png",
+              "Aiming_Wrench_Gun/animations/pulse/north-west/frame_005.png"
+            ],
+            "west": [
+              "Aiming_Wrench_Gun/animations/pulse/west/frame_000.png",
+              "Aiming_Wrench_Gun/animations/pulse/west/frame_001.png",
+              "Aiming_Wrench_Gun/animations/pulse/west/frame_002.png",
+              "Aiming_Wrench_Gun/animations/pulse/west/frame_003.png",
+              "Aiming_Wrench_Gun/animations/pulse/west/frame_004.png",
+              "Aiming_Wrench_Gun/animations/pulse/west/frame_005.png"
+            ],
+            "south-east": [
+              "Aiming_Wrench_Gun/animations/pulse/south-east/frame_000.png",
+              "Aiming_Wrench_Gun/animations/pulse/south-east/frame_001.png",
+              "Aiming_Wrench_Gun/animations/pulse/south-east/frame_002.png",
+              "Aiming_Wrench_Gun/animations/pulse/south-east/frame_003.png",
+              "Aiming_Wrench_Gun/animations/pulse/south-east/frame_004.png",
+              "Aiming_Wrench_Gun/animations/pulse/south-east/frame_005.png"
+            ]
+          },
+          "aim_hurt": {
+            "north": [
+              "Aiming_Wrench_Gun/animations/aim_hurt/north/frame_000.png",
+              "Aiming_Wrench_Gun/animations/aim_hurt/north/frame_001.png",
+              "Aiming_Wrench_Gun/animations/aim_hurt/north/frame_002.png",
+              "Aiming_Wrench_Gun/animations/aim_hurt/north/frame_003.png",
+              "Aiming_Wrench_Gun/animations/aim_hurt/north/frame_004.png",
+              "Aiming_Wrench_Gun/animations/aim_hurt/north/frame_005.png"
+            ],
+            "north-west": [
+              "Aiming_Wrench_Gun/animations/aim_hurt/north-west/frame_000.png",
+              "Aiming_Wrench_Gun/animations/aim_hurt/north-west/frame_001.png",
+              "Aiming_Wrench_Gun/animations/aim_hurt/north-west/frame_002.png",
+              "Aiming_Wrench_Gun/animations/aim_hurt/north-west/frame_003.png",
+              "Aiming_Wrench_Gun/animations/aim_hurt/north-west/frame_004.png",
+              "Aiming_Wrench_Gun/animations/aim_hurt/north-west/frame_005.png"
+            ],
+            "east": [
+              "Aiming_Wrench_Gun/animations/aim_hurt/east/frame_000.png",
+              "Aiming_Wrench_Gun/animations/aim_hurt/east/frame_001.png",
+              "Aiming_Wrench_Gun/animations/aim_hurt/east/frame_002.png",
+              "Aiming_Wrench_Gun/animations/aim_hurt/east/frame_003.png",
+              "Aiming_Wrench_Gun/animations/aim_hurt/east/frame_004.png",
+              "Aiming_Wrench_Gun/animations/aim_hurt/east/frame_005.png"
+            ],
+            "north-east": [
+              "Aiming_Wrench_Gun/animations/aim_hurt/north-east/frame_000.png",
+              "Aiming_Wrench_Gun/animations/aim_hurt/north-east/frame_001.png",
+              "Aiming_Wrench_Gun/animations/aim_hurt/north-east/frame_002.png",
+              "Aiming_Wrench_Gun/animations/aim_hurt/north-east/frame_003.png",
+              "Aiming_Wrench_Gun/animations/aim_hurt/north-east/frame_004.png",
+              "Aiming_Wrench_Gun/animations/aim_hurt/north-east/frame_005.png"
+            ],
+            "south": [
+              "Aiming_Wrench_Gun/animations/aim_hurt/south/frame_000.png",
+              "Aiming_Wrench_Gun/animations/aim_hurt/south/frame_001.png",
+              "Aiming_Wrench_Gun/animations/aim_hurt/south/frame_002.png",
+              "Aiming_Wrench_Gun/animations/aim_hurt/south/frame_003.png",
+              "Aiming_Wrench_Gun/animations/aim_hurt/south/frame_004.png",
+              "Aiming_Wrench_Gun/animations/aim_hurt/south/frame_005.png"
+            ],
+            "south-west": [
+              "Aiming_Wrench_Gun/animations/aim_hurt/south-west/frame_000.png",
+              "Aiming_Wrench_Gun/animations/aim_hurt/south-west/frame_001.png",
+              "Aiming_Wrench_Gun/animations/aim_hurt/south-west/frame_002.png",
+              "Aiming_Wrench_Gun/animations/aim_hurt/south-west/frame_003.png",
+              "Aiming_Wrench_Gun/animations/aim_hurt/south-west/frame_004.png",
+              "Aiming_Wrench_Gun/animations/aim_hurt/south-west/frame_005.png"
+            ],
+            "west": [
+              "Aiming_Wrench_Gun/animations/aim_hurt/west/frame_000.png",
+              "Aiming_Wrench_Gun/animations/aim_hurt/west/frame_001.png",
+              "Aiming_Wrench_Gun/animations/aim_hurt/west/frame_002.png",
+              "Aiming_Wrench_Gun/animations/aim_hurt/west/frame_003.png",
+              "Aiming_Wrench_Gun/animations/aim_hurt/west/frame_004.png",
+              "Aiming_Wrench_Gun/animations/aim_hurt/west/frame_005.png"
+            ],
+            "south-east": [
+              "Aiming_Wrench_Gun/animations/aim_hurt/south-east/frame_000.png",
+              "Aiming_Wrench_Gun/animations/aim_hurt/south-east/frame_001.png",
+              "Aiming_Wrench_Gun/animations/aim_hurt/south-east/frame_002.png",
+              "Aiming_Wrench_Gun/animations/aim_hurt/south-east/frame_003.png",
+              "Aiming_Wrench_Gun/animations/aim_hurt/south-east/frame_004.png",
+              "Aiming_Wrench_Gun/animations/aim_hurt/south-east/frame_005.png"
+            ]
+          },
+          "aim_idle": {
+            "west": [
+              "Aiming_Wrench_Gun/animations/aim_idle/west/frame_000.png",
+              "Aiming_Wrench_Gun/animations/aim_idle/west/frame_001.png",
+              "Aiming_Wrench_Gun/animations/aim_idle/west/frame_002.png",
+              "Aiming_Wrench_Gun/animations/aim_idle/west/frame_003.png"
+            ],
+            "south": [
+              "Aiming_Wrench_Gun/animations/aim_idle/south/frame_000.png",
+              "Aiming_Wrench_Gun/animations/aim_idle/south/frame_001.png",
+              "Aiming_Wrench_Gun/animations/aim_idle/south/frame_002.png",
+              "Aiming_Wrench_Gun/animations/aim_idle/south/frame_003.png"
+            ],
+            "north-west": [
+              "Aiming_Wrench_Gun/animations/aim_idle/north-west/frame_000.png",
+              "Aiming_Wrench_Gun/animations/aim_idle/north-west/frame_001.png",
+              "Aiming_Wrench_Gun/animations/aim_idle/north-west/frame_002.png",
+              "Aiming_Wrench_Gun/animations/aim_idle/north-west/frame_003.png"
+            ],
+            "north": [
+              "Aiming_Wrench_Gun/animations/aim_idle/north/frame_000.png",
+              "Aiming_Wrench_Gun/animations/aim_idle/north/frame_001.png",
+              "Aiming_Wrench_Gun/animations/aim_idle/north/frame_002.png",
+              "Aiming_Wrench_Gun/animations/aim_idle/north/frame_003.png"
+            ],
+            "east": [
+              "Aiming_Wrench_Gun/animations/aim_idle/east/frame_000.png",
+              "Aiming_Wrench_Gun/animations/aim_idle/east/frame_001.png",
+              "Aiming_Wrench_Gun/animations/aim_idle/east/frame_002.png",
+              "Aiming_Wrench_Gun/animations/aim_idle/east/frame_003.png"
+            ],
+            "south-west": [
+              "Aiming_Wrench_Gun/animations/aim_idle/south-west/frame_000.png",
+              "Aiming_Wrench_Gun/animations/aim_idle/south-west/frame_001.png",
+              "Aiming_Wrench_Gun/animations/aim_idle/south-west/frame_002.png",
+              "Aiming_Wrench_Gun/animations/aim_idle/south-west/frame_003.png"
+            ],
+            "north-east": [
+              "Aiming_Wrench_Gun/animations/aim_idle/north-east/frame_000.png",
+              "Aiming_Wrench_Gun/animations/aim_idle/north-east/frame_001.png",
+              "Aiming_Wrench_Gun/animations/aim_idle/north-east/frame_002.png",
+              "Aiming_Wrench_Gun/animations/aim_idle/north-east/frame_003.png"
+            ],
+            "south-east": [
+              "Aiming_Wrench_Gun/animations/aim_idle/south-east/frame_000.png",
+              "Aiming_Wrench_Gun/animations/aim_idle/south-east/frame_001.png",
+              "Aiming_Wrench_Gun/animations/aim_idle/south-east/frame_002.png",
+              "Aiming_Wrench_Gun/animations/aim_idle/south-east/frame_003.png"
+            ]
+          },
+          "aim_idle_v3": {
+            "north-east": [
+              "Aiming_Wrench_Gun/animations/aim_idle_v3/north-east/frame_000.png",
+              "Aiming_Wrench_Gun/animations/aim_idle_v3/north-east/frame_001.png",
+              "Aiming_Wrench_Gun/animations/aim_idle_v3/north-east/frame_002.png",
+              "Aiming_Wrench_Gun/animations/aim_idle_v3/north-east/frame_003.png"
+            ],
+            "west": [
+              "Aiming_Wrench_Gun/animations/aim_idle_v3/west/frame_000.png",
+              "Aiming_Wrench_Gun/animations/aim_idle_v3/west/frame_001.png",
+              "Aiming_Wrench_Gun/animations/aim_idle_v3/west/frame_002.png",
+              "Aiming_Wrench_Gun/animations/aim_idle_v3/west/frame_003.png"
+            ],
+            "north": [
+              "Aiming_Wrench_Gun/animations/aim_idle_v3/north/frame_000.png",
+              "Aiming_Wrench_Gun/animations/aim_idle_v3/north/frame_001.png",
+              "Aiming_Wrench_Gun/animations/aim_idle_v3/north/frame_002.png",
+              "Aiming_Wrench_Gun/animations/aim_idle_v3/north/frame_003.png"
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "export_version": "3.1",
+  "export_date": "2026-10-15T03:00:13.497056"
+}

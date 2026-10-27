@@ -1,0 +1,9 @@
+# Godot
+.godot/
+*.translation
+export_presets.cfg
+/android/
+
+# Python
+__pycache__/
+*.pyc

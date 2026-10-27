@@ -1,0 +1,475 @@
+extends CanvasLayer
+
+@export var overlay_mode: String = "pause"
+
+var _root: Control
+var _title_lbl: Label
+var _tab_pages: Array[Control] = []
+var _tab_buttons: Array[Button] = []
+var _upgrades_grid: VBoxContainer
+var _stats_label: Label
+var _invincible_btn: Button
+var _was_clock_running: bool = false
+
+var _exploding_anim: bool = false
+var _explosion_t: float = 0.0
+var _explosion_drawer: Control
+var _game_over_card: Panel
+
+
+func _ready() -> void:
+	layer = 60
+	process_mode = Node.PROCESS_MODE_ALWAYS
+	_build_overlay()
+	_root.visible = false
+	if overlay_mode == "game_over":
+		Events.player_died.connect(_on_player_died)
+
+
+func _process(delta: float) -> void:
+	if _exploding_anim and _explosion_drawer != null:
+		_explosion_t += delta
+		_explosion_drawer.queue_redraw()
+
+
+func _build_overlay() -> void:
+	_root = Control.new()
+	_root.position = Vector2.ZERO
+	_root.size = Vector2(480.0, 270.0)
+	add_child(_root)
+
+	var bg := ColorRect.new()
+	bg.color = Color(0.04, 0.03, 0.06, 0.88)
+	bg.position = Vector2.ZERO
+	bg.size = Vector2(480.0, 270.0)
+	_root.add_child(bg)
+
+	if overlay_mode == "game_over":
+		_build_game_over_ui()
+	else:
+		_build_fixed_pause_ui()
+
+
+func _build_game_over_ui() -> void:
+	_explosion_drawer = Control.new()
+	_explosion_drawer.position = Vector2.ZERO
+	_explosion_drawer.size = Vector2(480.0, 270.0)
+	_explosion_drawer.draw.connect(_draw_bomb_explosion)
+	_root.add_child(_explosion_drawer)
+
+	_game_over_card = _make_fixed_panel(Vector2(100.0, 56.0), Vector2(280.0, 158.0))
+	_root.add_child(_game_over_card)
+
+	_title_lbl = Label.new()
+	_title_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_title_lbl.position = Vector2(10.0, 14.0)
+	_title_lbl.size = Vector2(260.0, 22.0)
+	_title_lbl.text = "GAME OVER"
+	_title_lbl.add_theme_font_size_override("font_size", 20)
+	if Settings.title_font != null:
+		_title_lbl.add_theme_font_override("font", Settings.title_font)
+	_title_lbl.add_theme_color_override("font_color", Color("#ff3d6e"))
+	_game_over_card.add_child(_title_lbl)
+
+	var sub_lbl := Label.new()
+	sub_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	sub_lbl.position = Vector2(10.0, 40.0)
+	sub_lbl.size = Vector2(260.0, 18.0)
+	sub_lbl.text = "Checkpoint da seção pronto."
+	sub_lbl.add_theme_font_size_override("font_size", 10)
+	sub_lbl.add_theme_color_override("font_color", Color("#8fb8c4"))
+	_game_over_card.add_child(sub_lbl)
+
+	var b_retry := Button.new()
+	b_retry.text = "TENTAR DE NOVO [R]"
+	b_retry.position = Vector2(40.0, 72.0)
+	b_retry.size = Vector2(200.0, 28.0)
+	b_retry.pressed.connect(_retry_current_wagon)
+	_game_over_card.add_child(b_retry)
+
+	var b_menu := Button.new()
+	b_menu.text = "MENU PRINCIPAL"
+	b_menu.position = Vector2(40.0, 110.0)
+	b_menu.size = Vector2(200.0, 28.0)
+	b_menu.pressed.connect(func() -> void:
+		get_tree().paused = false
+		SceneRouter.goto_scene("res://scenes/menus/MainMenu.tscn")
+	)
+	_game_over_card.add_child(b_menu)
+
+
+const EXPLOSION_TIME: float = 3.2
+const EXPLOSION_TEX: Texture2D = preload("res://assets/sprites/fx/bomb_explosion.png") # 8 quadros 64x64
+const STEAM_PUFF_TEX: Texture2D = preload("res://assets/sprites/fx/steam_puff.png") # 8 estágios 32x32
+const SKY_NIGHT_TEX: Texture2D = preload("res://assets/sprites/menu/sky_night.png")
+const SKY_DAY_TEX: Texture2D = preload("res://assets/sprites/menu/sky_day.png")
+const BALLAST_TEX: Texture2D = preload("res://assets/sprites/train/ballast_tile.png")
+const RAIL_TILE_TEX: Texture2D = preload("res://assets/sprites/train/rail_tile.png")
+const LOCO_TEX: Texture2D = preload("res://assets/sprites/train/locomotive.png")
+const WAGON_TEX: Texture2D = preload("res://assets/sprites/train/wagon.png")
+
+
+# Cutscene em pixel art: trem à noite -> alarme -> explosão (sprite 3x) -> fumaça sobre os destroços
+func _draw_bomb_explosion() -> void:
+	if not _exploding_anim:
+		return
+	var d: Control = _explosion_drawer
+	var t: float = _explosion_t
+	var blast_t: float = t - 0.7
+	d.draw_texture(SKY_NIGHT_TEX, Vector2.ZERO)
+
+	# Trem parado nos trilhos (escurece/avermelha conforme a explosão consome)
+	var burn: float = clampf(blast_t / 1.0, 0.0, 1.0)
+	var train_col: Color = Color.WHITE.lerp(Color(0.35, 0.12, 0.12), burn)
+	if t < 0.7 and int(t * 8.0) % 2 == 0:
+		train_col = Color(1.0, 0.55, 0.55)
+	for w in range(3):
+		d.draw_texture(WAGON_TEX, Vector2(30.0 + float(w) * 100.0, 158.0), train_col)
+	d.draw_texture(LOCO_TEX, Vector2(330.0, 144.0), train_col)
+	for i in range(16):
+		d.draw_texture(RAIL_TILE_TEX, Vector2(float(i) * 32.0, 206.0))
+	d.draw_texture_rect(BALLAST_TEX, Rect2(0.0, 218.0, 480.0, 52.0), true)
+
+	# Clarão branco no instante da detonação
+	if blast_t >= 0.0 and blast_t < 0.25:
+		d.draw_texture(SKY_DAY_TEX, Vector2.ZERO, Color(3.0, 2.8, 2.5, 1.0 - blast_t / 0.25))
+
+	# Explosão: 8 quadros a 3x (escala inteira, pixels nítidos)
+	if blast_t >= 0.0 and blast_t < 1.6:
+		var frame: int = mini(int(blast_t / 0.2), 7)
+		for e in [[Vector2(200.0, 150.0), 0.0], [Vector2(330.0, 160.0), 0.25], [Vector2(90.0, 165.0), 0.4]]:
+			var ef: int = frame - int(float(e[1]) / 0.2)
+			if ef < 0 or ef > 7:
+				continue
+			var c: Vector2 = e[0]
+			d.draw_texture_rect_region(EXPLOSION_TEX, Rect2(c.x - 96.0, c.y - 96.0, 192.0, 192.0), Rect2(ef * 64.0, 0.0, 64.0, 64.0))
+
+	# Fumaça escura subindo dos destroços
+	if blast_t > 0.6:
+		for k in range(7):
+			var age: float = fmod(blast_t - 0.6 + float(k) * 0.23, 1.6)
+			var stage: int = mini(int(age / 1.6 * 8.0), 7)
+			var sp := Vector2(round(70.0 + float(k) * 52.0 + sin(float(k) * 2.1) * 10.0), round(170.0 - age * 55.0))
+			d.draw_texture_rect_region(STEAM_PUFF_TEX, Rect2(sp.x - 32.0, sp.y - 32.0, 64.0, 64.0), Rect2(stage * 32.0, 0.0, 32.0, 32.0), Color(0.3, 0.27, 0.32, 0.9))
+
+
+func _build_fixed_pause_ui() -> void:
+	var modal := _make_fixed_panel(Vector2(60.0, 23.0), Vector2(360.0, 224.0))
+	_root.add_child(modal)
+
+	var header_bg := NinePatchRect.new()
+	header_bg.texture = load("res://assets/sprites/ui/kit/panel_focus.png")
+	header_bg.patch_margin_left = 6
+	header_bg.patch_margin_right = 6
+	header_bg.patch_margin_top = 6
+	header_bg.patch_margin_bottom = 6
+	header_bg.position = Vector2(0.0, 0.0)
+	header_bg.size = Vector2(360.0, 30.0)
+	modal.add_child(header_bg)
+
+	var header_lbl := Label.new()
+	header_lbl.text = "PAUSA — TERMINAL DA LOCOMOTIVA"
+	header_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	header_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	header_lbl.position = Vector2(0.0, 2.0)
+	header_lbl.size = Vector2(360.0, 26.0)
+	header_lbl.add_theme_font_size_override("font_size", 10)
+	header_lbl.add_theme_color_override("font_color", Color("#f2c35b"))
+	modal.add_child(header_lbl)
+
+	var tab_titles: Array[String] = ["JOGO", "MELHORIAS", "DEBUG"]
+	for i in range(3):
+		var tb := Button.new()
+		tb.text = tab_titles[i]
+		tb.position = Vector2(18.0 + float(i) * 110.0, 36.0)
+		tb.size = Vector2(104.0, 24.0)
+		var idx: int = i
+		tb.pressed.connect(func() -> void:
+			AudioManager.play_sfx("ui_hover")
+			_switch_pause_tab(idx)
+		)
+		modal.add_child(tb)
+		_tab_buttons.append(tb)
+
+	var page_game := Control.new()
+	page_game.position = Vector2(14.0, 68.0)
+	page_game.size = Vector2(332.0, 148.0)
+	modal.add_child(page_game)
+	_tab_pages.append(page_game)
+
+	_stats_label = Label.new()
+	_stats_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_stats_label.position = Vector2(0.0, 2.0)
+	_stats_label.size = Vector2(332.0, 18.0)
+	_stats_label.add_theme_font_size_override("font_size", 10)
+	_stats_label.add_theme_color_override("font_color", Color("#8fb8c4"))
+	page_game.add_child(_stats_label)
+
+	var b_cont := Button.new()
+	b_cont.text = "CONTINUAR VIAGEM [ESC]"
+	b_cont.position = Vector2(46.0, 24.0)
+	b_cont.size = Vector2(240.0, 26.0)
+	b_cont.pressed.connect(_toggle_pause)
+	page_game.add_child(b_cont)
+
+	var b_retry := Button.new()
+	b_retry.text = "REINICIAR SEÇÃO ATUAL"
+	b_retry.position = Vector2(46.0, 56.0)
+	b_retry.size = Vector2(240.0, 26.0)
+	b_retry.pressed.connect(_retry_current_wagon)
+	page_game.add_child(b_retry)
+
+	var b_menu := Button.new()
+	b_menu.text = "MENU PRINCIPAL"
+	b_menu.position = Vector2(46.0, 88.0)
+	b_menu.size = Vector2(240.0, 26.0)
+	b_menu.pressed.connect(func() -> void:
+		get_tree().paused = false
+		SceneRouter.goto_scene("res://scenes/menus/MainMenu.tscn")
+	)
+	page_game.add_child(b_menu)
+
+	var ctrl_hint := Label.new()
+	ctrl_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	ctrl_hint.position = Vector2(0.0, 124.0)
+	ctrl_hint.size = Vector2(332.0, 20.0)
+	ctrl_hint.text = "[WASD] Mover · [Mouse/J] Atirar · [Esp] Dash · [Q] Pulso · [F] Ação"
+	ctrl_hint.add_theme_font_size_override("font_size", 10)
+	ctrl_hint.add_theme_color_override("font_color", Color("#dce9ee"))
+	page_game.add_child(ctrl_hint)
+
+	var page_upg := Control.new()
+	page_upg.position = Vector2(14.0, 68.0)
+	page_upg.size = Vector2(332.0, 148.0)
+	page_upg.visible = false
+	modal.add_child(page_upg)
+	_tab_pages.append(page_upg)
+
+	var scroll := ScrollContainer.new()
+	scroll.position = Vector2(0.0, 0.0)
+	scroll.size = Vector2(332.0, 144.0)
+	page_upg.add_child(scroll)
+
+	_upgrades_grid = VBoxContainer.new()
+	_upgrades_grid.custom_minimum_size = Vector2(316.0, 0.0)
+	_upgrades_grid.add_theme_constant_override("separation", 6)
+	scroll.add_child(_upgrades_grid)
+
+	var page_dbg := Control.new()
+	page_dbg.position = Vector2(14.0, 68.0)
+	page_dbg.size = Vector2(332.0, 148.0)
+	page_dbg.visible = false
+	modal.add_child(page_dbg)
+	_tab_pages.append(page_dbg)
+
+	_invincible_btn = Button.new()
+	_invincible_btn.position = Vector2(0.0, 6.0)
+	_invincible_btn.size = Vector2(162.0, 28.0)
+	_invincible_btn.add_theme_font_size_override("font_size", 10)
+	_invincible_btn.pressed.connect(func() -> void:
+		GameState.debug_invincible = not GameState.debug_invincible
+		_refresh_debug_buttons()
+	)
+	page_dbg.add_child(_invincible_btn)
+
+	var b_kill := Button.new()
+	b_kill.text = "[F4] Matar Inimigos"
+	b_kill.position = Vector2(170.0, 6.0)
+	b_kill.size = Vector2(162.0, 28.0)
+	b_kill.add_theme_font_size_override("font_size", 10)
+	b_kill.pressed.connect(func() -> void:
+		for e in get_tree().get_nodes_in_group("enemies"):
+			if e.has_method("take_damage"):
+				e.take_damage(99999.0)
+	)
+	page_dbg.add_child(b_kill)
+
+	var b_next := Button.new()
+	b_next.text = "[F2] Próximo Vagão"
+	b_next.position = Vector2(0.0, 42.0)
+	b_next.size = Vector2(162.0, 28.0)
+	b_next.add_theme_font_size_override("font_size", 10)
+	b_next.pressed.connect(func() -> void:
+		_toggle_pause()
+		var next_w: int = GameState.current_wagon + 1
+		if next_w <= 4:
+			GameState.current_wagon = next_w
+			SceneRouter.goto_scene("res://scenes/levels/Level_Wagon%d.tscn" % next_w)
+		else:
+			SceneRouter.goto_scene("res://scenes/levels/Level_Cabin.tscn")
+	)
+	page_dbg.add_child(b_next)
+
+	var b_upg := Button.new()
+	b_upg.text = "[F6] +1 Melhoria"
+	b_upg.position = Vector2(170.0, 42.0)
+	b_upg.size = Vector2(162.0, 28.0)
+	b_upg.add_theme_font_size_override("font_size", 10)
+	b_upg.pressed.connect(func() -> void:
+		if not GameState.upgrades_db.is_empty():
+			var u: Dictionary = GameState.upgrades_db.pick_random()
+			GameState.add_upgrade(String(u.get("id", "dano")))
+			_populate_pause_upgrades()
+	)
+	page_dbg.add_child(b_upg)
+
+	var b_boss := Button.new()
+	b_boss.text = "[F5] Boss 31% Vida"
+	b_boss.position = Vector2(0.0, 78.0)
+	b_boss.size = Vector2(162.0, 28.0)
+	b_boss.add_theme_font_size_override("font_size", 10)
+	b_boss.pressed.connect(func() -> void:
+		for e in get_tree().get_nodes_in_group("enemies"):
+			if "hp" in e and "max_hp" in e:
+				var target_hp: float = float(e.max_hp) * 0.31
+				if float(e.hp) > target_hp:
+					e.take_damage(float(e.hp) - target_hp)
+	)
+	page_dbg.add_child(b_boss)
+
+	var b_heal := Button.new()
+	b_heal.text = "Curar +30s Relógio"
+	b_heal.position = Vector2(170.0, 78.0)
+	b_heal.size = Vector2(162.0, 28.0)
+	b_heal.add_theme_font_size_override("font_size", 10)
+	b_heal.pressed.connect(func() -> void:
+		GameState.heal_player(GameState.max_hp)
+		TrainClock.set_time(TrainClock.time_left + 30.0)
+		_populate_pause_upgrades()
+	)
+	page_dbg.add_child(b_heal)
+
+	var dbg_note := Label.new()
+	dbg_note.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	dbg_note.position = Vector2(0.0, 118.0)
+	dbg_note.size = Vector2(332.0, 20.0)
+	dbg_note.text = "Atalhos diretos em jogo: [F1] FPS · [F2..F6] Cheats"
+	dbg_note.add_theme_font_size_override("font_size", 10)
+	dbg_note.add_theme_color_override("font_color", Color("#8fb8c4"))
+	page_dbg.add_child(dbg_note)
+
+
+func _make_fixed_panel(pos: Vector2, sz: Vector2) -> Panel:
+	var p := Panel.new()
+	p.position = pos
+	p.size = sz
+	p.add_theme_stylebox_override("panel", Settings.make_ui_style("panel"))
+	return p
+
+
+func _switch_pause_tab(idx: int) -> void:
+	for i in range(_tab_pages.size()):
+		_tab_pages[i].visible = (i == idx)
+		_tab_buttons[i].modulate = Color("#f2c35b") if i == idx else Color("#fff1c9")
+
+
+func _refresh_debug_buttons() -> void:
+	if _invincible_btn != null:
+		_invincible_btn.text = "[F3] Invencível: %s" % ("SIM" if GameState.debug_invincible else "NÃO")
+
+
+func _populate_pause_upgrades() -> void:
+	if _stats_label != null:
+		_stats_label.text = "Vagão: %d/4  ·  Abates: %d  ·  Relógio: %s" % [
+			mini(4, GameState.current_wagon), GameState.kills, TrainClock.format_time()
+		]
+	if _upgrades_grid == null:
+		return
+	for child in _upgrades_grid.get_children():
+		child.queue_free()
+
+	if GameState.upgrades.is_empty():
+		var empty_lbl := Label.new()
+		empty_lbl.text = "\nNenhuma melhoria coletada ainda.\nConclua um vagão para escolher!"
+		empty_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		empty_lbl.custom_minimum_size = Vector2(316.0, 60.0)
+		empty_lbl.add_theme_font_size_override("font_size", 10)
+		empty_lbl.add_theme_color_override("font_color", Color("#8fb8c4"))
+		_upgrades_grid.add_child(empty_lbl)
+		return
+
+	for k in GameState.upgrades.keys():
+		var uid: String = String(k)
+		var lvl: int = int(GameState.upgrades[uid])
+		var info: Dictionary = GameState.get_upgrade_info(uid)
+
+		var row := HBoxContainer.new()
+		row.custom_minimum_size = Vector2(316.0, 26.0)
+		row.add_theme_constant_override("separation", 8)
+		_upgrades_grid.add_child(row)
+
+		var icon_path: String = "res://assets/sprites/ui/icon_%s.png" % uid
+		if ResourceLoader.exists(icon_path):
+			var tex_rect := TextureRect.new()
+			tex_rect.custom_minimum_size = Vector2(24.0, 24.0)
+			tex_rect.stretch_mode = TextureRect.STRETCH_KEEP_CENTERED
+			tex_rect.texture = load(icon_path)
+			row.add_child(tex_rect)
+
+		var item_lbl := Label.new()
+		item_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		item_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		item_lbl.text = "%s (Nv %d) — %s" % [
+			String(info.get("name", uid)), lvl, String(info.get("description", "")).replace("\n", " ")
+		]
+		item_lbl.add_theme_font_size_override("font_size", 10)
+		item_lbl.add_theme_color_override("font_color", Color("#fff1c9"))
+		row.add_child(item_lbl)
+
+
+func _unhandled_input(event: InputEvent) -> void:
+	if overlay_mode == "pause" and event.is_action_pressed("pause"):
+		if not get_tree().paused or _root.visible:
+			_toggle_pause()
+	elif overlay_mode == "game_over" and _root.visible and not _exploding_anim:
+		if event is InputEventKey and event.pressed and event.keycode == KEY_R:
+			_retry_current_wagon()
+
+
+func _toggle_pause() -> void:
+	if not _root.visible:
+		_was_clock_running = TrainClock.is_running
+		TrainClock.is_running = false
+		get_tree().paused = true
+		_refresh_debug_buttons()
+		_populate_pause_upgrades()
+		_switch_pause_tab(0)
+		_root.visible = true
+	else:
+		_root.visible = false
+		get_tree().paused = false
+		TrainClock.is_running = _was_clock_running
+
+
+func _on_player_died(reason: String) -> void:
+	get_tree().paused = true
+	_root.visible = true
+	if reason == "bomb_exploded":
+		_title_lbl.text = "A BOMBA EXPLODIU!"
+		_exploding_anim = true
+		_explosion_t = 0.0
+		_game_over_card.visible = false
+		AudioManager.play_sfx("bomb_explode", 0.0)
+		Events.request_screen_shake.emit(6.0, 1.4)
+		await get_tree().create_timer(EXPLOSION_TIME, true, false, true).timeout
+		_exploding_anim = false
+		_explosion_drawer.queue_redraw()
+		_game_over_card.visible = true
+	else:
+		_exploding_anim = false
+		_game_over_card.visible = true
+		_title_lbl.text = "VOCÊ NÃO RESISTIU"
+
+
+func _retry_current_wagon() -> void:
+	_root.visible = false
+	get_tree().paused = false
+	GameState.restore_wagon_checkpoint()
+	TrainClock.is_running = true
+	var w: int = GameState.current_wagon
+	if w >= 6:
+		SceneRouter.goto_scene("res://scenes/levels/Disarm.tscn")
+	elif w <= 4:
+		SceneRouter.goto_scene("res://scenes/levels/Level_Wagon%d.tscn" % w)
+	else:
+		SceneRouter.goto_scene("res://scenes/levels/Level_Boss.tscn")
