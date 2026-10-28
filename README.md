@@ -18,7 +18,7 @@
 | **Resolução** | 480x270 nativa com upscale inteiro (janela 1440x810) |
 | **Duração** | ~10–15 minutos por partida |
 | **Modo** | Single-player |
-| **Versão** | 1.2.1 |
+| **Versão** | 1.2.2 |
 
 ## Como executar
 
@@ -87,10 +87,23 @@ As teclas principais podem ser remapeadas em **Opções → Teclado**, e os bot�
 │   ├── levels/    # um script por nível + desarme e final
 │   └── ui/        # HUD, diálogos, menus, cartas de melhoria, cutscenes, créditos
 ├── tools/         # geradores/montadores de assets em Python + tools/capture/ (capturas)
+├── export_icons/  # ícones do jogo para exportar para PC e Android (ignorados pelo Godot)
 └── art_src/       # fontes de arte do PixelLab (ignoradas pelo Godot)
 ```
 
 Balanceamento, melhorias, diálogos e créditos ficam em JSON dentro de `data/` e podem ser ajustados sem mexer no código. Detalhes das folhas de sprite e do pipeline de arte estão em [`art_src/README.md`](art_src/README.md).
+
+## Ícones de exportação
+
+O ícone do jogo (`assets/sprites/ui/icon.png`, 64×64) é um relógio de bolso de latão com a locomotiva no mostrador e um pavio aceso. Em `export_icons/` estão as versões ampliadas sem borrar (vizinho mais próximo, em múltiplos inteiros) para usar nas predefinições de exportação do Godot:
+
+| Arquivo | Onde usar |
+|---|---|
+| `icon.ico` (16 a 256 px) | Windows → `application/icon` |
+| `icon_256.png` | cópia em PNG do ícone grande |
+| `android_icon_192.png` | Android → `launcher_icons/main_192x192` |
+| `android_adaptive_foreground_432.png` | Android → `launcher_icons/adaptive_foreground_432x432` |
+| `android_adaptive_background_432.png` | Android → `launcher_icons/adaptive_background_432x432` |
 
 ## Regenerar assets (opcional)
 
