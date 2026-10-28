@@ -18,7 +18,7 @@
 | **Resolução** | 480x270 nativa com upscale inteiro (janela 1440x810) |
 | **Duração** | ~10–15 minutos por partida |
 | **Modo** | Single-player |
-| **Versão** | 1.4.2 |
+| **Versão** | 1.5.0 |
 
 ## Como executar
 
@@ -83,7 +83,9 @@ As teclas principais podem ser remapeadas em **Opções → Teclado**, e os bot�
 
 ## Mecânicas
 
-- **Relógio regressivo** com meta por vagão: ao entrar em cada seção, o tempo que sobrou é limitado a um teto, então a pressão nunca some.
+- **Relógio regressivo** com meta por vagão: ao entrar em cada seção, o tempo que sobrou é limitado a um teto, então a pressão nunca some. O que passa do teto ao entrar nos vagões vai para a **reserva**, mostrada ao lado do relógio.
+- **O Fiscal:** quando a porta de saída de um vagão se abre, o Fiscal aparece perto dela e vende uma carta (com mais chance de rara e épica) em troca de tempo. Ele cobra primeiro da reserva e o resto do relógio. Custa 0:20 e cada compra encarece a próxima em 0:05. É uma compra por vagão, e ele não negocia se o relógio for ficar abaixo de 0:30.
+- **Raspão:** passar perto de uma bala inimiga sem ser atingido (e sem estar no dash ou invulnerável) solta uma faísca, reduz a recarga do pulso de vapor em 0,35s e devolve 0,15s ao relógio (até 12s por vagão). A tela de resultados mostra os raspões e as compras do Fiscal.
 - **Tiro contínuo com mira**, **dash** com invulnerabilidade e **pulso de vapor**.
 - **14 cartas de melhoria** em 4 categorias (ataque, defesa, mobilidade, utilidade) com raridades comum, rara e épica — por exemplo Tiro Duplo, Pistões Aprimorados, Munição Perfurante, Balas Elásticas, Mira Giroscópica e Sucata Viva.
 - **Três dificuldades:**

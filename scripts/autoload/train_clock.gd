@@ -1,6 +1,7 @@
 extends Node
 
 var time_left: float = 390.0
+var reserve: float = 0.0
 var is_running: bool = false
 var is_disarmed: bool = false
 var _tick_accumulator: float = 0.0
@@ -8,15 +9,43 @@ var _tick_accumulator: float = 0.0
 
 func start_clock(initial_seconds: float) -> void:
 	time_left = initial_seconds
+	reserve = 0.0
 	is_disarmed = false
 	is_running = false
 	_tick_accumulator = 0.0
 	Events.timer_changed.emit(time_left)
+	Events.reserve_changed.emit(reserve, 0.0)
 
 
 func set_time(seconds: float) -> void:
 	time_left = maxf(0.0, seconds)
 	Events.timer_changed.emit(time_left)
+
+
+func set_reserve(seconds: float) -> void:
+	reserve = maxf(0.0, seconds)
+	Events.reserve_changed.emit(reserve, 0.0)
+
+
+func add_time(seconds: float) -> void:
+	time_left += seconds
+	Events.timer_changed.emit(time_left)
+
+
+func clock_cost(price: float) -> float:
+	return maxf(0.0, price - reserve)
+
+
+func can_afford(price: float, min_left: float) -> bool:
+	return time_left - clock_cost(price) >= min_left
+
+
+func spend_time(price: float) -> void:
+	var from_reserve: float = minf(reserve, price)
+	reserve -= from_reserve
+	time_left = maxf(0.0, time_left - (price - from_reserve))
+	Events.timer_changed.emit(time_left)
+	Events.reserve_changed.emit(reserve, -from_reserve)
 
 
 func apply_section_rubber_band(section_key: String) -> void:
@@ -29,6 +58,10 @@ func apply_section_rubber_band(section_key: String) -> void:
 		target_sec *= scale
 
 	if time_left > target_sec:
+		if section_key.begins_with("wagon_"):
+			var gained: float = time_left - target_sec
+			reserve += gained
+			Events.reserve_changed.emit(reserve, gained)
 		time_left = target_sec
 		Events.request_screen_shake.emit(2.0, 0.2)
 		Events.timer_changed.emit(time_left)
@@ -65,6 +98,11 @@ func _process(delta: float) -> void:
 		if not is_disarmed:
 			Events.request_screen_flash.emit(0.4)
 			Events.player_died.emit("bomb_exploded")
+
+
+func format_seconds(seconds: float) -> String:
+	var total: int = int(floor(seconds))
+	return "%d:%02d" % [total / 60, total % 60]
 
 
 func format_time() -> String:

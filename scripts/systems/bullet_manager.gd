@@ -18,6 +18,8 @@ class PooledBullet:
 	var homing_deg_per_sec: float = 0.0
 	var explosive_chance: float = 0.0
 	var splits_on_expire: bool = false
+	var grazing: bool = false
+	var grazed: bool = false
 
 var _pool: Array[PooledBullet] = []
 var _active_enemy_count: int = 0
@@ -74,6 +76,8 @@ func spawn_bullet(pos: Vector2, dir: Vector2, speed: float, is_player: bool,
 			b.lifetime = 0.0
 			b.max_lifetime = lifetime
 			b.splits_on_expire = splits
+			b.grazing = false
+			b.grazed = false
 
 			if is_player:
 				b.sprite.texture = TEX_PLAYER
@@ -135,6 +139,9 @@ func clear_all_bullets() -> void:
 
 
 func _physics_process(delta: float) -> void:
+	var player: Node2D = get_tree().get_first_node_in_group("player") as Node2D
+	var graze_r: float = float(GameState.balance_data.get("graze", {}).get("radius", 16.0))
+	var graze_r_sq: float = graze_r * graze_r
 	for b in _pool:
 		if not b.active:
 			continue
@@ -176,6 +183,13 @@ func _physics_process(delta: float) -> void:
 		b.area.global_position = b.pos
 		if b.is_player:
 			b.sprite.rotation = b.vel.angle()
+		elif player != null and not b.grazed:
+			if b.pos.distance_squared_to(player.global_position) <= graze_r_sq:
+				b.grazing = true
+			elif b.grazing:
+				b.grazing = false
+				b.grazed = true
+				player.register_graze(b.pos)
 
 
 func _on_bullet_hit_area(other: Area2D, b: PooledBullet) -> void:

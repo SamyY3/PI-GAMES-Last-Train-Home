@@ -4,6 +4,8 @@ class_name LevelBase
 const UI_KEY_F: Texture2D = preload("res://assets/sprites/ui/kit/key_f.png")
 const UI_SPEECH: Texture2D = preload("res://assets/sprites/ui/kit/speech_bubble.png")
 const FX_HP_FILL: Texture2D = preload("res://assets/sprites/fx/hpbar_fill.png")
+const FISCAL_POS: Vector2 = Vector2(408.0, 214.0)
+const FISCAL_TALK_DIST: float = 36.0
 
 @export var wagon_number: int = 1
 @export var next_scene_path: String = ""
@@ -22,6 +24,11 @@ var _right_door_sprite: Sprite2D
 var _exit_label: Label
 var _steam_cells: Array[Node2D] = []
 var _music_calm_t: float = 0.0
+var _fiscal_spr: Sprite2D
+var _fiscal_drawer: Node2D
+var _fiscal_done: bool = false
+var _fiscal_busy: bool = false
+var _fiscal_anim_t: float = 0.0
 
 var enemy_scene: PackedScene = preload("res://scenes/actors/Enemy_Base.tscn")
 
@@ -32,6 +39,7 @@ func _ready() -> void:
 	Input.set_custom_mouse_cursor(load("res://assets/sprites/ui/crosshair_cursor.png"), Input.CURSOR_ARROW, Vector2(22.0, 22.0))
 	GameState.current_wagon = wagon_number
 	GameState.save_wagon_checkpoint()
+	GameState.graze_time_this_level = 0.0
 
 	_setup_doors()
 
@@ -85,6 +93,7 @@ func _process(delta: float) -> void:
 	_update_camera_offset(delta)
 	_update_music_layer(delta)
 	_check_steam_cell_pickups()
+	_update_fiscal(delta)
 	if door_unlocked and _exit_label != null:
 		_exit_label.visible = int(float(Time.get_ticks_msec()) * 0.004) % 2 == 0
 	if door_unlocked and not _transitioning_out and player != null:
@@ -176,6 +185,82 @@ func unlock_exit_door() -> void:
 	AudioManager.play_sfx("ui_confirm")
 	if hud.has_method("set_contextual_tip"):
 		hud.set_contextual_tip("PORTA ABERTA — SIGA PARA A DIREITA ➔")
+	if wagon_number <= 4:
+		_spawn_fiscal()
+
+
+func _spawn_fiscal() -> void:
+	_fiscal_spr = Sprite2D.new()
+	_fiscal_spr.texture = load("res://assets/sprites/npcs/npc_fiscal.png")
+	_fiscal_spr.hframes = 4
+	_fiscal_spr.position = FISCAL_POS
+	_fiscal_spr.z_index = int(FISCAL_POS.y)
+	_fiscal_spr.modulate.a = 0.0
+	add_child(_fiscal_spr)
+	_fiscal_spr.create_tween().tween_property(_fiscal_spr, "modulate:a", 1.0, 0.4)
+
+	_fiscal_drawer = Node2D.new()
+	_fiscal_drawer.z_index = 255
+	_fiscal_drawer.draw.connect(_draw_fiscal_prompt)
+	add_child(_fiscal_drawer)
+	hud.set_contextual_tip("PORTA ABERTA ➔  |  {interact} O Fiscal troca tempo por melhorias")
+
+
+func _fiscal_in_range() -> bool:
+	return player != null and player.global_position.distance_to(FISCAL_POS) <= FISCAL_TALK_DIST
+
+
+func _update_fiscal(delta: float) -> void:
+	if _fiscal_spr == null:
+		return
+	_fiscal_anim_t += delta
+	_fiscal_spr.frame = int(_fiscal_anim_t * 5.0) % 4
+	if player != null:
+		_fiscal_spr.flip_h = player.global_position.x < _fiscal_spr.global_position.x
+	_fiscal_drawer.queue_redraw()
+	if not _fiscal_done and not _fiscal_busy and not _transitioning_out and _fiscal_in_range():
+		if Input.is_action_just_pressed("interact"):
+			_talk_to_fiscal()
+
+
+func _draw_fiscal_prompt() -> void:
+	if _fiscal_done or _fiscal_busy:
+		return
+	if _fiscal_in_range():
+		draw_centered_f_prompt(_fiscal_drawer, FISCAL_POS + Vector2(0.0, -22.0), 0.0)
+	else:
+		draw_speech_bubble_hint(_fiscal_drawer, FISCAL_POS + Vector2(0.0, -20.0))
+
+
+func _talk_to_fiscal() -> void:
+	_fiscal_busy = true
+	var price: float = GameState.get_fiscal_price()
+	var min_left: float = float(GameState.get_fiscal_config().get("min_clock_after", 30.0))
+	var lines: Array = []
+	if not GameState.fiscal_met:
+		GameState.fiscal_met = true
+		lines.append_array(GameState.dialogue_db.get("fiscal_intro", []))
+
+	if not TrainClock.can_afford(price, min_left):
+		lines.append_array(GameState.dialogue_db.get("fiscal_broke", []))
+		dialogue_box.start_custom_lines(lines)
+		await dialogue_box.dialogue_finished
+		_fiscal_busy = false
+		return
+
+	for entry in GameState.dialogue_db.get("fiscal_offer", []):
+		var line: Dictionary = (entry as Dictionary).duplicate()
+		line["text"] = String(line.get("text", "")).replace("{price}", TrainClock.format_seconds(price))
+		lines.append(line)
+	dialogue_box.start_custom_lines(lines)
+	await dialogue_box.dialogue_finished
+
+	upgrade_screen.open_shop(price)
+	var bought: bool = await upgrade_screen.shop_closed
+	if bought:
+		_fiscal_done = true
+		hud.set_contextual_tip("PORTA ABERTA — SIGA PARA A DIREITA ➔")
+	_fiscal_busy = false
 
 
 func _trigger_door_transition() -> void:

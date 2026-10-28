@@ -28,6 +28,22 @@
     "pulse_cooldown": 14.0,
     "interact_hold_time": 0.6
   },
+  "graze": {
+    "radius": 16.0,
+    "pulse_cd_reduction": 0.35,
+    "time_bonus": 0.15,
+    "time_cap_per_level": 12.0
+  },
+  "fiscal": {
+    "base_price": 20.0,
+    "price_step": 5.0,
+    "min_clock_after": 30.0,
+    "rarity_weights": {
+      "common": 25,
+      "rare": 50,
+      "epic": 25
+    }
+  },
   "difficulties": {
     "easy": {
       "label": "Fácil",

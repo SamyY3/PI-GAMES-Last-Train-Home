@@ -102,6 +102,8 @@ func _get_portrait_path(speaker: String) -> String:
 		return "res://assets/sprites/portraits/portrait_lia.png"
 	elif s_low.contains("maquinista"):
 		return "res://assets/sprites/portraits/portrait_boss.png"
+	elif s_low.contains("fiscal"):
+		return "res://assets/sprites/portraits/portrait_fiscal.png"
 	return "res://assets/sprites/portraits/portrait_system.png"
 
 

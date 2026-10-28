@@ -12,6 +12,7 @@ const FEET_OFFSET := Vector2(0.0, 18.0)
 const FX_DASH_CD: Texture2D = preload("res://assets/sprites/fx/dash_cooldown.png")
 const FX_SHIELD: Texture2D = preload("res://assets/sprites/fx/shield_ring.png")
 const FX_HITBOX: Texture2D = preload("res://assets/sprites/fx/hitbox_dot.png")
+const GRAZE_SPARK_TIME: float = 0.3
 
 var _cfg: Dictionary = {}
 var _shoot_timer: float = 0.0
@@ -33,6 +34,8 @@ var _anim_time: float = 0.0
 var _face_idx: int = 0
 var _pulse_anim_t: float = -1.0 # >= 0 enquanto o Teo faz o gesto do pulso
 var _fx_front: Node2D
+var _graze_sparks: Array[Vector3] = []
+var _graze_sfx_cd: float = 0.0
 
 # teo_sheet_8dir.png: a arma é desenhada na própria arte (Teo segura com as duas mãos).
 # Linhas sem arma (cutscenes/dash): rotações 0, hurt 1+dir, idle 9+dir, walk 17+dir, dash 25+dir.
@@ -61,7 +64,10 @@ func _ready() -> void:
 
 	# camada do pulso que passa NA FRENTE do sprite (o _draw do próprio Teo fica atrás dele)
 	_fx_front = Node2D.new()
-	_fx_front.draw.connect(func() -> void: _draw_q_clip(_fx_front, Q_FRONT))
+	_fx_front.draw.connect(func() -> void:
+		_draw_q_clip(_fx_front, Q_FRONT)
+		_draw_graze_sparks(_fx_front)
+	)
 	add_child(_fx_front)
 
 
@@ -175,6 +181,12 @@ func _update_timers(delta: float) -> void:
 		_pulse_cooldown_timer -= delta
 	if _pulse_visual_timer > 0.0:
 		_pulse_visual_timer -= delta
+	if _graze_sfx_cd > 0.0:
+		_graze_sfx_cd -= delta
+	for i in range(_graze_sparks.size() - 1, -1, -1):
+		_graze_sparks[i].z -= delta
+		if _graze_sparks[i].z <= 0.0:
+			_graze_sparks.remove_at(i)
 	if _pulse_anim_t >= 0.0:
 		_pulse_anim_t += delta
 		if _pulse_anim_t >= PULSE_ANIM_TIME:
@@ -318,6 +330,24 @@ func _activate_steam_pulse() -> void:
 	Events.request_screen_flash.emit(0.08)
 
 
+func register_graze(at: Vector2) -> void:
+	if _invuln_timer > 0.0 or _dash_timer > 0.0 or GameState.current_hp <= 0:
+		return
+	var gcfg: Dictionary = GameState.balance_data.get("graze", {})
+	_pulse_cooldown_timer = maxf(0.0, _pulse_cooldown_timer - float(gcfg.get("pulse_cd_reduction", 0.35)))
+	var bonus: float = minf(float(gcfg.get("time_bonus", 0.15)), float(gcfg.get("time_cap_per_level", 12.0)) - GameState.graze_time_this_level)
+	if bonus > 0.0 and TrainClock.is_running:
+		GameState.graze_time_this_level += bonus
+		TrainClock.add_time(bonus)
+	GameState.grazes += 1
+	Events.player_grazed.emit(GameState.grazes)
+	var edge: Vector2 = (at - global_position).normalized() * 7.0
+	_graze_sparks.append(Vector3(edge.x, edge.y, GRAZE_SPARK_TIME))
+	if _graze_sfx_cd <= 0.0:
+		_graze_sfx_cd = 0.06
+		AudioManager.play_sfx("graze", 0.12)
+
+
 func take_damage(amount: int, source_pos: Vector2 = Vector2.ZERO) -> void:
 	if GameState.debug_invincible or _invuln_timer > 0.0 or _dash_timer > 0.0:
 		return
@@ -426,3 +456,17 @@ func _draw_q_clip(canvas: CanvasItem, clip: Array) -> void:
 	var cols: int = int(clip[2])
 	var src := Rect2(Vector2(float(f % cols) * fs.x, float(f / cols) * fs.y), fs)
 	canvas.draw_texture_rect_region(clip[0], Rect2(FEET_OFFSET + Vector2(clip[5]), fs), src)
+
+
+func _draw_graze_sparks(canvas: CanvasItem) -> void:
+	for spark in _graze_sparks:
+		var t: float = 1.0 - spark.z / GRAZE_SPARK_TIME
+		var c: Vector2 = Vector2(spark.x, spark.y).round()
+		var reach: float = round(2.0 + t * 4.0)
+		var col: Color = Color("#fff1c9").lerp(Color("#f2c35b"), t)
+		col.a = 1.0 if t < 0.5 else 2.0 - t * 2.0
+		if t < 0.4:
+			canvas.draw_rect(Rect2(c - Vector2.ONE, Vector2(2.0, 2.0)), col)
+		for d: Vector2 in [Vector2.LEFT, Vector2.RIGHT, Vector2.UP, Vector2.DOWN]:
+			canvas.draw_rect(Rect2(c + d * reach, Vector2.ONE), col)
+			canvas.draw_rect(Rect2(c + d * (reach - 1.0), Vector2.ONE), col)

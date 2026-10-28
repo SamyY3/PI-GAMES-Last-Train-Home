@@ -482,8 +482,8 @@ func _show_results_screen(remaining_bomb: float) -> void:
 	var s: int = int(run_t) % 60
 	var info := Label.new()
 	info.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	info.text = "%s\nTempo da Run: %02d:%02d\nTempo Restante no Desarme: %02.1fs\nInimigos Derrotados: %d\nDano Sofrido: %d  |  Mortes: %d" % [
-		rec_str, m, s, remaining_bomb, GameState.kills, dmg, GameState.deaths_in_run
+	info.text = "%s\nTempo da Run: %02d:%02d\nTempo Restante no Desarme: %02.1fs\nInimigos Derrotados: %d  |  Raspões: %d\nDano Sofrido: %d  |  Mortes: %d  |  Compras do Fiscal: %d" % [
+		rec_str, m, s, remaining_bomb, GameState.kills, GameState.grazes, dmg, GameState.deaths_in_run, GameState.fiscal_purchases
 	]
 	vbox.add_child(info)
 

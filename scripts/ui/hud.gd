@@ -24,6 +24,7 @@ var _flash_rect: ColorRect
 var _flash_tween: Tween
 var _vignette_rect: TextureRect
 var _clock_gear: TextureRect
+var _reserve_label: Label
 const TEX_HEART_FULL: Texture2D = preload("res://assets/sprites/ui/heart_full.png")
 const TEX_HEART_EMPTY: Texture2D = preload("res://assets/sprites/ui/heart_empty.png")
 
@@ -40,6 +41,9 @@ func _ready() -> void:
 	Events.boss_phase_changed.connect(_on_boss_phase_changed)
 	Events.request_screen_flash.connect(_on_screen_flash)
 	Events.radar_distance_updated.connect(_on_radar_updated)
+	Events.reserve_changed.connect(_on_reserve_changed)
+	Events.player_grazed.connect(_on_player_grazed)
+	_on_reserve_changed(TrainClock.reserve, 0.0)
 	_refresh_hp(GameState.current_hp, GameState.max_hp)
 	_refresh_upgrades_list()
 
@@ -115,6 +119,16 @@ func _build_hud() -> void:
 	_clock_label.add_theme_font_size_override("font_size", 10)
 	_clock_label.add_theme_color_override("font_color", Color("#fff1c9"))
 	center_vbox.add_child(_clock_label)
+
+	_reserve_label = Label.new()
+	_reserve_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	_reserve_label.position = Vector2(286.0, 12.0)
+	_reserve_label.size = Vector2(54.0, 12.0)
+	_reserve_label.visible = false
+	_reserve_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_reserve_label.add_theme_font_size_override("font_size", 10)
+	_reserve_label.add_theme_color_override("font_color", Color("#8fb8c4"))
+	add_child(_reserve_label)
 
 	_radar_label = Label.new()
 	_radar_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -305,6 +319,18 @@ func _on_timer_changed(secs: float) -> void:
 		_clock_label.add_theme_color_override("font_color", Color("#f2c35b"))
 	else:
 		_clock_label.add_theme_color_override("font_color", Color("#fff1c9"))
+
+
+func _on_reserve_changed(reserve: float, gained: float) -> void:
+	_reserve_label.text = "+" + TrainClock.format_seconds(reserve)
+	_reserve_label.visible = reserve >= 1.0
+	if gained >= 1.0:
+		_show_banner("TEMPO EXCEDENTE NA RESERVA: +%s" % TrainClock.format_seconds(gained))
+
+
+func _on_player_grazed(total: int) -> void:
+	if total == 1:
+		_show_banner("RASPÃO! +TEMPO E RECARGA DO PULSO")
 
 
 func _on_upgrade_picked(upg_id: String, _lvl: int) -> void:

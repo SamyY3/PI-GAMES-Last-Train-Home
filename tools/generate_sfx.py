@@ -227,3 +227,7 @@ for beat in range(4):
 hiss = circular(lambda v: highpass(lowpass(v, 8000), 3000), noise(n))
 amb += hiss * (0.08 + 0.05 * np.sin(2 * np.pi * (4 / loop) * t) ** 2)
 save("train_ambience", amb, 0.5, fade=0.0)
+
+n = int(0.07 * SR)
+graze = mix(bandnoise(n, 5000, 11000) * exp_env(n, 0.018), metal(0.05, 4200, 0.01, (1.0, 1.5)) * 0.35)
+save("graze", graze, 0.35)

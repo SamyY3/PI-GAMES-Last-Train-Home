@@ -22,6 +22,10 @@ var active_run_time: float = 0.0
 var deaths_in_run: int = 0
 var damage_taken_in_run: int = 0
 var run_seed: int = 0
+var grazes: int = 0
+var graze_time_this_level: float = 0.0
+var fiscal_purchases: int = 0
+var fiscal_met: bool = false
 
 var checkpoint_state: Dictionary = {}
 
@@ -74,6 +78,10 @@ func start_new_run(diff_key: String) -> void:
 	deaths_in_run = 0
 	damage_taken_in_run = 0
 	run_seed = randi()
+	grazes = 0
+	graze_time_this_level = 0.0
+	fiscal_purchases = 0
+	fiscal_met = false
 
 	TrainClock.start_clock(float(diff_cfg.get("initial_time", 390.0)))
 	save_wagon_checkpoint()
@@ -92,7 +100,9 @@ func save_wagon_checkpoint() -> void:
 		"rerolls_left": rerolls_left,
 		"has_cargo_key": has_cargo_key,
 		"has_picked_first_upgrade": has_picked_first_upgrade,
-		"clock_time": TrainClock.time_left
+		"clock_time": TrainClock.time_left,
+		"reserve": TrainClock.reserve,
+		"fiscal_purchases": fiscal_purchases
 	}
 
 
@@ -108,7 +118,18 @@ func restore_wagon_checkpoint() -> void:
 	has_cargo_key = bool(checkpoint_state["has_cargo_key"])
 	has_picked_first_upgrade = bool(checkpoint_state.get("has_picked_first_upgrade", false))
 	TrainClock.set_time(float(checkpoint_state["clock_time"]))
+	TrainClock.set_reserve(float(checkpoint_state.get("reserve", 0.0)))
+	fiscal_purchases = int(checkpoint_state.get("fiscal_purchases", 0))
 	Events.player_healed.emit(current_hp, max_hp)
+
+
+func get_fiscal_config() -> Dictionary:
+	return balance_data.get("fiscal", {})
+
+
+func get_fiscal_price() -> float:
+	var cfg: Dictionary = get_fiscal_config()
+	return float(cfg.get("base_price", 20.0)) + float(cfg.get("price_step", 5.0)) * float(fiscal_purchases)
 
 
 func get_upgrade_level(upg_id: String) -> int:

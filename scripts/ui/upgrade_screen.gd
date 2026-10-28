@@ -1,6 +1,7 @@
 extends CanvasLayer
 
 signal upgrade_selected
+signal shop_closed(bought: bool)
 
 const RARITY_COLORS: Dictionary = {
 	"common": "#4a4668",
@@ -21,6 +22,11 @@ var _card_levels: Array[Label] = []
 var _card_descs: Array[Label] = []
 var _card_cats: Array[Label] = []
 var _reroll_btn: Button
+var _decline_btn: Button
+var _title: Label
+var _hint: Label
+var _shop_hint: Label
+var _shop_price: float = -1.0
 var _root_control: Control
 var _focused_idx: int = 0
 var _was_clock_running: bool = false
@@ -45,14 +51,13 @@ func _build_ui() -> void:
 	bg.size = Vector2(480.0, 270.0)
 	_root_control.add_child(bg)
 
-	var title := Label.new()
-	title.text = "ESCOLHA UMA MELHORIA"
-	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	title.position = Vector2(0.0, 10.0)
-	title.size = Vector2(480.0, 18.0)
-	title.add_theme_font_size_override("font_size", 10)
-	title.add_theme_color_override("font_color", Color("#f2c35b"))
-	_root_control.add_child(title)
+	_title = Label.new()
+	_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_title.position = Vector2(0.0, 10.0)
+	_title.size = Vector2(480.0, 18.0)
+	_title.add_theme_font_size_override("font_size", 10)
+	_title.add_theme_color_override("font_color", Color("#f2c35b"))
+	_root_control.add_child(_title)
 
 	var start_x: Array[float] = [52.0, 180.0, 308.0]
 	for i in range(3):
@@ -139,26 +144,80 @@ func _build_ui() -> void:
 	_reroll_btn.pressed.connect(_do_reroll)
 	_root_control.add_child(_reroll_btn)
 
-	var hint := Label.new()
+	_decline_btn = Button.new()
+	Settings.bind_prompt_text(_decline_btn, "RECUSAR {cancel}")
+	_decline_btn.position = Vector2(165.0, 198.0)
+	_decline_btn.size = Vector2(150.0, 24.0)
+	_decline_btn.add_theme_font_size_override("font_size", 10)
+	_decline_btn.pressed.connect(_decline_shop)
+	_root_control.add_child(_decline_btn)
+
+	_hint = Label.new()
 	if Settings.touch_mode:
-		hint.text = "Toque em uma carta para escolher"
+		_hint.text = "Toque em uma carta para escolher"
 	else:
-		Settings.bind_prompt_text(hint, "[A/D ou Setas] Selecionar   |   [ENTER ou Clique] Confirmar", "[◀/▶] Selecionar   |   {confirm} Confirmar   |   {menu_alt} Sortear")
-	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	hint.position = Vector2(0.0, 228.0)
-	hint.size = Vector2(480.0, 16.0)
-	hint.add_theme_font_size_override("font_size", 10)
-	hint.add_theme_color_override("font_color", Color("#8fb8c4"))
-	_root_control.add_child(hint)
+		Settings.bind_prompt_text(_hint, "[A/D ou Setas] Selecionar   |   [ENTER ou Clique] Confirmar", "[◀/▶] Selecionar   |   {confirm} Confirmar   |   {menu_alt} Sortear")
+	_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_hint.position = Vector2(0.0, 228.0)
+	_hint.size = Vector2(480.0, 16.0)
+	_hint.add_theme_font_size_override("font_size", 10)
+	_hint.add_theme_color_override("font_color", Color("#8fb8c4"))
+	_root_control.add_child(_hint)
+
+	_shop_hint = Label.new()
+	_shop_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_shop_hint.position = Vector2(0.0, 228.0)
+	_shop_hint.size = Vector2(480.0, 16.0)
+	_shop_hint.add_theme_font_size_override("font_size", 10)
+	_shop_hint.add_theme_color_override("font_color", Color("#8fb8c4"))
+	_root_control.add_child(_shop_hint)
 
 
 func open_upgrade_choices() -> void:
+	_shop_price = -1.0
+	_title.text = "ESCOLHA UMA MELHORIA"
+	_open()
+
+
+func open_shop(price: float) -> void:
+	_shop_price = price
+	_title.text = "O FISCAL — UMA CARTA POR %s" % TrainClock.format_seconds(price)
+	var from_reserve: float = minf(TrainClock.reserve, price)
+	if from_reserve <= 0.0:
+		_shop_hint.text = "Pago com %s do relógio" % TrainClock.format_seconds(price)
+	elif from_reserve >= price:
+		_shop_hint.text = "Pago com %s da reserva" % TrainClock.format_seconds(price)
+	else:
+		_shop_hint.text = "Pago com %s da reserva + %s do relógio" % [TrainClock.format_seconds(from_reserve), TrainClock.format_seconds(price - from_reserve)]
+	_open()
+
+
+func _open() -> void:
+	var shop: bool = _shop_price >= 0.0
+	_reroll_btn.visible = not shop
+	_decline_btn.visible = shop
+	_hint.visible = not shop
+	_shop_hint.visible = shop
 	_was_clock_running = TrainClock.is_running
 	TrainClock.is_running = false
 	get_tree().paused = true
 	_root_control.visible = true
 	_roll_three_cards(false)
 	_set_focused_card(0)
+
+
+func _decline_shop() -> void:
+	if _shop_price < 0.0 or not _root_control.visible:
+		return
+	AudioManager.play_sfx("ui_hover")
+	_close()
+	shop_closed.emit(false)
+
+
+func _close() -> void:
+	_root_control.visible = false
+	get_tree().paused = false
+	TrainClock.is_running = _was_clock_running
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -174,6 +233,9 @@ func _unhandled_input(event: InputEvent) -> void:
 		_pick_card(_focused_idx)
 	elif event.is_action_pressed("menu_alt"):
 		_do_reroll()
+	elif event.is_action_pressed("cancel") and _shop_price >= 0.0:
+		get_viewport().set_input_as_handled()
+		_decline_shop()
 
 
 func _set_focused_card(idx: int) -> void:
@@ -194,7 +256,7 @@ func _set_focused_card(idx: int) -> void:
 
 
 func _do_reroll() -> void:
-	if GameState.rerolls_left <= 0:
+	if _shop_price >= 0.0 or GameState.rerolls_left <= 0:
 		return
 	GameState.rerolls_left -= 1
 	AudioManager.play_sfx("ui_confirm")
@@ -216,6 +278,10 @@ func _roll_three_cards(exclude_current: bool) -> void:
 			if GameState.get_upgrade_level(id_str) < max_lvl:
 				if not exclude_current or not current_ids.has(id_str):
 					available.append(item)
+
+	var weights: Dictionary = GameState.rarity_weights
+	if _shop_price >= 0.0:
+		weights = GameState.get_fiscal_config().get("rarity_weights", weights)
 
 	_cards_data.clear()
 	if available.is_empty():
@@ -240,24 +306,24 @@ func _roll_three_cards(exclude_current: bool) -> void:
 				available.erase(first_atk)
 
 		while _cards_data.size() < 3 and not available.is_empty():
-			var picked: Dictionary = _weighted_pick(available)
+			var picked: Dictionary = _weighted_pick(available, weights)
 			_cards_data.append(picked)
 			available.erase(picked)
 
 	_update_card_contents()
 
 
-func _weighted_pick(pool: Array[Dictionary]) -> Dictionary:
+func _weighted_pick(pool: Array[Dictionary], weights: Dictionary) -> Dictionary:
 	var total_weight: int = 0
 	for u in pool:
 		var r: String = String(u.get("rarity", "common"))
-		total_weight += int(GameState.rarity_weights.get(r, 10))
+		total_weight += int(weights.get(r, 10))
 
 	var roll: int = randi() % maxi(1, total_weight)
 	var accum: int = 0
 	for u in pool:
 		var r: String = String(u.get("rarity", "common"))
-		accum += int(GameState.rarity_weights.get(r, 10))
+		accum += int(weights.get(r, 10))
 		if roll < accum:
 			return u
 	return pool[0]
@@ -302,7 +368,10 @@ func _pick_card(index: int) -> void:
 		GameState.add_upgrade(id_str)
 
 	AudioManager.play_sfx("upgrade_get")
-	_root_control.visible = false
-	get_tree().paused = false
-	TrainClock.is_running = _was_clock_running
-	upgrade_selected.emit()
+	_close()
+	if _shop_price >= 0.0:
+		TrainClock.spend_time(_shop_price)
+		GameState.fiscal_purchases += 1
+		shop_closed.emit(true)
+	else:
+		upgrade_selected.emit()

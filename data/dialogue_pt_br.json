@@ -44,6 +44,18 @@
     {"speaker": "Funcionário", "color": 8, "text": "O vagão de carga logo à frente está cheio de caixas. Use o som do radar para achar a bomba rápido!"},
     {"speaker": "Teo", "color": 11, "text": "Obrigado pelo aviso. Fique escondido aí até eu parar a locomotiva."}
   ],
+  "fiscal_intro": [
+    {"speaker": "Fiscal", "color": 14, "text": "Bilhete, por favor! Ah, o rapaz da bomba. Calma, calma. Eu não estou aqui para multar ninguém."},
+    {"speaker": "Teo", "color": 11, "text": "Quem é o senhor? Não tenho tempo para conversa."},
+    {"speaker": "Fiscal", "color": 14, "text": "Tempo é justamente o meu ofício. Quando você chega adiantado a um vagão, o relógio corta o que sobrou. Eu guardo esses segundos na sua reserva."},
+    {"speaker": "Fiscal", "color": 14, "text": "E troco tempo por peças boas. Pago primeiro com a reserva; o que faltar sai do seu relógio."}
+  ],
+  "fiscal_offer": [
+    {"speaker": "Fiscal", "color": 14, "text": "Uma carta por {price}. Escolha bem: cada compra encarece a próxima."}
+  ],
+  "fiscal_broke": [
+    {"speaker": "Fiscal", "color": 14, "text": "Hmm. Com tão pouco no relógio eu não faço negócio. Ande logo, rapaz!"}
+  ],
   "wagon2_woman": [
     {"speaker": "Mulher Misteriosa", "color": 13, "text": "Você não vai conseguir chegar à locomotiva a tempo."},
     {"speaker": "Teo", "color": 11, "text": "Por quê?"},

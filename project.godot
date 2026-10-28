@@ -15,7 +15,7 @@ compatibility/default_parent_skeleton_in_mesh_instance_3d=true
 [application]
 
 config/name="Last Train Home"
-config/version="1.4.2"
+config/version="1.5.0"
 run/main_scene="res://scenes/boot/Boot.tscn"
 config/quit_on_go_back=false
 config/features=PackedStringArray("4.7", "GL Compatibility")
