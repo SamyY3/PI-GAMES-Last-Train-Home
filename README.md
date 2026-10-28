@@ -26,6 +26,18 @@
 2. No Project Manager, clique em **Importar** e selecione o `project.godot` desta pasta.
 3. Pressione **F5** para jogar. O jogo abre na tela de boot e depois no menu principal.
 
+Para jogar sem o Godot, baixe o `.zip` para Windows na página de [Releases](https://github.com/SamyY3/PI-GAMES-Last-Train-Home/releases), extraia e abra o `LastTrainHome.exe`.
+
+### Exportar para PC
+
+A predefinição **Windows Desktop** já está em `export_presets.cfg`. Com os templates de exportação do Godot 4.7.2 instalados, use **Projeto → Exportar** no editor ou, pela linha de comando:
+
+```bash
+godot --headless --path . --export-release "Windows Desktop" build/windows/LastTrainHome.exe
+```
+
+O resultado é um único `.exe` (com os dados embutidos) em `build/windows/`, pasta que não vai para o git.
+
 ## Controles
 
 | Ação | Teclado / mouse | Controle |
