@@ -18,7 +18,7 @@
 | **Resolução** | 480x270 nativa com upscale inteiro (janela 1440x810) |
 | **Duração** | ~10–15 minutos por partida |
 | **Modo** | Single-player |
-| **Versão** | 1.5.0 |
+| **Versão** | 1.6.0 |
 
 ## Como executar
 
@@ -87,7 +87,17 @@ As teclas principais podem ser remapeadas em **Opções → Teclado**, e os bot�
 - **O Fiscal:** quando a porta de saída de um vagão se abre, o Fiscal aparece perto dela e vende uma carta (com mais chance de rara e épica) em troca de tempo. Ele cobra primeiro da reserva e o resto do relógio. Custa 0:20 e cada compra encarece a próxima em 0:05. É uma compra por vagão, e ele não negocia se o relógio for ficar abaixo de 0:30.
 - **Raspão:** passar perto de uma bala inimiga sem ser atingido (e sem estar no dash ou invulnerável) solta uma faísca, reduz a recarga do pulso de vapor em 0,35s e devolve 0,15s ao relógio (até 12s por vagão). A tela de resultados mostra os raspões e as compras do Fiscal.
 - **Tiro contínuo com mira**, **dash** com invulnerabilidade e **pulso de vapor**.
-- **14 cartas de melhoria** em 4 categorias (ataque, defesa, mobilidade, utilidade) com raridades comum, rara e épica — por exemplo Tiro Duplo, Pistões Aprimorados, Munição Perfurante, Balas Elásticas, Mira Giroscópica e Sucata Viva.
+- **19 cartas de melhoria** em 4 categorias (ataque, defesa, mobilidade, utilidade) com raridades comum, rara, épica e **maldição**. Exemplos: Tiro Duplo, Munição Perfurante, Balas Elásticas, Mira Giroscópica e Sucata Viva.
+  - **Malditas** têm um custo junto com o bônus: Caldeira Sobrecarregada (+50% de dano, mas o relógio corre 10% mais rápido) e Freio de Emergência (o Pulso congela o relógio por 3s, mas tira 1 coração máximo).
+  - **Cartas de dash e pulso:** Rastro de Vapor (o dash deixa vapor que fere), Pulso Refletor (o pulso rebate as balas) e Embalo (derrotar um inimigo durante o dash recarrega o dash).
+  - **Combinações escondidas:** duas cartas certas juntas ganham um bônus extra e um aviso na tela. São elas: Bala Fantasma (Balas Elásticas + Munição Perfurante), Míssil de Latão (Mira Giroscópica + Pólvora Instável) e Locomotiva (Rastro de Vapor + Válvula de Escape). As combinações descobertas ficam salvas.
+- **Partidas diferentes a cada vez:** os vagões 2, 3 e 4 sorteiam as ondas entre 2 ou 3 variações (o vagão 1, o tutorial, é fixo). Cada um desses vagões ainda pode receber um modificador:
+  - **Túnel:** de tempos em tempos o vagão escurece e só a área em volta do Teo fica iluminada.
+  - **Curva fechada:** um aviso e, logo depois, o trem empurra o Teo para um lado por alguns segundos.
+  - **Passageiro em perigo:** um passageiro aguenta 3 balas. Se ele sobreviver até o vagão ser limpo, Teo ganha uma carta extra.
+- **Recordes e desbloqueios:** a tela de dificuldade mostra o melhor tempo e a melhor nota de cada dificuldade, as vitórias e as combinações descobertas.
+  - **Ferramentas iniciais** são liberadas vencendo e fazem a partida começar com uma carta de nível 1: Botas Velhas (vença uma vez), Chave Inglesa (vença na Média ou Difícil) e Luneta (vença na Difícil).
+  - **Viagem do Dia:** uma partida na Média com a mesma semente para o dia inteiro (mesmas ondas, modificadores e sorteios de cartas), sem ferramenta inicial e com recorde próprio.
 - **Três dificuldades:**
 
 | | Fácil | Média | Difícil |

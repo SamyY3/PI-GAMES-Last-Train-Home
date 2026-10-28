@@ -13,6 +13,10 @@ const FX_DASH_CD: Texture2D = preload("res://assets/sprites/fx/dash_cooldown.png
 const FX_SHIELD: Texture2D = preload("res://assets/sprites/fx/shield_ring.png")
 const FX_HITBOX: Texture2D = preload("res://assets/sprites/fx/hitbox_dot.png")
 const GRAZE_SPARK_TIME: float = 0.3
+const FX_PUFF: Texture2D = preload("res://assets/sprites/fx/steam_puff.png")
+const TRAIL_DROP_TIME: float = 0.03
+const TRAIL_TICK_TIME: float = 0.25
+const TRAIL_RADIUS: float = 11.0
 
 var _cfg: Dictionary = {}
 var _shoot_timer: float = 0.0
@@ -36,6 +40,12 @@ var _pulse_anim_t: float = -1.0 # >= 0 enquanto o Teo faz o gesto do pulso
 var _fx_front: Node2D
 var _graze_sparks: Array[Vector3] = []
 var _graze_sfx_cd: float = 0.0
+var _trail: Array[Vector3] = []
+var _trail_drop_t: float = 0.0
+var _trail_tick_t: float = 0.0
+var _trail_drawer: Node2D
+var _embalo_t: float = 0.0
+var external_push: Vector2 = Vector2.ZERO
 
 # teo_sheet_8dir.png: a arma é desenhada na própria arte (Teo segura com as duas mãos).
 # Linhas sem arma (cutscenes/dash): rotações 0, hurt 1+dir, idle 9+dir, walk 17+dir, dash 25+dir.
@@ -69,6 +79,14 @@ func _ready() -> void:
 		_draw_graze_sparks(_fx_front)
 	)
 	add_child(_fx_front)
+
+	_trail_drawer = Node2D.new()
+	_trail_drawer.top_level = true
+	_trail_drawer.z_as_relative = false
+	_trail_drawer.z_index = 2
+	_trail_drawer.draw.connect(_draw_trail)
+	add_child(_trail_drawer)
+	Events.enemy_died.connect(_on_enemy_died)
 
 
 func get_dash_cooldown_ratio() -> float:
@@ -111,6 +129,7 @@ func _physics_process(delta: float) -> void:
 	_update_aim()
 	_handle_movement(delta)
 	_handle_combat()
+	_update_trail(delta)
 	_update_sprite_animation()
 	z_index = int(global_position.y)
 	queue_redraw()
@@ -181,6 +200,8 @@ func _update_timers(delta: float) -> void:
 		_pulse_cooldown_timer -= delta
 	if _pulse_visual_timer > 0.0:
 		_pulse_visual_timer -= delta
+	if _embalo_t > 0.0:
+		_embalo_t -= delta
 	if _graze_sfx_cd > 0.0:
 		_graze_sfx_cd -= delta
 	for i in range(_graze_sparks.size() - 1, -1, -1):
@@ -257,7 +278,10 @@ func _handle_movement(delta: float) -> void:
 		var rate: float = float(_cfg.get("accel", 900.0)) if input_dir != Vector2.ZERO else float(_cfg.get("friction", 1200.0))
 		velocity = velocity.move_toward(target_vel, rate * delta)
 
+	var own_velocity: Vector2 = velocity
+	velocity += external_push
 	move_and_slide()
+	velocity = own_velocity
 	global_position.x = clampf(global_position.x, 22.0, 458.0)
 	global_position.y = clampf(global_position.y, 68.0, 244.0)
 
@@ -270,6 +294,8 @@ func _start_dash(input_dir: Vector2) -> void:
 	var cd_mult: float = 1.0 - 0.25 * float(GameState.get_upgrade_level("valvula"))
 	_dash_cooldown_timer = float(_cfg.get("dash_cooldown", 1.0)) * cd_mult
 	_invuln_timer = maxf(_invuln_timer, _dash_timer)
+	_embalo_t = _dash_timer + 0.3
+	_trail_drop_t = 0.0
 	AudioManager.play_sfx("dash")
 
 
@@ -287,8 +313,7 @@ func _fire_weapon() -> void:
 	_shoot_timer = 1.0 / fire_rate
 	_muzzle_flash_timer = 0.05
 
-	var dmg_mult: float = 1.0 + 0.25 * float(GameState.get_upgrade_level("dano"))
-	var dmg: float = float(_cfg.get("base_damage", 10.0)) * dmg_mult
+	var dmg: float = get_bullet_damage()
 	var b_speed: float = float(_cfg.get("bullet_speed", 320.0))
 	var multi_lvl: int = GameState.get_upgrade_level("tiro_duplo")
 	# ao atirar o Teo encara a mira, então o cano da arte aponta para o octante do disparo
@@ -315,7 +340,12 @@ func _activate_steam_pulse() -> void:
 	var dmg: float = float(_cfg.get("pulse_damage", 40.0))
 	var push: float = float(_cfg.get("pulse_pushback", 32.0))
 
-	BulletManager.clear_enemy_bullets_in_radius(global_position, radius)
+	if GameState.get_upgrade_level("refletor") > 0:
+		BulletManager.reflect_enemy_bullets_in_radius(global_position, radius, get_bullet_damage())
+	else:
+		BulletManager.clear_enemy_bullets_in_radius(global_position, radius)
+	if GameState.get_upgrade_level("freio") > 0:
+		TrainClock.freeze(3.0)
 	for node in get_tree().get_nodes_in_group("enemies"):
 		if node is Node2D and node.global_position.distance_to(global_position) <= radius:
 			if node.has_method("take_damage"):
@@ -328,6 +358,57 @@ func _activate_steam_pulse() -> void:
 	Settings.rumble(0.6, 0.3, 0.3)
 	Events.request_screen_shake.emit(2.0, 0.2)
 	Events.request_screen_flash.emit(0.08)
+
+
+func get_bullet_damage() -> float:
+	var dmg_mult: float = 1.0 + 0.25 * float(GameState.get_upgrade_level("dano"))
+	if GameState.get_upgrade_level("sobrecarga") > 0:
+		dmg_mult += 0.5
+	return float(_cfg.get("base_damage", 10.0)) * dmg_mult
+
+
+func _on_enemy_died(_pos: Vector2, _is_elite: bool) -> void:
+	if _embalo_t > 0.0 and GameState.get_upgrade_level("embalo") > 0 and _dash_cooldown_timer > 0.0:
+		_dash_cooldown_timer = 0.0
+		AudioManager.play_sfx("blip")
+
+
+func _update_trail(delta: float) -> void:
+	var lvl: int = GameState.get_upgrade_level("rastro")
+	if lvl > 0 and _dash_timer > 0.0:
+		_trail_drop_t -= delta
+		if _trail_drop_t <= 0.0:
+			_trail_drop_t = TRAIL_DROP_TIME
+			var life: float = 0.9 if lvl == 1 else 1.3
+			if GameState.has_combo("locomotiva"):
+				life *= 2.0
+			_trail.append(Vector3(global_position.x, global_position.y + 4.0, life))
+
+	for i in range(_trail.size() - 1, -1, -1):
+		_trail[i].z -= delta
+		if _trail[i].z <= 0.0:
+			_trail.remove_at(i)
+
+	if not _trail.is_empty():
+		_trail_tick_t -= delta
+		if _trail_tick_t <= 0.0:
+			_trail_tick_t = TRAIL_TICK_TIME
+			var dmg: float = 6.0 if lvl <= 1 else 10.0
+			for node in get_tree().get_nodes_in_group("enemies"):
+				if not (node is Node2D) or not node.has_method("take_damage"):
+					continue
+				for point in _trail:
+					if (node as Node2D).global_position.distance_to(Vector2(point.x, point.y)) <= TRAIL_RADIUS:
+						node.take_damage(dmg)
+						break
+	_trail_drawer.queue_redraw()
+
+
+func _draw_trail() -> void:
+	for point in _trail:
+		var frame: int = clampi(int((1.0 - clampf(point.z, 0.0, 1.0)) * 5.0), 0, 5)
+		var alpha: float = clampf(point.z * 2.0, 0.0, 0.85)
+		_trail_drawer.draw_texture_rect_region(FX_PUFF, Rect2(Vector2(point.x, point.y).round() - Vector2(16.0, 16.0), Vector2(32.0, 32.0)), Rect2(frame * 32.0, 0.0, 32.0, 32.0), Color(1.0, 1.0, 1.0, alpha * 0.8))
 
 
 func register_graze(at: Vector2) -> void:
@@ -454,7 +535,7 @@ func _draw_q_clip(canvas: CanvasItem, clip: Array) -> void:
 		return
 	var fs: Vector2 = clip[1]
 	var cols: int = int(clip[2])
-	var src := Rect2(Vector2(float(f % cols) * fs.x, float(f / cols) * fs.y), fs)
+	var src := Rect2(Vector2(float(f % cols) * fs.x, float(floori(float(f) / float(cols))) * fs.y), fs)
 	canvas.draw_texture_rect_region(clip[0], Rect2(FEET_OFFSET + Vector2(clip[5]), fs), src)
 
 

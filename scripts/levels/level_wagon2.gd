@@ -8,6 +8,24 @@ const WORKER_POS: Vector2 = Vector2(395.0, 92.0)
 const VENT_X: Array[float] = [111.0, 369.0]
 const VENT_HALF_W: float = 12.0
 
+const WAVES: Array = [
+	[
+		[["wrench", Vector2(390.0, 110.0)], ["wrench", Vector2(390.0, 205.0)]],
+		[["drone", Vector2(120.0, 95.0)], ["drone", Vector2(240.0, 95.0)], ["drone", Vector2(360.0, 95.0)], ["wrench", Vector2(410.0, 157.0)]],
+		[["sentinel", Vector2(100.0, 120.0)], ["sentinel", Vector2(100.0, 200.0)], ["turret", Vector2(240.0, 157.0)]],
+	],
+	[
+		[["wrench", Vector2(410.0, 157.0)], ["drone", Vector2(360.0, 100.0)], ["drone", Vector2(360.0, 215.0)]],
+		[["sniper", Vector2(420.0, 110.0)], ["sentinel", Vector2(400.0, 205.0)], ["wrench", Vector2(60.0, 157.0)]],
+		[["turret", Vector2(180.0, 157.0)], ["turret", Vector2(300.0, 157.0)], ["drone", Vector2(240.0, 95.0)]],
+	],
+	[
+		[["sentinel", Vector2(400.0, 110.0)], ["sentinel", Vector2(400.0, 205.0)], ["wrench", Vector2(420.0, 157.0)]],
+		[["drone", Vector2(150.0, 95.0)], ["drone", Vector2(330.0, 95.0)], ["drone", Vector2(150.0, 215.0)], ["drone", Vector2(330.0, 215.0)]],
+		[["wrench", Vector2(60.0, 120.0)], ["wrench", Vector2(60.0, 200.0)], ["turret", Vector2(300.0, 157.0)]],
+	],
+]
+
 var _dialogue_triggered: bool = false
 var _started_combat: bool = false
 var _talking_extra: bool = false
@@ -125,8 +143,7 @@ func _start_wagon2_events() -> void:
 	_next_wave_delay = 0.0
 	_hazard_timer = 0.0
 	hud.set_wave_info(1, 3)
-	spawn_enemy("wrench", Vector2(390.0, 110.0))
-	spawn_enemy("wrench", Vector2(390.0, 205.0))
+	spawn_wave(WAVES[GameState.get_wave_variant(2)][0])
 
 
 func _spawn_wave_2() -> void:
@@ -134,10 +151,7 @@ func _spawn_wave_2() -> void:
 	_wave_timer = 0.0
 	_next_wave_delay = 0.0
 	hud.set_wave_info(2, 3)
-	spawn_enemy("drone", Vector2(120.0, 95.0))
-	spawn_enemy("drone", Vector2(240.0, 95.0))
-	spawn_enemy("drone", Vector2(360.0, 95.0))
-	spawn_enemy("wrench", Vector2(410.0, 157.0))
+	spawn_wave(WAVES[GameState.get_wave_variant(2)][1])
 
 
 func _spawn_wave_3() -> void:
@@ -145,9 +159,7 @@ func _spawn_wave_3() -> void:
 	_wave_timer = 0.0
 	_next_wave_delay = 0.0
 	hud.set_wave_info(3, 3)
-	spawn_enemy("sentinel", Vector2(100.0, 120.0))
-	spawn_enemy("sentinel", Vector2(100.0, 200.0))
-	spawn_enemy("turret", Vector2(240.0, 157.0))
+	spawn_wave(WAVES[GameState.get_wave_variant(2)][2])
 
 
 func _process_hazards(delta: float) -> void:

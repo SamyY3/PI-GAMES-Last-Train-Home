@@ -8,7 +8,6 @@ extends Control
 
 enum Stage { CABIN_COUNT, CABIN_SAFE, NIGHT, ARRIVAL, STEP_OFF, REUNION, HOME, TITLE, CREDITS, RESULTS }
 
-const STATS_PATH: String = "user://stats.cfg"
 const CABIN_TEX: Texture2D = preload("res://assets/sprites/backgrounds/wagon_5.png")
 const BOMB_TEX: Texture2D = preload("res://assets/sprites/tiles/bomb_device.png")
 const TEO_TEX: Texture2D = preload("res://assets/sprites/player/teo_sheet_8dir.png")
@@ -78,7 +77,6 @@ func _ready() -> void:
 	texture_repeat = CanvasItem.TEXTURE_REPEAT_ENABLED
 	# a caixa de diálogo do reencontro pausa a árvore; a cena segue animando por baixo
 	process_mode = Node.PROCESS_MODE_ALWAYS
-	Input.set_custom_mouse_cursor(null)
 
 	# Visor da bomba (texto centrado no visor do sprite, que é desenhado a 2x em (176, 60))
 	_bomb_visor_lbl = _make_label(Vector2(176.0 + 21.0 * 2.0, 60.0 + 16.0 * 2.0), Vector2(25.0 * 2.0, 13.0 * 2.0), 20, true)
@@ -466,8 +464,14 @@ func _show_results_screen(remaining_bomb: float) -> void:
 	elif run_t <= 420.0:
 		grade = "B"
 
-	var is_new_record: bool = _check_and_save_record(run_t)
-	var rec_str: String = "[NOVO RECORDE!]" if is_new_record else ""
+	var win: Dictionary = Progress.register_win(GameState.difficulty, run_t, grade, GameState.is_daily)
+	var rec_str: String = "[NOVO RECORDE!]" if bool(win.get("new_record", false)) else ""
+	if GameState.is_daily:
+		rec_str = ("VIAGEM DO DIA %s  " % Progress.daily_label()) + rec_str
+	var unlocked: Array = win.get("unlocked", [])
+	if not unlocked.is_empty():
+		rec_str += "
+FERRAMENTA LIBERADA: %s" % ", ".join(PackedStringArray(unlocked)).to_upper()
 
 	var grade_lbl := Label.new()
 	grade_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -495,7 +499,7 @@ func _show_results_screen(remaining_bomb: float) -> void:
 	var btn_retry := Button.new()
 	btn_retry.text = "Jogar de novo"
 	btn_retry.pressed.connect(func() -> void:
-		GameState.start_new_run(GameState.difficulty)
+		GameState.start_new_run(GameState.difficulty, GameState.is_daily)
 		SceneRouter.goto_scene("res://scenes/levels/Level_Wagon1.tscn")
 	)
 	hbox.add_child(btn_retry)
@@ -514,18 +518,3 @@ func _show_results_screen(remaining_bomb: float) -> void:
 	)
 	hbox.add_child(btn_menu)
 	btn_retry.grab_focus()
-
-
-func _check_and_save_record(run_time: float) -> bool:
-	var cfg := ConfigFile.new()
-	cfg.load(STATS_PATH)
-	var key: String = "best_time_" + GameState.difficulty
-	var prev: float = float(cfg.get_value("records", key, 999999.0))
-	var wins: int = int(cfg.get_value("records", "total_wins", 0)) + 1
-	cfg.set_value("records", "total_wins", wins)
-	if run_time < prev:
-		cfg.set_value("records", key, run_time)
-		cfg.save(STATS_PATH)
-		return true
-	cfg.save(STATS_PATH)
-	return false

@@ -43,6 +43,7 @@ func _ready() -> void:
 	Events.radar_distance_updated.connect(_on_radar_updated)
 	Events.reserve_changed.connect(_on_reserve_changed)
 	Events.player_grazed.connect(_on_player_grazed)
+	Events.combo_discovered.connect(_on_combo_discovered)
 	_on_reserve_changed(TrainClock.reserve, 0.0)
 	_refresh_hp(GameState.current_hp, GameState.max_hp)
 	_refresh_upgrades_list()
@@ -310,7 +311,9 @@ func _refresh_hp(cur: int, max_v: int) -> void:
 
 func _on_timer_changed(secs: float) -> void:
 	_clock_label.text = TrainClock.format_time()
-	if secs < 15.0:
+	if TrainClock.freeze_left > 0.0:
+		_clock_label.add_theme_color_override("font_color", Color("#8fb8c4"))
+	elif secs < 15.0:
 		_clock_label.add_theme_color_override("font_color", Color("#ff3d6e"))
 		_vignette_rect.modulate.a = 0.7
 	elif secs < 60.0:
@@ -326,6 +329,12 @@ func _on_reserve_changed(reserve: float, gained: float) -> void:
 	_reserve_label.visible = reserve >= 1.0
 	if gained >= 1.0:
 		_show_banner("TEMPO EXCEDENTE NA RESERVA: +%s" % TrainClock.format_seconds(gained))
+
+
+func _on_combo_discovered(combo_id: String, first_time: bool) -> void:
+	var info: Dictionary = GameState.get_combo_info(combo_id)
+	var prefix: String = "COMBINAÇÃO DESCOBERTA" if first_time else "COMBINAÇÃO"
+	_show_banner("%s: %s!" % [prefix, String(info.get("name", combo_id)).to_upper()])
 
 
 func _on_player_grazed(total: int) -> void:

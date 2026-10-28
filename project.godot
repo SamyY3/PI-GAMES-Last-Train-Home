@@ -15,7 +15,7 @@ compatibility/default_parent_skeleton_in_mesh_instance_3d=true
 [application]
 
 config/name="Last Train Home"
-config/version="1.5.0"
+config/version="1.6.0"
 run/main_scene="res://scenes/boot/Boot.tscn"
 config/quit_on_go_back=false
 config/features=PackedStringArray("4.7", "GL Compatibility")
@@ -28,6 +28,7 @@ Events="*res://scripts/autoload/events.gd"
 Settings="*res://scripts/autoload/settings.gd"
 GameState="*res://scripts/autoload/game_state.gd"
 TrainClock="*res://scripts/autoload/train_clock.gd"
+Progress="*res://scripts/autoload/progress.gd"
 AudioManager="*res://scripts/autoload/audio_manager.gd"
 SceneRouter="*res://scripts/autoload/scene_router.gd"
 BulletManager="*res://scripts/systems/bullet_manager.gd"

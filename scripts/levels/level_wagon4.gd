@@ -1,5 +1,26 @@
 extends LevelBase
 
+const WAVES: Array = [
+	[
+		[["drone", Vector2(380.0, 100.0)], ["drone", Vector2(410.0, 157.0)], ["drone", Vector2(380.0, 215.0)]],
+		[["sentinel", Vector2(390.0, 110.0)], ["sentinel", Vector2(390.0, 200.0)], ["wrench", Vector2(420.0, 157.0)]],
+		[["turret", Vector2(240.0, 157.0)], ["sniper", Vector2(410.0, 105.0)], ["sniper", Vector2(410.0, 210.0)]],
+		[["wrench", Vector2(100.0, 110.0)], ["wrench", Vector2(100.0, 200.0)], ["wrench", Vector2(410.0, 157.0)], ["drone", Vector2(350.0, 100.0)], ["drone", Vector2(350.0, 215.0)]],
+	],
+	[
+		[["sentinel", Vector2(390.0, 100.0)], ["sentinel", Vector2(390.0, 215.0)], ["drone", Vector2(410.0, 157.0)]],
+		[["turret", Vector2(160.0, 157.0)], ["turret", Vector2(320.0, 157.0)], ["drone", Vector2(400.0, 100.0)]],
+		[["sniper", Vector2(410.0, 100.0)], ["sniper", Vector2(410.0, 215.0)], ["wrench", Vector2(60.0, 157.0)], ["drone", Vector2(240.0, 95.0)]],
+		[["wrench", Vector2(60.0, 110.0)], ["wrench", Vector2(410.0, 110.0)], ["wrench", Vector2(60.0, 205.0)], ["wrench", Vector2(410.0, 205.0)], ["sniper", Vector2(430.0, 157.0)]],
+	],
+	[
+		[["drone", Vector2(360.0, 95.0)], ["drone", Vector2(420.0, 130.0)], ["drone", Vector2(420.0, 185.0)], ["drone", Vector2(360.0, 220.0)]],
+		[["wrench", Vector2(420.0, 110.0)], ["wrench", Vector2(420.0, 205.0)], ["sentinel", Vector2(60.0, 157.0)]],
+		[["turret", Vector2(240.0, 157.0)], ["sniper", Vector2(60.0, 110.0)], ["sniper", Vector2(60.0, 205.0)]],
+		[["sentinel", Vector2(390.0, 100.0)], ["sentinel", Vector2(390.0, 215.0)], ["drone", Vector2(350.0, 157.0)], ["wrench", Vector2(60.0, 157.0)], ["sniper", Vector2(430.0, 157.0)]],
+	],
+]
+
 var _wave_idx: int = 0
 var _wave_timer: float = 0.0
 var _clear_delay: float = 0.0
@@ -72,22 +93,5 @@ func _process(delta: float) -> void:
 func _spawn_next_wave() -> void:
 	_wave_idx += 1
 	hud.set_wave_info(_wave_idx, 4)
-	match _wave_idx:
-		1:
-			spawn_enemy("drone", Vector2(380.0, 100.0))
-			spawn_enemy("drone", Vector2(410.0, 157.0))
-			spawn_enemy("drone", Vector2(380.0, 215.0))
-		2:
-			spawn_enemy("sentinel", Vector2(390.0, 110.0))
-			spawn_enemy("sentinel", Vector2(390.0, 200.0))
-			spawn_enemy("wrench", Vector2(420.0, 157.0))
-		3:
-			spawn_enemy("turret", Vector2(240.0, 157.0))
-			spawn_enemy("sniper", Vector2(410.0, 105.0))
-			spawn_enemy("sniper", Vector2(410.0, 210.0))
-		4:
-			spawn_enemy("wrench", Vector2(100.0, 110.0))
-			spawn_enemy("wrench", Vector2(100.0, 200.0))
-			spawn_enemy("wrench", Vector2(410.0, 157.0))
-			spawn_enemy("drone", Vector2(350.0, 100.0))
-			spawn_enemy("drone", Vector2(350.0, 215.0))
+	if _wave_idx <= 4:
+		spawn_wave(WAVES[GameState.get_wave_variant(4)][_wave_idx - 1])

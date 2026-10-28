@@ -28,6 +28,8 @@ const BEAM_TEX: Texture2D = preload("res://assets/sprites/train/headlight_beam.p
 const COUPLER_TEX: Texture2D = preload("res://assets/sprites/train/coupler.png")
 var _ui_gear_sprites: Array[Sprite2D] = []
 var _gauge_needle: Sprite2D
+var _tool_btn: Button
+var _tool_info: Label
 var _tex_moon: Texture2D
 var _tex_sun_day: Texture2D
 var _tex_sun_sunset: Texture2D
@@ -80,7 +82,6 @@ var _pad_status_lbl: Label
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
-	Input.set_custom_mouse_cursor(null)
 	set_anchors_preset(Control.PRESET_TOP_LEFT)
 	position = Vector2.ZERO
 	size = Vector2(480.0, 270.0)
@@ -681,16 +682,16 @@ func _build_main_menu() -> void:
 
 
 func _build_difficulty() -> void:
-	var sz := Vector2(268.0, 178.0)
+	var sz := Vector2(268.0, 214.0)
 	var corners: Array[Vector2] = [Vector2(2, 2), Vector2(sz.x - 2, 2), Vector2(2, sz.y - 2), Vector2(sz.x - 2, sz.y - 2)]
 	var frame := _make_stylized_brass_frame(Vector2(16.0, 18.0), sz, corners)
 	add_child(frame)
 
 	var vbox := VBoxContainer.new()
 	vbox.position = Vector2(14.0, 12.0)
-	vbox.size = Vector2(240.0, 154.0)
+	vbox.size = Vector2(240.0, 190.0)
 	vbox.alignment = BoxContainer.ALIGNMENT_CENTER
-	vbox.add_theme_constant_override("separation", 6)
+	vbox.add_theme_constant_override("separation", 5)
 	frame.add_child(vbox)
 
 	var title := Label.new()
@@ -703,12 +704,18 @@ func _build_difficulty() -> void:
 	var b_easy := _make_stylized_btn("FÁCIL · 6 ♥ · 08:00", func() -> void: _start_game("easy"))
 	var b_med := _make_stylized_btn("MÉDIA · 5 ♥ · 06:30", func() -> void: _start_game("medium"))
 	var b_hard := _make_stylized_btn("DIFÍCIL · 4 ♥ · 05:30", func() -> void: _start_game("hard"))
+	var b_daily := _make_stylized_btn("VIAGEM DO DIA · %s" % Progress.daily_label(), func() -> void: _start_game("medium", true))
+	_tool_btn = _make_stylized_btn("", _cycle_starter_tool)
 	var b_back := _make_stylized_btn("VOLTAR [ESC]", func() -> void: SceneRouter.goto_scene("res://scenes/menus/MainMenu.tscn"))
 
 	vbox.add_child(b_easy)
 	vbox.add_child(b_med)
 	vbox.add_child(b_hard)
+	vbox.add_child(b_daily)
+	vbox.add_child(_tool_btn)
 	vbox.add_child(b_back)
+	_build_records_panel()
+	_refresh_tool_texts()
 	Settings.bind_prompt_text(b_back, "VOLTAR {cancel}")
 
 	if Settings.last_difficulty == "easy":
@@ -719,8 +726,86 @@ func _build_difficulty() -> void:
 		b_med.grab_focus()
 
 
-func _start_game(diff: String) -> void:
-	GameState.start_new_run(diff)
+func _build_records_panel() -> void:
+	var sz := Vector2(168.0, 214.0)
+	var corners: Array[Vector2] = [Vector2(2, 2), Vector2(sz.x - 2, 2), Vector2(2, sz.y - 2), Vector2(sz.x - 2, sz.y - 2)]
+	var frame := _make_stylized_brass_frame(Vector2(296.0, 18.0), sz, corners)
+	add_child(frame)
+
+	var vbox := VBoxContainer.new()
+	vbox.position = Vector2(10.0, 10.0)
+	vbox.size = Vector2(148.0, 194.0)
+	vbox.add_theme_constant_override("separation", 4)
+	frame.add_child(vbox)
+
+	var title := Label.new()
+	title.text = "RECORDES"
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.add_theme_font_size_override("font_size", 10)
+	title.add_theme_color_override("font_color", Color("#f2c35b"))
+	vbox.add_child(title)
+
+	var lines := PackedStringArray()
+	for d in [["easy", "Fácil"], ["medium", "Média"], ["hard", "Difícil"]]:
+		var grade: String = Progress.get_best_grade(d[0])
+		lines.append("%s  %s%s" % [d[1], _format_record(Progress.get_best_time(d[0])), ("  " + grade) if grade != "" else ""])
+	lines.append("Dia %s  %s" % [Progress.daily_label(), _format_record(Progress.get_daily_best())])
+	lines.append("Vitórias: %d" % Progress.get_total_wins())
+	lines.append("Combinações: %d/%d" % [Progress.get_discovered_combo_count(), GameState.combos_db.size()])
+	var rec := Label.new()
+	rec.text = "
+".join(lines)
+	rec.add_theme_font_size_override("font_size", 10)
+	rec.add_theme_color_override("font_color", Color("#fff1c9"))
+	vbox.add_child(rec)
+
+	_tool_info = Label.new()
+	_tool_info.custom_minimum_size = Vector2(148.0, 0.0)
+	_tool_info.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_tool_info.add_theme_font_size_override("font_size", 10)
+	_tool_info.add_theme_color_override("font_color", Color("#8fb8c4"))
+	vbox.add_child(_tool_info)
+
+
+func _format_record(t: float) -> String:
+	if t < 0.0:
+		return "--:--"
+	return "%02d:%02d" % [floori(t / 60.0), int(t) % 60]
+
+
+func _cycle_starter_tool() -> void:
+	var options: Array[String] = [""]
+	options.append_array(Progress.get_unlocked_tool_ids())
+	var idx: int = options.find(Progress.get_selected_tool())
+	Progress.set_selected_tool(options[(idx + 1) % options.size()])
+	_refresh_tool_texts()
+
+
+func _refresh_tool_texts() -> void:
+	var tool_id: String = Progress.get_selected_tool()
+	var unlocked: Array[String] = Progress.get_unlocked_tool_ids()
+	var label: String = "NENHUMA"
+	if tool_id != "":
+		label = String(Progress.get_tool(tool_id).get("name", tool_id)).to_upper()
+	elif unlocked.is_empty():
+		label = "BLOQUEADA"
+	var txt: String = "FERRAMENTA: %s" % label
+	_tool_btn.set_meta("base_text", txt)
+	_tool_btn.text = ("▶ " + txt + " ◀") if _tool_btn.has_focus() else txt
+
+	var info := PackedStringArray()
+	if tool_id != "":
+		var upg: Dictionary = GameState.get_upgrade_info(String(Progress.get_tool(tool_id).get("upgrade", "")))
+		info.append("Começa com %s Nv 1. Não vale na Viagem do Dia." % String(upg.get("name", "")))
+	for t in Progress.get_starter_tools():
+		if not unlocked.has(String(t.get("id", ""))):
+			info.append("%s: %s" % [String(t.get("name", "")), String(t.get("hint", ""))])
+	_tool_info.text = "
+".join(info)
+
+
+func _start_game(diff: String, daily: bool = false) -> void:
+	GameState.start_new_run(diff, daily)
 	SceneRouter.goto_scene("res://scenes/levels/Intro.tscn")
 
 

@@ -8,6 +8,17 @@ const CRATE_POSITIONS: Array[Vector2] = [
 	Vector2(330.0, 210.0)
 ]
 
+const STAGES: Array = [
+	[
+		[["sentinel", Vector2(390.0, 100.0)], ["sentinel", Vector2(410.0, 157.0)], ["sentinel", Vector2(390.0, 215.0)], ["sniper", Vector2(430.0, 157.0)]],
+		[["turret", Vector2(180.0, 150.0)], ["turret", Vector2(300.0, 150.0)], ["drone", Vector2(400.0, 100.0)], ["drone", Vector2(400.0, 215.0)], ["sniper", Vector2(80.0, 157.0)]],
+	],
+	[
+		[["drone", Vector2(400.0, 100.0)], ["drone", Vector2(400.0, 215.0)], ["wrench", Vector2(420.0, 157.0)], ["sniper", Vector2(60.0, 110.0)]],
+		[["turret", Vector2(240.0, 157.0)], ["sentinel", Vector2(400.0, 110.0)], ["sentinel", Vector2(400.0, 205.0)], ["sniper", Vector2(430.0, 157.0)]],
+	],
+]
+
 var _crate_types: Array[String] = ["bomb", "heal", "trap", "empty", "empty"]
 var _crate_sprites: Array[Sprite2D] = []
 var _opened_crates: Array[bool] = [false, false, false, false, false]
@@ -113,21 +124,14 @@ func _spawn_stage_1() -> void:
 	_wave_stage = 1
 	_stage_delay = 0.0
 	hud.set_wave_info(1, 3)
-	spawn_enemy("sentinel", Vector2(390.0, 100.0))
-	spawn_enemy("sentinel", Vector2(410.0, 157.0))
-	spawn_enemy("sentinel", Vector2(390.0, 215.0))
-	spawn_enemy("sniper", Vector2(430.0, 157.0))
+	spawn_wave(STAGES[GameState.get_wave_variant(3)][0])
 
 
 func _spawn_stage_2() -> void:
 	_wave_stage = 2
 	_stage_delay = 0.0
 	hud.set_wave_info(2, 3)
-	spawn_enemy("turret", Vector2(180.0, 150.0))
-	spawn_enemy("turret", Vector2(300.0, 150.0))
-	spawn_enemy("drone", Vector2(400.0, 100.0))
-	spawn_enemy("drone", Vector2(400.0, 215.0))
-	spawn_enemy("sniper", Vector2(80.0, 157.0))
+	spawn_wave(STAGES[GameState.get_wave_variant(3)][1])
 
 
 func _spawn_freighter() -> void:

@@ -195,6 +195,8 @@ func _play(level: Node2D, boss: Node2D, cfg: Dictionary) -> void:
 	# 1) faixas de cinema + aproximação da câmera no boss
 	var zoom: float = float(cfg.get("zoom", 1.8))
 	var target_pos: Vector2 = Vector2(240.0, 135.0) - boss.global_position * zoom
+	target_pos.x = clampf(target_pos.x, 480.0 * (1.0 - zoom), 0.0)
+	target_pos.y = clampf(target_pos.y, 270.0 * (1.0 - zoom), 0.0)
 	var t1 := _tween()
 	t1.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 	t1.tween_property(_bar_top, "position:y", 0.0, 0.35)

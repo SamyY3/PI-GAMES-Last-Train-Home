@@ -41,8 +41,20 @@
     "rarity_weights": {
       "common": 25,
       "rare": 50,
-      "epic": 25
+      "epic": 25,
+      "cursed": 15
     }
+  },
+  "starter_tools": [
+    {"id": "botas", "name": "Botas Velhas", "upgrade": "velocidade", "unlock": "win_any", "hint": "Vença uma vez"},
+    {"id": "chave", "name": "Chave Inglesa", "upgrade": "caldeira", "unlock": "win_medium", "hint": "Vença na Média ou Difícil"},
+    {"id": "luneta", "name": "Luneta", "upgrade": "giroscopio", "unlock": "win_hard", "hint": "Vença na Difícil"}
+  ],
+  "wagon_modifiers": {
+    "chance": 0.7,
+    "tunnel": {"light_time": 9.0, "dark_time": 7.0, "fade_time": 0.6, "darkness": 0.88, "radius": 62.0},
+    "curve": {"interval": 11.0, "warn_time": 1.2, "push_time": 3.5, "push_speed": 46.0},
+    "passenger": {"hp": 3, "hit_radius": 9.0}
   },
   "difficulties": {
     "easy": {

@@ -2,6 +2,7 @@ extends Node
 
 var time_left: float = 390.0
 var reserve: float = 0.0
+var freeze_left: float = 0.0
 var is_running: bool = false
 var is_disarmed: bool = false
 var _tick_accumulator: float = 0.0
@@ -10,6 +11,7 @@ var _tick_accumulator: float = 0.0
 func start_clock(initial_seconds: float) -> void:
 	time_left = initial_seconds
 	reserve = 0.0
+	freeze_left = 0.0
 	is_disarmed = false
 	is_running = false
 	_tick_accumulator = 0.0
@@ -29,6 +31,11 @@ func set_reserve(seconds: float) -> void:
 
 func add_time(seconds: float) -> void:
 	time_left += seconds
+	Events.timer_changed.emit(time_left)
+
+
+func freeze(seconds: float) -> void:
+	freeze_left = maxf(freeze_left, seconds)
 	Events.timer_changed.emit(time_left)
 
 
@@ -79,7 +86,13 @@ func _process(delta: float) -> void:
 	if not is_running:
 		return
 
-	time_left = maxf(0.0, time_left - delta)
+	if freeze_left > 0.0 and not is_disarmed:
+		freeze_left = maxf(0.0, freeze_left - delta)
+		Events.timer_changed.emit(time_left)
+		return
+
+	var speed: float = 1.1 if GameState.get_upgrade_level("sobrecarga") > 0 and not is_disarmed else 1.0
+	time_left = maxf(0.0, time_left - delta * speed)
 	Events.timer_changed.emit(time_left)
 
 	_tick_accumulator += delta
@@ -102,7 +115,7 @@ func _process(delta: float) -> void:
 
 func format_seconds(seconds: float) -> String:
 	var total: int = int(floor(seconds))
-	return "%d:%02d" % [total / 60, total % 60]
+	return "%d:%02d" % [floori(float(total) / 60.0), total % 60]
 
 
 func format_time() -> String:

@@ -86,6 +86,8 @@ func spawn_bullet(pos: Vector2, dir: Vector2, speed: float, is_player: bool,
 				b.bounce_left = GameState.get_upgrade_level("ricochete")
 				b.homing_deg_per_sec = float(GameState.get_upgrade_level("giroscopio")) * 110.0
 				b.explosive_chance = float(GameState.get_upgrade_level("instavel")) * 0.15
+				if GameState.has_combo("missil_latao"):
+					b.explosive_chance += 0.3
 				b.area.collision_layer = 1 << 3
 				b.area.collision_mask = (1 << 0) | (1 << 4)
 			else:
@@ -132,6 +134,40 @@ func clear_enemy_bullets_in_radius(center: Vector2, radius: float) -> void:
 				_deactivate_bullet(b)
 
 
+func reflect_enemy_bullets_in_radius(center: Vector2, radius: float, damage: float) -> void:
+	var r_sq: float = radius * radius
+	for b in _pool:
+		if b.active and not b.is_player and b.pos.distance_squared_to(center) <= r_sq:
+			var away: Vector2 = b.pos - center
+			if away == Vector2.ZERO:
+				away = -b.vel
+			b.is_player = true
+			b.vel = away.normalized() * 260.0
+			b.damage = damage
+			b.lifetime = 0.0
+			b.max_lifetime = 1.0
+			b.splits_on_expire = false
+			b.pierce_left = 0
+			b.bounce_left = 0
+			b.homing_deg_per_sec = 0.0
+			b.explosive_chance = 0.0
+			b.sprite.texture = TEX_PLAYER
+			b.sprite.rotation = b.vel.angle()
+			b.area.collision_layer = 1 << 3
+			b.area.collision_mask = (1 << 0) | (1 << 4)
+			_active_enemy_count = maxi(0, _active_enemy_count - 1)
+
+
+func hit_enemy_bullets_near(center: Vector2, radius: float) -> int:
+	var r_sq: float = radius * radius
+	var hits: int = 0
+	for b in _pool:
+		if b.active and not b.is_player and b.pos.distance_squared_to(center) <= r_sq:
+			_deactivate_bullet(b)
+			hits += 1
+	return hits
+
+
 func clear_all_bullets() -> void:
 	for b in _pool:
 		if b.active:
@@ -165,6 +201,7 @@ func _physics_process(delta: float) -> void:
 		if b.pos.x < 16.0 or b.pos.x > 464.0:
 			if b.bounce_left > 0:
 				b.bounce_left -= 1
+				_refresh_pierce_on_bounce(b)
 				b.vel.x = -b.vel.x
 				b.pos.x = clampf(b.pos.x, 16.0, 464.0)
 			elif b.pos.x < -24.0 or b.pos.x > 504.0:
@@ -174,6 +211,7 @@ func _physics_process(delta: float) -> void:
 		if b.pos.y < 64.0 or b.pos.y > 250.0:
 			if b.bounce_left > 0:
 				b.bounce_left -= 1
+				_refresh_pierce_on_bounce(b)
 				b.vel.y = -b.vel.y
 				b.pos.y = clampf(b.pos.y, 64.0, 250.0)
 			elif b.pos.y < 40.0 or b.pos.y > 294.0:
@@ -216,9 +254,15 @@ func _on_bullet_hit_body(body: Node, b: PooledBullet) -> void:
 			_deactivate_bullet(b)
 
 
+func _refresh_pierce_on_bounce(b: PooledBullet) -> void:
+	if b.is_player and GameState.has_combo("bala_fantasma"):
+		b.pierce_left = maxi(b.pierce_left, GameState.get_upgrade_level("perfurante"))
+
+
 func _trigger_unstable_explosion(center: Vector2, dmg: float) -> void:
+	var radius: float = 34.0 if GameState.has_combo("missil_latao") else 24.0
 	for node in get_tree().get_nodes_in_group("enemies"):
-		if node is Node2D and node.global_position.distance_to(center) <= 24.0:
+		if node is Node2D and node.global_position.distance_to(center) <= radius:
 			if node.has_method("take_damage"):
 				node.take_damage(dmg)
 

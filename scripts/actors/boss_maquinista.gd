@@ -122,8 +122,8 @@ func _apply_sheet() -> void:
 	if ResourceLoader.exists(path):
 		_sprite.texture = load(path)
 	var cell: int = int(_layout.get("cell", 80))
-	_sprite.hframes = int(_sprite.texture.get_width() / cell)
-	_sprite.vframes = int(_sprite.texture.get_height() / cell)
+	_sprite.hframes = maxi(1, floori(float(_sprite.texture.get_width()) / float(cell)))
+	_sprite.vframes = maxi(1, floori(float(_sprite.texture.get_height()) / float(cell)))
 	_sprite.offset = Vector2(0.0, float(_layout.get("offset_y", 0.0)))
 
 
@@ -195,7 +195,7 @@ func _physics_process(delta: float) -> void:
 
 
 func _brain() -> void:
-	while not _is_dead:
+	while not _is_dead and is_inside_tree():
 		if is_transitioning or get_tree().paused:
 			await get_tree().physics_frame
 			continue
@@ -209,7 +209,7 @@ func _brain() -> void:
 			move = String(script_list[_seq_idx % script_list.size()])
 			_seq_idx += 1
 		await _run_move(move)
-		if _is_dead:
+		if _is_dead or not is_inside_tree():
 			return
 		if phase != p:
 			_seq_idx = 0
@@ -237,20 +237,27 @@ func _run_move(move: String) -> void:
 # Utilitários de corrotina (pausáveis e interrompíveis por troca de fase/morte)
 # ------------------------------------------------------------------------------
 func _ok(p: int) -> bool:
-	return not _is_dead and not is_transitioning and phase == p
+	return is_inside_tree() and not _is_dead and not is_transitioning and phase == p
 
 
 func _wait(seconds: float) -> void:
+	if not is_inside_tree():
+		return
 	await get_tree().create_timer(seconds / _fire_rate_mult, false).timeout
 
 
 # um passo de física; devolve o delta (0 se a árvore estiver pausada)
 func _tick() -> float:
-	await get_tree().physics_frame
-	return 0.0 if get_tree().paused else get_physics_process_delta_time()
+	var tree: SceneTree = get_tree()
+	await tree.physics_frame
+	if not is_inside_tree() or tree.paused:
+		return 0.0
+	return get_physics_process_delta_time()
 
 
 func _player() -> Node2D:
+	if not is_inside_tree():
+		return null
 	return get_tree().get_first_node_in_group("player") as Node2D
 
 
@@ -688,6 +695,8 @@ func _die() -> void:
 	Engine.time_scale = 0.4
 	await get_tree().create_timer(1.4, true, false, true).timeout
 	Engine.time_scale = 1.0
+	if not is_inside_tree():
+		return
 	var cs: Node = get_tree().get_first_node_in_group("boss_cutscene")
 	if cs != null:
 		await cs.play_defeat(get_parent(), self)

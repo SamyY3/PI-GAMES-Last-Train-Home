@@ -6,12 +6,14 @@ signal shop_closed(bought: bool)
 const RARITY_COLORS: Dictionary = {
 	"common": "#4a4668",
 	"rare": "#c98a3c",
-	"epic": "#f2c35b"
+	"epic": "#f2c35b",
+	"cursed": "#b3342e"
 }
 const RARITY_NAMES: Dictionary = {
 	"common": "COMUM",
 	"rare": "RARO",
-	"epic": "ÉPICO"
+	"epic": "ÉPICO",
+	"cursed": "MALDIÇÃO"
 }
 
 var _cards_data: Array[Dictionary] = []
@@ -21,6 +23,8 @@ var _card_titles: Array[Label] = []
 var _card_levels: Array[Label] = []
 var _card_descs: Array[Label] = []
 var _card_cats: Array[Label] = []
+var _card_cat_bgs: Array[NinePatchRect] = []
+var _card_curses: Array[Control] = []
 var _reroll_btn: Button
 var _decline_btn: Button
 var _title: Label
@@ -78,20 +82,30 @@ func _build_ui() -> void:
 		_root_control.add_child(card)
 		_card_panels.append(card)
 
+		var curse := Control.new()
+		curse.position = Vector2.ZERO
+		curse.size = card.size
+		curse.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		curse.visible = false
+		curse.draw.connect(_draw_curse_frame.bind(curse))
+		card.add_child(curse)
+		_card_curses.append(curse)
+
 		var icon_rect := TextureRect.new()
-		icon_rect.position = Vector2(48.0, 8.0)
+		icon_rect.position = Vector2(48.0, 5.0)
 		icon_rect.size = Vector2(24.0, 24.0)
 		icon_rect.stretch_mode = TextureRect.STRETCH_KEEP_CENTERED
 		card.add_child(icon_rect)
 		_card_icons.append(icon_rect)
 
 		var lbl_name := Label.new()
-		lbl_name.position = Vector2(4.0, 34.0)
-		lbl_name.size = Vector2(112.0, 22.0)
+		lbl_name.position = Vector2(4.0, 30.0)
+		lbl_name.size = Vector2(112.0, 28.0)
 		lbl_name.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		lbl_name.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 		lbl_name.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		lbl_name.add_theme_font_size_override("font_size", 10)
+		lbl_name.add_theme_constant_override("line_spacing", -3)
 		lbl_name.add_theme_color_override("font_color", Color("#fff1c9"))
 		card.add_child(lbl_name)
 		_card_titles.append(lbl_name)
@@ -126,6 +140,7 @@ func _build_ui() -> void:
 		cat_bg.size = Vector2(112.0, 19.0)
 		cat_bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		card.add_child(cat_bg)
+		_card_cat_bgs.append(cat_bg)
 
 		var lbl_cat := Label.new()
 		lbl_cat.position = Vector2(4.0, 133.0)
@@ -250,8 +265,7 @@ func _set_focused_card(idx: int) -> void:
 		var base_col := Color(String(RARITY_COLORS.get(rarity, "#4a4668")))
 
 		card.add_theme_stylebox_override("panel", Settings.make_ui_style("panel_focus" if i == _focused_idx else "panel"))
-		# A raridade tinge levemente a moldura da carta
-		card.self_modulate = Color.WHITE.lerp(base_col, 0.35)
+		card.self_modulate = Color.WHITE.lerp(base_col, 0.85 if rarity == "cursed" else 0.35)
 		card.position = Vector2(start_x[i], 30.0 if i == _focused_idx else 36.0)
 
 
@@ -298,10 +312,10 @@ func _roll_three_cards(exclude_current: bool) -> void:
 		if not GameState.has_picked_first_upgrade:
 			var atk_pool: Array[Dictionary] = []
 			for u in available:
-				if String(u.get("category", "")) == "Ataque":
+				if String(u.get("category", "")) == "Ataque" and String(u.get("rarity", "")) != "cursed":
 					atk_pool.append(u)
 			if not atk_pool.is_empty():
-				var first_atk: Dictionary = atk_pool.pick_random()
+				var first_atk: Dictionary = atk_pool[GameState.card_rng.randi_range(0, atk_pool.size() - 1)]
 				_cards_data.append(first_atk)
 				available.erase(first_atk)
 
@@ -319,7 +333,7 @@ func _weighted_pick(pool: Array[Dictionary], weights: Dictionary) -> Dictionary:
 		var r: String = String(u.get("rarity", "common"))
 		total_weight += int(weights.get(r, 10))
 
-	var roll: int = randi() % maxi(1, total_weight)
+	var roll: int = GameState.card_rng.randi() % maxi(1, total_weight)
 	var accum: int = 0
 	for u in pool:
 		var r: String = String(u.get("rarity", "common"))
@@ -343,16 +357,46 @@ func _update_card_contents() -> void:
 		var rarity: String = String(data.get("rarity", "common"))
 
 		var icon_path: String = "res://assets/sprites/ui/icon_%s.png" % id_str
-		if ResourceLoader.exists(icon_path):
-			_card_icons[i].texture = load(icon_path)
+		_card_icons[i].texture = load(icon_path) if ResourceLoader.exists(icon_path) else null
 
 		_card_titles[i].text = String(data.get("name", ""))
 		_card_levels[i].text = "%s · Nv %d -> %d" % [String(RARITY_NAMES.get(rarity, "COMUM")), cur_lvl, next_lvl]
 		_card_descs[i].text = String(data.get("description", ""))
 		_card_cats[i].text = "[%s]" % String(data.get("category", ""))
+		var cursed: bool = rarity == "cursed"
+		_card_curses[i].visible = cursed
+		_card_curses[i].queue_redraw()
+		_card_titles[i].add_theme_color_override("font_color", Color("#ffb4a8") if cursed else Color("#fff1c9"))
+		_card_levels[i].add_theme_color_override("font_color", Color("#ff6b5b") if cursed else Color("#8fb8c4"))
+		_card_cats[i].add_theme_color_override("font_color", Color("#ff8a7a") if cursed else Color("#f2c35b"))
+		_card_cat_bgs[i].self_modulate = Color("#e0574a") if cursed else Color.WHITE
 
 	Settings.bind_prompt_text(_reroll_btn, "SORTEAR DE NOVO {menu_alt} (%d)" % GameState.rerolls_left)
 	_reroll_btn.disabled = GameState.rerolls_left <= 0
+
+
+func _draw_curse_frame(c: Control) -> void:
+	var w: float = c.size.x
+	var h: float = c.size.y
+	var red := Color("#ff3d3d")
+	var dark := Color("#5a0f12")
+	c.draw_rect(Rect2(4.0, 4.0, w - 8.0, h - 8.0), Color(0.35, 0.02, 0.05, 0.45))
+	for y in [5.0, h - 6.0]:
+		var x: float = 10.0
+		while x < w - 12.0:
+			c.draw_rect(Rect2(x, y, 3.0, 1.0), dark)
+			c.draw_rect(Rect2(x + 1.0, y, 1.0, 1.0), red)
+			x += 6.0
+	for corner in [Vector2(5.0, 5.0), Vector2(w - 6.0, 5.0), Vector2(5.0, h - 6.0), Vector2(w - 6.0, h - 6.0)]:
+		var dir := Vector2(1.0 if corner.x < w * 0.5 else -1.0, 1.0 if corner.y < h * 0.5 else -1.0)
+		for k in range(5):
+			c.draw_rect(Rect2(corner + dir * float(k), Vector2.ONE), red)
+		c.draw_rect(Rect2(corner + Vector2(dir.x * 4.0, 0.0), Vector2.ONE), dark)
+		c.draw_rect(Rect2(corner + Vector2(0.0, dir.y * 4.0), Vector2.ONE), dark)
+	c.draw_rect(Rect2(w * 0.5 - 2.0, 2.0, 4.0, 4.0), dark)
+	c.draw_rect(Rect2(w * 0.5 - 1.0, 3.0, 2.0, 2.0), red)
+	c.draw_rect(Rect2(w * 0.5 - 2.0, h - 6.0, 4.0, 4.0), dark)
+	c.draw_rect(Rect2(w * 0.5 - 1.0, h - 5.0, 2.0, 2.0), red)
 
 
 func _pick_card(index: int) -> void:

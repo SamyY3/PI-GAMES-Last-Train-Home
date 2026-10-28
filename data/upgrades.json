@@ -2,7 +2,8 @@
   "rarity_weights": {
     "common": 60,
     "rare": 30,
-    "epic": 10
+    "epic": 10,
+    "cursed": 12
   },
   "upgrades": [
     {
@@ -130,6 +131,71 @@
       "rarity": "rare",
       "category": "Defesa",
       "values": [2.0]
+    },
+    {
+      "id": "sobrecarga",
+      "name": "Caldeira Sobrecarregada",
+      "description": "+50% de dano nas balas, mas o relógio corre 10% mais rápido.",
+      "max_level": 1,
+      "rarity": "cursed",
+      "category": "Ataque",
+      "values": [0.5]
+    },
+    {
+      "id": "freio",
+      "name": "Freio de Emergência",
+      "description": "Usar o Pulso congela o relógio por 3s, mas -1 coração máximo.",
+      "max_level": 1,
+      "rarity": "cursed",
+      "category": "Utilidade",
+      "values": [3.0]
+    },
+    {
+      "id": "rastro",
+      "name": "Rastro de Vapor",
+      "description": "O dash deixa vapor que queima inimigos. Nv 2: mais dano e duração.",
+      "max_level": 2,
+      "rarity": "rare",
+      "category": "Mobilidade",
+      "values": [6.0, 10.0]
+    },
+    {
+      "id": "refletor",
+      "name": "Pulso Refletor",
+      "description": "O Pulso rebate as balas inimigas em vez de apagá-las.",
+      "max_level": 1,
+      "rarity": "epic",
+      "category": "Utilidade",
+      "values": [1]
+    },
+    {
+      "id": "embalo",
+      "name": "Embalo",
+      "description": "Derrotar um inimigo durante o dash (ou logo depois) recarrega o dash.",
+      "max_level": 1,
+      "rarity": "rare",
+      "category": "Mobilidade",
+      "values": [0.3]
+    }
+  ],
+  "combos": [
+    {
+      "id": "bala_fantasma",
+      "name": "Bala Fantasma",
+      "requires": ["ricochete", "perfurante"],
+      "description": "Cada ricochete devolve a perfuração da bala."
+    },
+    {
+      "id": "missil_latao",
+      "name": "Míssil de Latão",
+      "requires": ["giroscopio", "instavel"],
+      "description": "+30% de chance de explosão e área maior."
+    },
+    {
+      "id": "locomotiva",
+      "name": "Locomotiva",
+      "requires": ["rastro", "valvula"],
+      "description": "O rastro de vapor dura o dobro."
     }
   ]
 }

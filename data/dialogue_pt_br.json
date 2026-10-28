@@ -53,6 +53,10 @@
   "fiscal_offer": [
     {"speaker": "Fiscal", "color": 14, "text": "Uma carta por {price}. Escolha bem: cada compra encarece a próxima."}
   ],
+  "passenger_saved": [
+    {"speaker": "Passageiro Nervoso", "color": 10, "text": "V-você me salvou! Tome, achei isto caído no corredor. Deve servir para alguma coisa."},
+    {"speaker": "Teo", "color": 11, "text": "Fique abaixado até o trem parar. Obrigado!"}
+  ],
   "fiscal_broke": [
     {"speaker": "Fiscal", "color": 14, "text": "Hmm. Com tão pouco no relógio eu não faço negócio. Ande logo, rapaz!"}
   ],

@@ -6,6 +6,20 @@ const UI_SPEECH: Texture2D = preload("res://assets/sprites/ui/kit/speech_bubble.
 const FX_HP_FILL: Texture2D = preload("res://assets/sprites/fx/hpbar_fill.png")
 const FISCAL_POS: Vector2 = Vector2(408.0, 214.0)
 const FISCAL_TALK_DIST: float = 36.0
+const PASSENGER_POS: Dictionary = {2: Vector2(200.0, 214.0), 3: Vector2(240.0, 222.0), 4: Vector2(250.0, 222.0)}
+const TUNNEL_SHADER_CODE: String = """
+shader_type canvas_item;
+uniform vec2 light_pos;
+uniform vec2 rect_size;
+uniform float darkness = 0.0;
+uniform float radius = 62.0;
+void fragment() {
+	vec2 p = floor(UV * rect_size / 2.0) * 2.0;
+	float d = distance(p, light_pos);
+	float band = clamp(floor((d - radius * 0.55) / (radius * 0.45) * 4.0) / 4.0, 0.0, 1.0);
+	COLOR = vec4(0.02, 0.02, 0.05, darkness * band);
+}
+"""
 
 @export var wagon_number: int = 1
 @export var next_scene_path: String = ""
@@ -29,14 +43,27 @@ var _fiscal_drawer: Node2D
 var _fiscal_done: bool = false
 var _fiscal_busy: bool = false
 var _fiscal_anim_t: float = 0.0
+var _modifier: String = ""
+var _modifier_announced: bool = false
+var _mod_cfg: Dictionary = {}
+var _mod_t: float = 0.0
+var _tunnel_rect: ColorRect
+var _tunnel_dark: float = 0.0
+var _tunnel_was_dark: bool = false
+var _curve_dir: float = 1.0
+var _curve_warned: bool = false
+var _lean_y: float = 0.0
+var _passenger_spr: Sprite2D
+var _passenger_drawer: Node2D
+var _passenger_hp: int = 0
+var _passenger_hurt_t: float = 0.0
+var _passenger_anim_t: float = 0.0
 
 var enemy_scene: PackedScene = preload("res://scenes/actors/Enemy_Base.tscn")
 
 
 func _ready() -> void:
 	texture_repeat = CanvasItem.TEXTURE_REPEAT_ENABLED
-	# Mira de latão como cursor (3x, no tamanho dos pixels do jogo na janela padrão)
-	Input.set_custom_mouse_cursor(load("res://assets/sprites/ui/crosshair_cursor.png"), Input.CURSOR_ARROW, Vector2(22.0, 22.0))
 	GameState.current_wagon = wagon_number
 	GameState.save_wagon_checkpoint()
 	GameState.graze_time_this_level = 0.0
@@ -60,6 +87,7 @@ func _ready() -> void:
 	Events.enemy_died.connect(_on_enemy_died)
 	Events.request_screen_shake.connect(_on_request_shake)
 	AudioManager.set_music_calm(true)
+	_setup_modifier()
 
 
 func _setup_doors() -> void:
@@ -94,6 +122,7 @@ func _process(delta: float) -> void:
 	_update_music_layer(delta)
 	_check_steam_cell_pickups()
 	_update_fiscal(delta)
+	_update_modifier(delta)
 	if door_unlocked and _exit_label != null:
 		_exit_label.visible = int(float(Time.get_ticks_msec()) * 0.004) % 2 == 0
 	if door_unlocked and not _transitioning_out and player != null:
@@ -159,7 +188,7 @@ func _update_camera_offset(delta: float) -> void:
 			randf_range(-_shake_strength, _shake_strength),
 			randf_range(-_shake_strength, _shake_strength)
 		) * mult
-	position = Vector2(shake_offset.x, sway_y + shake_offset.y)
+	position = Vector2(shake_offset.x, sway_y + shake_offset.y + _lean_y)
 
 
 func _on_request_shake(strength: float, duration: float) -> void:
@@ -178,6 +207,11 @@ func spawn_enemy(type_name: String, pos: Vector2) -> Node2D:
 	return e
 
 
+func spawn_wave(entries: Array) -> void:
+	for entry in entries:
+		spawn_enemy(String(entry[0]), entry[1])
+
+
 func unlock_exit_door() -> void:
 	door_unlocked = true
 	if ResourceLoader.exists("res://assets/sprites/tiles/door_open.png"):
@@ -185,8 +219,175 @@ func unlock_exit_door() -> void:
 	AudioManager.play_sfx("ui_confirm")
 	if hud.has_method("set_contextual_tip"):
 		hud.set_contextual_tip("PORTA ABERTA — SIGA PARA A DIREITA ➔")
+	if _modifier == "passenger" and _passenger_hp > 0:
+		await _reward_passenger()
 	if wagon_number <= 4:
 		_spawn_fiscal()
+
+
+func _setup_modifier() -> void:
+	if wagon_number < 2 or wagon_number > 4:
+		return
+	_modifier = GameState.get_wagon_modifier(wagon_number)
+	if _modifier == "":
+		return
+	var all_cfg: Dictionary = GameState.balance_data.get("wagon_modifiers", {})
+	match _modifier:
+		"tunnel":
+			_mod_cfg = all_cfg.get("tunnel", {})
+			_tunnel_rect = ColorRect.new()
+			_tunnel_rect.position = Vector2(-24.0, -24.0)
+			_tunnel_rect.size = Vector2(528.0, 318.0)
+			_tunnel_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			_tunnel_rect.z_as_relative = false
+			_tunnel_rect.z_index = 249
+			var shader := Shader.new()
+			shader.code = TUNNEL_SHADER_CODE
+			var mat := ShaderMaterial.new()
+			mat.shader = shader
+			mat.set_shader_parameter("rect_size", _tunnel_rect.size)
+			mat.set_shader_parameter("radius", float(_mod_cfg.get("radius", 62.0)))
+			mat.set_shader_parameter("darkness", 0.0)
+			_tunnel_rect.material = mat
+			add_child(_tunnel_rect)
+		"curve":
+			_mod_cfg = all_cfg.get("curve", {})
+		"passenger":
+			_mod_cfg = all_cfg.get("passenger", {})
+			_passenger_hp = int(_mod_cfg.get("hp", 3))
+			var ppos: Vector2 = PASSENGER_POS.get(wagon_number, Vector2(240.0, 220.0))
+			_passenger_spr = Sprite2D.new()
+			_passenger_spr.texture = load("res://assets/sprites/npcs/npc_nervous.png")
+			_passenger_spr.hframes = 4
+			_passenger_spr.position = ppos
+			_passenger_spr.z_index = int(ppos.y)
+			add_child(_passenger_spr)
+			_passenger_drawer = Node2D.new()
+			_passenger_drawer.z_index = 255
+			_passenger_drawer.draw.connect(_draw_passenger_hp)
+			add_child(_passenger_drawer)
+
+
+func _modifier_active() -> bool:
+	return TrainClock.is_running and not door_unlocked and not _transitioning_out
+
+
+func _update_modifier(delta: float) -> void:
+	if _modifier == "":
+		return
+	var active: bool = _modifier_active()
+	if active and not _modifier_announced:
+		_modifier_announced = true
+		match _modifier:
+			"tunnel":
+				hud._show_banner("⚠ TÚNEIS NESTE VAGÃO")
+			"curve":
+				hud._show_banner("⚠ TRECHO DE CURVAS")
+			"passenger":
+				hud._show_banner("⚠ PROTEJA O PASSAGEIRO!")
+	match _modifier:
+		"tunnel":
+			_update_tunnel(delta, active)
+		"curve":
+			_update_curve(delta, active)
+		"passenger":
+			_update_passenger(delta, active)
+
+
+func _update_tunnel(delta: float, active: bool) -> void:
+	var light_t: float = float(_mod_cfg.get("light_time", 9.0))
+	var dark_t: float = float(_mod_cfg.get("dark_time", 7.0))
+	var fade_t: float = float(_mod_cfg.get("fade_time", 0.6))
+	var target: float = 0.0
+	if active:
+		_mod_t += delta
+		if fmod(_mod_t, light_t + dark_t) >= light_t:
+			target = float(_mod_cfg.get("darkness", 0.88))
+	_tunnel_dark = move_toward(_tunnel_dark, target, delta / maxf(0.01, fade_t))
+	var is_dark: bool = target > 0.0
+	if is_dark and not _tunnel_was_dark:
+		AudioManager.play_sfx("whistle", 0.03)
+	_tunnel_was_dark = is_dark
+	var mat := _tunnel_rect.material as ShaderMaterial
+	mat.set_shader_parameter("darkness", _tunnel_dark)
+	if player != null:
+		mat.set_shader_parameter("light_pos", player.global_position - _tunnel_rect.global_position)
+
+
+func _update_curve(delta: float, active: bool) -> void:
+	var interval: float = float(_mod_cfg.get("interval", 11.0))
+	var push_time: float = float(_mod_cfg.get("push_time", 3.5))
+	var warn_time: float = float(_mod_cfg.get("warn_time", 1.2))
+	var pushing: bool = false
+	if active:
+		_mod_t += delta
+		var phase: float = fmod(_mod_t, interval)
+		if phase >= interval - push_time:
+			pushing = true
+		elif phase >= interval - push_time - warn_time:
+			if not _curve_warned:
+				_curve_warned = true
+				_curve_dir = -1.0 if randf() < 0.5 else 1.0
+				hud._show_banner("⚠ CURVA! SEGURE-SE")
+				AudioManager.play_sfx("whistle", 0.03)
+		else:
+			_curve_warned = false
+	if player != null:
+		player.external_push = Vector2(0.0, _curve_dir * float(_mod_cfg.get("push_speed", 46.0))) if pushing else Vector2.ZERO
+	_lean_y = move_toward(_lean_y, _curve_dir * 2.0 if pushing else 0.0, delta * 8.0)
+	if pushing and randf() < delta * 6.0:
+		Events.request_screen_shake.emit(1.0, 0.1)
+
+
+func _update_passenger(delta: float, active: bool) -> void:
+	if _passenger_spr == null or _passenger_hp <= 0:
+		return
+	_passenger_anim_t += delta
+	_passenger_spr.frame = int(_passenger_anim_t * 5.0) % 4
+	if player != null:
+		_passenger_spr.flip_h = player.global_position.x < _passenger_spr.global_position.x
+	if _passenger_hurt_t > 0.0:
+		_passenger_hurt_t -= delta
+		_passenger_spr.modulate = Color(2.0, 0.6, 0.6) if int(_passenger_hurt_t * 16.0) % 2 == 0 else Color.WHITE
+	else:
+		_passenger_spr.modulate = Color.WHITE
+	_passenger_drawer.queue_redraw()
+	if not active:
+		return
+	var hits: int = BulletManager.hit_enemy_bullets_near(_passenger_spr.global_position + Vector2(0.0, 2.0), float(_mod_cfg.get("hit_radius", 9.0)))
+	if hits > 0 and _passenger_hurt_t <= 0.0:
+		_passenger_hp -= 1
+		_passenger_hurt_t = 0.8
+		AudioManager.play_sfx("player_hurt", 0.1)
+		if _passenger_hp <= 0:
+			_passenger_flee()
+
+
+func _passenger_flee() -> void:
+	hud._show_banner("O PASSAGEIRO FUGIU APAVORADO!")
+	_passenger_drawer.queue_redraw()
+	var tw := _passenger_spr.create_tween()
+	tw.tween_property(_passenger_spr, "modulate", Color(0.86, 0.91, 0.93, 0.0), 0.4)
+	tw.tween_callback(_passenger_spr.queue_free)
+	_passenger_spr = null
+
+
+func _draw_passenger_hp() -> void:
+	if _passenger_spr == null or _passenger_hp <= 0:
+		return
+	var max_hp: int = int(_mod_cfg.get("hp", 3))
+	var base: Vector2 = (_passenger_spr.position + Vector2(-float(max_hp) * 2.5, -25.0)).round()
+	for i in range(max_hp):
+		var r := Rect2(base + Vector2(float(i) * 5.0, 0.0), Vector2(4.0, 4.0))
+		_passenger_drawer.draw_rect(r, Color("#0d0b12"))
+		_passenger_drawer.draw_rect(r.grow(-1.0), Color("#ff3d6e") if i < _passenger_hp else Color("#4a4668"))
+
+
+func _reward_passenger() -> void:
+	dialogue_box.start_dialogue("passenger_saved")
+	await dialogue_box.dialogue_finished
+	upgrade_screen.open_upgrade_choices()
+	await upgrade_screen.upgrade_selected
 
 
 func _spawn_fiscal() -> void:

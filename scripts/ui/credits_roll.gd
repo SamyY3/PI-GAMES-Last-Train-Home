@@ -34,6 +34,7 @@ const CAST_SPRITES: Dictionary = {
 }
 
 const SCROLL_SPEED: float = 22.0
+const FAST_MULT: float = 5.0
 const VIDEO_FPS: float = 10.0
 const COL_GOLD := Color("#f2c35b")
 const COL_CREAM := Color("#fff1c9")
@@ -47,6 +48,7 @@ var _end_y: float = 0.0
 var _done: bool = false
 var _emitted: bool = false
 var _scroll: float = 270.0
+var _fast_toggle: bool = false
 var _videos: Array[Dictionary] = []   # {atlas: AtlasTexture, cols: int}
 var _cast: Array[Dictionary] = []     # {atlas: AtlasTexture, cell: int, row: int, frames: int}
 
@@ -67,10 +69,13 @@ func _ready() -> void:
 	_build_content()
 
 	var hint := _label("", 10, COL_STEAM)
-	Settings.bind_prompt_text(hint, "{confirm} PULAR")
+	if Settings.touch_mode:
+		hint.text = "TOQUE: ACELERAR   ·   VOLTAR: PULAR"
+	else:
+		Settings.bind_prompt_text(hint, "SEGURE {shoot}: ACELERAR   ·   {confirm} PULAR")
 	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	hint.position = Vector2(300.0, 254.0)
-	hint.size = Vector2(172.0, 14.0)
+	hint.position = Vector2(172.0, 254.0)
+	hint.size = Vector2(300.0, 14.0)
 	add_child(hint)
 
 
@@ -267,9 +272,13 @@ func _label(txt: String, font_size: int, col: Color, title: bool = false) -> Lab
 func _process(delta: float) -> void:
 	_t += delta
 	if TouchControls.consume_tap():
-		_finish()
+		if _done:
+			_finish()
+		else:
+			_fast_toggle = not _fast_toggle
+	var fast: bool = _fast_toggle or Input.is_action_pressed("shoot")
 	if not _done:
-		_scroll = maxf(_end_y, _scroll - SCROLL_SPEED * delta)
+		_scroll = maxf(_end_y, _scroll - SCROLL_SPEED * (FAST_MULT if fast else 1.0) * delta)
 		if _scroll <= _end_y:
 			_done = true
 			_finish_after(5.0)
@@ -281,7 +290,7 @@ func _process(delta: float) -> void:
 		var i: int = vf % int(v["count"])
 		var pad: Vector2 = v["pad"]
 		var at: AtlasTexture = v["atlas"]
-		at.region.position = Vector2(float(i % int(v["cols"])) * 240.0, float(i / int(v["cols"])) * 135.0) + pad
+		at.region.position = Vector2(float(i % int(v["cols"])) * 240.0, float(floori(float(i) / float(v["cols"]))) * 135.0) + pad
 	var cf: int = int(_t * 6.0)
 	for c in _cast:
 		var cat: AtlasTexture = c["atlas"]

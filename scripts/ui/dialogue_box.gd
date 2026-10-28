@@ -3,6 +3,7 @@ extends CanvasLayer
 signal dialogue_finished
 
 const CHARS_PER_SEC: float = 40.0
+const MAX_LINES: int = 2
 const PALETTE_HEX: Dictionary = {
 	8: "#c98a3c",
 	9: "#f2c35b",
@@ -119,7 +120,7 @@ func start_custom_lines(custom_lines: Array) -> void:
 	if custom_lines.is_empty():
 		dialogue_finished.emit()
 		return
-	_lines = custom_lines
+	_lines = custom_lines.duplicate()
 	_current_index = 0
 	_is_active = true
 	_was_clock_running = TrainClock.is_running
@@ -145,6 +146,7 @@ func _show_line(idx: int) -> void:
 
 	var text_str: String = String(entry.get("text", ""))
 	_text_label.text = text_str.to_upper() if speaker == "Sistema" else text_str
+	_split_overflow(idx, entry)
 	_text_label.visible_characters = 0
 	_visible_chars = 0.0
 	_last_blip_char = 0
@@ -152,6 +154,34 @@ func _show_line(idx: int) -> void:
 
 	if speaker == "Sistema":
 		AudioManager.play_sfx("ui_confirm", 0.02)
+
+
+func _count_lines(text: String) -> int:
+	var para := TextParagraph.new()
+	para.width = _text_label.size.x
+	para.break_flags = TextServer.BREAK_MANDATORY | TextServer.BREAK_WORD_BOUND | TextServer.BREAK_ADAPTIVE
+	para.add_string(text, _text_label.get_theme_font("font"), _text_label.get_theme_font_size("font_size"))
+	return para.get_line_count()
+
+
+func _split_overflow(idx: int, entry: Dictionary) -> void:
+	var full: String = _text_label.text
+	if _count_lines(full) <= MAX_LINES:
+		return
+	var words: PackedStringArray = full.split(" ")
+	var cut: int = words.size() - 1
+	while cut > 1 and _count_lines(" ".join(words.slice(0, cut))) > MAX_LINES:
+		cut -= 1
+	var best: int = cut
+	for j in range(cut, maxi(1, cut - 8), -1):
+		var w: String = words[j - 1]
+		if w.ends_with(".") or w.ends_with("!") or w.ends_with("?") or w.ends_with(":") or w.ends_with(","):
+			best = j
+			break
+	_text_label.text = " ".join(words.slice(0, best))
+	var rest: Dictionary = entry.duplicate()
+	rest["text"] = " ".join(words.slice(best))
+	_lines.insert(idx + 1, rest)
 
 
 func _process(delta: float) -> void:

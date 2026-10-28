@@ -18,6 +18,8 @@ const DEFAULT_KEYBINDS: Dictionary = {
 signal input_device_changed(using_gamepad: bool)
 const ALL_DEVICES: int = -1 # binds de controle valem para qualquer joypad conectado
 const STICK_DEADZONE: float = 0.25
+const CURSOR_POINTER: Texture2D = preload("res://assets/sprites/ui/pointer_cursor.png")
+const CURSOR_AIM: Texture2D = preload("res://assets/sprites/ui/crosshair_cursor.png")
 const NAV_STICK_PRESS: float = 0.5
 const NAV_STICK_RELEASE: float = 0.35
 const NAV_REPEAT_DELAY: float = 0.38
@@ -117,6 +119,7 @@ var _nav_button: int = -1 # botão do D-pad emulado pelo analógico esquerdo
 var _nav_repeat_t: float = 0.0
 var _device_switch_msec: int = 0
 var _mouse_travel: float = 0.0
+var _cursor_kind: String = ""
 var _prompt_bindings: Array = [] # [WeakRef do Control, modelo teclado, modelo controle]
 var ui_font: Font
 var title_font: Font # Jersey 10: nítida em 20px, usada nos títulos
@@ -516,6 +519,22 @@ func _on_joy_connection_changed(device: int, connected: bool) -> void:
 
 func _process(delta: float) -> void:
 	_update_stick_nav(delta)
+	_update_cursor()
+
+
+func _update_cursor() -> void:
+	if not DisplayServer.has_feature(DisplayServer.FEATURE_CUSTOM_CURSOR_SHAPE):
+		return
+	var aiming: bool = not get_tree().paused and get_tree().get_first_node_in_group("player") != null
+	var kind: String = "aim" if aiming else "pointer"
+	if kind == _cursor_kind:
+		return
+	_cursor_kind = kind
+	for shape in [Input.CURSOR_ARROW, Input.CURSOR_POINTING_HAND, Input.CURSOR_IBEAM]:
+		if aiming:
+			Input.set_custom_mouse_cursor(CURSOR_AIM, shape, Vector2(22.0, 22.0))
+		else:
+			Input.set_custom_mouse_cursor(CURSOR_POINTER, shape, Vector2.ZERO)
 
 
 # Analógico esquerdo -> toques de D-pad (com repetição ao segurar) para menus e telas de escolha
