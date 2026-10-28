@@ -132,7 +132,7 @@ func _build_ui() -> void:
 		_card_cats.append(lbl_cat)
 
 	_reroll_btn = Button.new()
-	_reroll_btn.text = "SORTEAR DE NOVO [R] (1)"
+	Settings.bind_prompt_text(_reroll_btn, "SORTEAR DE NOVO {menu_alt} (1)")
 	_reroll_btn.position = Vector2(165.0, 198.0)
 	_reroll_btn.size = Vector2(150.0, 24.0)
 	_reroll_btn.add_theme_font_size_override("font_size", 10)
@@ -140,7 +140,7 @@ func _build_ui() -> void:
 	_root_control.add_child(_reroll_btn)
 
 	var hint := Label.new()
-	hint.text = "[A/D ou Setas] Selecionar   |   [ENTER ou Clique] Confirmar"
+	Settings.bind_prompt_text(hint, "[A/D ou Setas] Selecionar   |   [ENTER ou Clique] Confirmar", "[◀/▶] Selecionar   |   {confirm} Confirmar   |   {menu_alt} Sortear")
 	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	hint.position = Vector2(0.0, 228.0)
 	hint.size = Vector2(480.0, 16.0)
@@ -169,7 +169,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		AudioManager.play_sfx("ui_hover")
 	elif event.is_action_pressed("confirm"):
 		_pick_card(_focused_idx)
-	elif event is InputEventKey and event.pressed and event.keycode == KEY_R:
+	elif event.is_action_pressed("menu_alt"):
 		_do_reroll()
 
 
@@ -282,7 +282,7 @@ func _update_card_contents() -> void:
 		_card_descs[i].text = String(data.get("description", ""))
 		_card_cats[i].text = "[%s]" % String(data.get("category", ""))
 
-	_reroll_btn.text = "SORTEAR DE NOVO [R] (%d)" % GameState.rerolls_left
+	Settings.bind_prompt_text(_reroll_btn, "SORTEAR DE NOVO {menu_alt} (%d)" % GameState.rerolls_left)
 	_reroll_btn.disabled = GameState.rerolls_left <= 0
 
 

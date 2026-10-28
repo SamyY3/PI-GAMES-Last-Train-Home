@@ -213,7 +213,16 @@ func _spawn_steam_cell(pos: Vector2) -> void:
 
 func draw_centered_f_prompt(canvas: CanvasItem, center: Vector2, progress_ratio: float = 0.0) -> void:
 	var tl: Vector2 = (center - Vector2(10.0, 10.0)).round()
-	canvas.draw_texture(UI_KEY_F, tl)
+	if Settings.using_gamepad:
+		# botão A do controle: disco escuro com aro de latão e a letra no centro
+		var c: Vector2 = tl + Vector2(10.5, 8.5)
+		canvas.draw_circle(c, 7.5, Color("#0d0b12"))
+		canvas.draw_arc(c, 7.0, 0.0, TAU, 20, Color("#f2c35b"), 1.0)
+		var fs: int = 10
+		var baseline: float = c.y + (Settings.ui_font.get_ascent(fs) - Settings.ui_font.get_descent(fs)) * 0.5
+		canvas.draw_string(Settings.ui_font, Vector2(c.x - 10.0, round(baseline)), Settings.get_prompt("interact"), HORIZONTAL_ALIGNMENT_CENTER, 20.0, fs, Color("#fff1c9"))
+	else:
+		canvas.draw_texture(UI_KEY_F, tl)
 	if progress_ratio > 0.0:
 		canvas.draw_texture_rect(FX_HP_FILL, Rect2(tl.x + 3.0, tl.y + 16.0, round(15.0 * clampf(progress_ratio, 0.0, 1.0)), 3.0), true, Color("#f2c35b"))
 

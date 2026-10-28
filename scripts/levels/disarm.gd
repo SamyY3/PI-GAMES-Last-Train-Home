@@ -216,10 +216,11 @@ func _process(delta: float) -> void:
 func _update_step_ui() -> void:
 	match step:
 		1:
-			_instruction_label.text = "Alterne [A] e [D] (ou Setas Esq/Dir) 6 vezes para girar a válvula!"
+			Settings.bind_prompt_text(_instruction_label, "Alterne {move_left} e {move_right} (ou Setas Esq/Dir) 6 vezes para girar a válvula!",
+				"Alterne {move_left} e {move_right} (analógico ou D-pad) 6 vezes para girar a válvula!")
 		2:
-			_instruction_label.text = "Segure [S] ou [F] por 1,0 segundo para baixar a alavanca!"
+			Settings.bind_prompt_text(_instruction_label, "Segure {move_down} ou {interact} por 1,0 segundo para baixar a alavanca!")
 		3:
-			_instruction_label.text = "Use [A/D] para escolher o fio indicado acima e pressione [F] para cortar!"
+			Settings.bind_prompt_text(_instruction_label, "Use {move_left}/{move_right} para escolher o fio indicado acima e pressione {interact} para cortar!")
 		4:
-			_instruction_label.text = "Segure [F] por 1,2 segundos para apagar o núcleo da bomba!"
+			Settings.bind_prompt_text(_instruction_label, "Segure {interact} por 1,2 segundos para apagar o núcleo da bomba!")

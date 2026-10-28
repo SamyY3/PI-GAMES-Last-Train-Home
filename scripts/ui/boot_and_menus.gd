@@ -69,9 +69,13 @@ var _btn_aim: Button
 var _btn_hb: Button
 var _btn_dmg: Button
 var _btn_hc: Button
+var _btn_vib: Button
 var _keybind_buttons: Dictionary = {}
 var _waiting_remap_action: String = ""
 var _remap_status_lbl: Label
+var _pad_bind_buttons: Dictionary = {}
+var _waiting_pad_action: String = ""
+var _pad_status_lbl: Label
 
 
 func _ready() -> void:
@@ -163,6 +167,9 @@ func _process(delta: float) -> void:
 
 
 func _input(event: InputEvent) -> void:
+	if _waiting_pad_action != "":
+		_handle_pad_remap_input(event)
+		return
 	if _waiting_remap_action == "":
 		return
 	if event is InputEventKey and event.pressed and not event.echo:
@@ -177,6 +184,33 @@ func _input(event: InputEvent) -> void:
 		_waiting_remap_action = ""
 		AudioManager.play_sfx("ui_confirm")
 		_refresh_keybind_buttons()
+	elif event is InputEventJoypadButton or event is InputEventJoypadMotion:
+		# esperando uma TECLA: no controle, B ou Start só cancelam a espera
+		get_viewport().set_input_as_handled()
+		if event is InputEventJoypadButton and event.pressed and (event.is_action("cancel") or event.is_action("pause")):
+			_waiting_remap_action = ""
+			AudioManager.play_sfx("ui_hover")
+			_refresh_keybind_buttons()
+
+
+# Esperando um BOTÃO do controle: o próximo botão/gatilho válido vira o novo bind; Start ou ESC cancelam
+func _handle_pad_remap_input(event: InputEvent) -> void:
+	var cancel: bool = (event is InputEventKey and event.pressed and (event as InputEventKey).keycode == KEY_ESCAPE) \
+		or (event is InputEventJoypadButton and event.pressed and (event as InputEventJoypadButton).button_index == JOY_BUTTON_START)
+	if event is InputEventJoypadButton or event is InputEventJoypadMotion or cancel:
+		get_viewport().set_input_as_handled()
+	if cancel:
+		_waiting_pad_action = ""
+		AudioManager.play_sfx("ui_hover")
+		_refresh_pad_bind_buttons()
+		return
+	var code: int = Settings.pad_code_from_event(event)
+	if code == -1:
+		return # D-pad, analógicos, solturas: ignorados
+	Settings.remap_action_pad(_waiting_pad_action, code)
+	_waiting_pad_action = ""
+	AudioManager.play_sfx("ui_confirm")
+	_refresh_pad_bind_buttons()
 
 
 func _update_intro_sprites() -> void:
@@ -240,7 +274,7 @@ func _update_intro_sprites() -> void:
 func _process_intro_skip(delta: float) -> void:
 	if _intro_skipping:
 		return
-	if Input.is_key_pressed(KEY_ESCAPE):
+	if Settings.is_skip_held():
 		_intro_skip_hold += delta
 		if _intro_skip_hold >= 0.8:
 			_intro_skipping = true
@@ -252,7 +286,7 @@ func _process_intro_skip(delta: float) -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if _waiting_remap_action != "":
+	if _waiting_remap_action != "" or _waiting_pad_action != "":
 		return
 	if screen_type == "boot" and (event.is_action_pressed("confirm") or event.is_action_pressed("cancel")):
 		SceneRouter.goto_scene("res://scenes/menus/MainMenu.tscn")
@@ -266,22 +300,13 @@ func _unhandled_input(event: InputEvent) -> void:
 			return
 
 
-	if screen_type == "options" and _current_opt_tab == 0:
-		var focused: Control = get_viewport().gui_get_focus_owner()
-		if event.is_action_pressed("move_left"):
-			if focused == _btn_master_vol:
-				_change_volume("master", -10)
-			elif focused == _btn_music_vol:
-				_change_volume("music", -10)
-			elif focused == _btn_sfx_vol:
-				_change_volume("sfx", -10)
-		elif event.is_action_pressed("move_right"):
-			if focused == _btn_master_vol:
-				_change_volume("master", 10)
-			elif focused == _btn_music_vol:
-				_change_volume("music", 10)
-			elif focused == _btn_sfx_vol:
-				_change_volume("sfx", 10)
+	if screen_type == "options" and (event.is_action_pressed("tab_prev") or event.is_action_pressed("tab_next")):
+		get_viewport().set_input_as_handled()
+		var step_dir: int = -1 if event.is_action_pressed("tab_prev") else 1
+		AudioManager.play_sfx("ui_hover")
+		_switch_options_tab(posmod(_current_opt_tab + step_dir, _opt_tabs.size()))
+		_focus_first_button(_opt_tabs[_current_opt_tab])
+		return
 
 
 func _update_smoke_system(delta: float) -> void:
@@ -683,6 +708,7 @@ func _build_difficulty() -> void:
 	vbox.add_child(b_med)
 	vbox.add_child(b_hard)
 	vbox.add_child(b_back)
+	Settings.bind_prompt_text(b_back, "VOLTAR {cancel}")
 
 	if Settings.last_difficulty == "easy":
 		b_easy.grab_focus()
@@ -732,7 +758,7 @@ func _build_intro() -> void:
 
 	_skip_box_style = Settings.make_ui_style("panel_small")
 	var skip_lbl := Label.new()
-	skip_lbl.text = "Segure [ESC] p/ Pular"
+	Settings.bind_prompt_text(skip_lbl, "Segure {cancel} p/ Pular")
 	skip_lbl.position = Vector2(334.0, 8.0)
 	skip_lbl.size = Vector2(134.0, 14.0)
 	skip_lbl.z_index = 5
@@ -904,11 +930,11 @@ func _build_options() -> void:
 	tabs_hbox.add_theme_constant_override("separation", 4)
 	frame.add_child(tabs_hbox)
 
-	var tab_names: Array[String] = ["ÁUDIO", "VÍDEO", "JOGO", "CONTROLES"]
-	for i in range(4):
+	var tab_names: Array[String] = ["ÁUDIO", "VÍDEO", "JOGO", "TECLADO", "CONTROLE"]
+	for i in range(tab_names.size()):
 		var tb := Button.new()
 		tb.text = tab_names[i]
-		tb.custom_minimum_size = Vector2(74.0, 20.0)
+		tb.custom_minimum_size = Vector2(58.0, 20.0)
 		tb.add_theme_font_size_override("font_size", 10)
 		var idx: int = i
 		tb.pressed.connect(func() -> void:
@@ -932,9 +958,19 @@ func _build_options() -> void:
 	page_audio.add_child(_btn_master_vol)
 	page_audio.add_child(_btn_music_vol)
 	page_audio.add_child(_btn_sfx_vol)
+	# ◀/▶ ajustam o volume no próprio botão: tratado aqui (antes da navegação de foco do Godot),
+	# senão D-pad e setas pulariam o foco para outro botão em vez de mudar o volume
+	for vol_def in [[_btn_master_vol, "master"], [_btn_music_vol, "music"], [_btn_sfx_vol, "sfx"]]:
+		var vol_btn: Button = vol_def[0]
+		var vol_kind: String = vol_def[1]
+		vol_btn.gui_input.connect(func(ev: InputEvent) -> void:
+			if ev.is_action_pressed("move_left") or ev.is_action_pressed("move_right"):
+				_change_volume(vol_kind, -10 if ev.is_action_pressed("move_left") else 10)
+				vol_btn.accept_event()
+		)
 
 	var audio_hint := Label.new()
-	audio_hint.text = "Dica: Use [A/D], Setas [◀/▶] ou Clique para ajustar o volume"
+	Settings.bind_prompt_text(audio_hint, "Dica: Use [A/D], Setas [◀/▶] ou Clique para ajustar o volume", "Dica: Use {move_left}/{move_right} para ajustar · {tab_prev}/{tab_next} trocam de aba")
 	audio_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	audio_hint.add_theme_font_size_override("font_size", 10)
 	audio_hint.add_theme_color_override("font_color", Color("#8fb8c4"))
@@ -973,7 +1009,7 @@ func _build_options() -> void:
 	page_game.position = Vector2(18.0, 54.0)
 	page_game.size = Vector2(300.0, 122.0)
 	page_game.alignment = BoxContainer.ALIGNMENT_CENTER
-	page_game.add_theme_constant_override("separation", 4)
+	page_game.add_theme_constant_override("separation", 2)
 	page_game.visible = false
 	frame.add_child(page_game)
 	_opt_tabs.append(page_game)
@@ -998,10 +1034,17 @@ func _build_options() -> void:
 		Settings.save_settings()
 		_refresh_options_texts()
 	)
+	_btn_vib = _make_stylized_btn("", func() -> void:
+		Settings.vibration_enabled = not Settings.vibration_enabled
+		Settings.save_settings()
+		_refresh_options_texts()
+		Settings.rumble(0.4, 0.4, 0.15) # amostra ao ligar
+	)
 	page_game.add_child(_btn_aim)
 	page_game.add_child(_btn_hb)
 	page_game.add_child(_btn_dmg)
 	page_game.add_child(_btn_hc)
+	page_game.add_child(_btn_vib)
 
 	var page_ctrl := VBoxContainer.new()
 	page_ctrl.position = Vector2(12.0, 54.0)
@@ -1057,6 +1100,54 @@ func _build_options() -> void:
 	mouse_hint.add_theme_color_override("font_color", Color("#8fb8c4"))
 	page_ctrl.add_child(mouse_hint)
 
+	# Aba CONTROLE: um botão por ação de jogo; movimento, mira, pausa e menus ficam fixos
+	var page_pad := VBoxContainer.new()
+	page_pad.position = Vector2(12.0, 54.0)
+	page_pad.size = Vector2(312.0, 124.0)
+	page_pad.alignment = BoxContainer.ALIGNMENT_BEGIN
+	page_pad.add_theme_constant_override("separation", 3)
+	page_pad.visible = false
+	frame.add_child(page_pad)
+	_opt_tabs.append(page_pad)
+
+	var grid_pad := GridContainer.new()
+	grid_pad.columns = 3
+	grid_pad.add_theme_constant_override("h_separation", 4)
+	grid_pad.add_theme_constant_override("v_separation", 3)
+	page_pad.add_child(grid_pad)
+
+	var pad_defs: Array = [
+		["shoot", "Atirar"],
+		["dash", "Dash"],
+		["ability", "Pulso Vapor"],
+		["focus", "Foco"],
+		["interact", "Interagir"]
+	]
+	_pad_bind_buttons.clear()
+	for def_item in pad_defs:
+		var act_id: String = String(def_item[0])
+		var pb := Button.new()
+		pb.custom_minimum_size = Vector2(101.0, 19.0)
+		pb.add_theme_font_size_override("font_size", 10)
+		pb.clip_text = true
+		pb.set_meta("action_label", String(def_item[1]))
+		pb.pressed.connect(_start_pad_remap_for_action.bind(act_id))
+		grid_pad.add_child(pb)
+		_pad_bind_buttons[act_id] = pb
+
+	_pad_status_lbl = Label.new()
+	_pad_status_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_pad_status_lbl.add_theme_font_size_override("font_size", 10)
+	page_pad.add_child(_pad_status_lbl)
+
+	for fixed_txt in ["Fixos: LS/D-pad move · RS mira · START pausa", "Menus: A confirma · B volta · LB/RB trocam aba"]:
+		var fixed_lbl := Label.new()
+		fixed_lbl.text = fixed_txt
+		fixed_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		fixed_lbl.add_theme_font_size_override("font_size", 10)
+		fixed_lbl.add_theme_color_override("font_color", Color("#c98a3c"))
+		page_pad.add_child(fixed_lbl)
+
 	var bottom_hbox := HBoxContainer.new()
 	bottom_hbox.position = Vector2(18.0, 182.0)
 	bottom_hbox.size = Vector2(300.0, 24.0)
@@ -1070,6 +1161,7 @@ func _build_options() -> void:
 	b_reset.add_theme_font_size_override("font_size", 10)
 	b_reset.pressed.connect(func() -> void:
 		_waiting_remap_action = ""
+		_waiting_pad_action = ""
 		Settings.master_volume = 100
 		Settings.music_volume = 80
 		Settings.sfx_volume = 100
@@ -1080,21 +1172,25 @@ func _build_options() -> void:
 		Settings.always_show_hitbox = false
 		Settings.show_damage_numbers = true
 		Settings.high_contrast_bullets = false
+		Settings.vibration_enabled = true
 		Settings.reset_keybinds_to_default()
+		Settings.reset_pad_binds_to_default()
 		Settings.apply_settings()
 		Settings.save_settings()
 		AudioManager.play_sfx("ui_confirm")
 		_refresh_options_texts()
 		_refresh_keybind_buttons()
+		_refresh_pad_bind_buttons()
 	)
 	bottom_hbox.add_child(b_reset)
 
 	var b_back := Button.new()
-	b_back.text = "VOLTAR [ESC]"
+	Settings.bind_prompt_text(b_back, "VOLTAR {cancel}")
 	b_back.custom_minimum_size = Vector2(142.0, 22.0)
 	b_back.add_theme_font_size_override("font_size", 10)
 	b_back.pressed.connect(func() -> void:
 		_waiting_remap_action = ""
+		_waiting_pad_action = ""
 		AudioManager.play_sfx("ui_confirm")
 		SceneRouter.goto_scene("res://scenes/menus/MainMenu.tscn")
 	)
@@ -1102,8 +1198,51 @@ func _build_options() -> void:
 
 	_refresh_options_texts()
 	_refresh_keybind_buttons()
+	_refresh_pad_bind_buttons()
 	_switch_options_tab(0)
 	_btn_master_vol.grab_focus()
+	Settings.input_device_changed.connect(_on_input_device_changed)
+
+
+func _on_input_device_changed(_using_gamepad: bool) -> void:
+	_refresh_keybind_buttons()
+	_refresh_pad_bind_buttons()
+
+
+func _start_pad_remap_for_action(act_id: String) -> void:
+	_waiting_pad_action = act_id
+	AudioManager.play_sfx("ui_confirm")
+	_refresh_pad_bind_buttons()
+
+
+func _refresh_pad_bind_buttons() -> void:
+	for act_id in _pad_bind_buttons.keys():
+		var btn: Button = _pad_bind_buttons[act_id]
+		if not is_instance_valid(btn):
+			continue
+		var lbl_name: String = String(btn.get_meta("action_label", act_id))
+		if _waiting_pad_action == act_id:
+			btn.text = "%s: [...]" % lbl_name
+			btn.modulate = Color("#f2c35b")
+		else:
+			btn.text = "%s: [%s]" % [lbl_name, Settings.get_pad_bind_name(act_id)]
+			btn.modulate = Color.WHITE
+
+	if _pad_status_lbl != null:
+		if _waiting_pad_action != "":
+			_pad_status_lbl.text = "Aperte o novo botão (START ou ESC cancela)..."
+			_pad_status_lbl.add_theme_color_override("font_color", Color("#f2c35b"))
+		else:
+			_pad_status_lbl.text = "Escolha uma ação e aperte o novo botão"
+			_pad_status_lbl.add_theme_color_override("font_color", Color("#8fb8c4"))
+
+
+func _focus_first_button(root: Node) -> void:
+	for child in root.find_children("*", "Button", true, false):
+		var b := child as Button
+		if b.is_visible_in_tree() and b.focus_mode != Control.FOCUS_NONE:
+			b.grab_focus()
+			return
 
 
 func _start_remap_for_action(act_id: String) -> void:
@@ -1127,8 +1266,11 @@ func _refresh_keybind_buttons() -> void:
 
 	if _remap_status_lbl != null:
 		if _waiting_remap_action != "":
-			_remap_status_lbl.text = "Pressione a nova tecla (ou [ESC] para cancelar)..."
+			_remap_status_lbl.text = "Pressione a nova tecla (ou [%s] para cancelar)..." % Settings.get_prompt("cancel")
 			_remap_status_lbl.add_theme_color_override("font_color", Color("#f2c35b"))
+		elif Settings.using_gamepad:
+			_remap_status_lbl.text = "Os botões do controle ficam na aba CONTROLE"
+			_remap_status_lbl.add_theme_color_override("font_color", Color("#8fb8c4"))
 		else:
 			_remap_status_lbl.text = "Clique em uma ação para trocar a tecla"
 			_remap_status_lbl.add_theme_color_override("font_color", Color("#8fb8c4"))
@@ -1136,11 +1278,13 @@ func _refresh_keybind_buttons() -> void:
 
 func _switch_options_tab(idx: int) -> void:
 	_waiting_remap_action = ""
+	_waiting_pad_action = ""
 	_current_opt_tab = idx
 	for i in range(_opt_tabs.size()):
 		_opt_tabs[i].visible = (i == idx)
 		_opt_tab_btns[i].modulate = Color("#f2c35b") if i == idx else Color("#fff1c9")
 	_refresh_keybind_buttons()
+	_refresh_pad_bind_buttons()
 
 
 func _change_volume(kind: String, step_val: int) -> void:
@@ -1178,8 +1322,9 @@ func _refresh_options_texts() -> void:
 	_btn_hb.set_meta("base_text", "Mostrar Hitbox Sempre: %s" % ("SIM" if Settings.always_show_hitbox else "NÃO"))
 	_btn_dmg.set_meta("base_text", "Números de Dano: %s" % ("SIM" if Settings.show_damage_numbers else "NÃO"))
 	_btn_hc.set_meta("base_text", "Balas Alto Contraste: %s" % ("SIM" if Settings.high_contrast_bullets else "NÃO"))
+	_btn_vib.set_meta("base_text", "Vibração do Controle: %s" % ("SIM" if Settings.vibration_enabled else "NÃO"))
 
-	for b in [_btn_master_vol, _btn_music_vol, _btn_sfx_vol, _btn_fs, _btn_shake, _btn_flash, _btn_aim, _btn_hb, _btn_dmg, _btn_hc]:
+	for b in [_btn_master_vol, _btn_music_vol, _btn_sfx_vol, _btn_fs, _btn_shake, _btn_flash, _btn_aim, _btn_hb, _btn_dmg, _btn_hc, _btn_vib]:
 		var bt: String = String(b.get_meta("base_text", b.text))
 		b.text = ("▶ " + bt + " ◀") if b.has_focus() else bt
 

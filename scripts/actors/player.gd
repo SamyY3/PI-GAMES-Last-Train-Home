@@ -194,19 +194,32 @@ func _update_aim() -> void:
 			_aim_dir = (nearest.global_position - global_position).normalized()
 			return
 
-	var joy_aim := Vector2(
-		Input.get_joy_axis(0, JOY_AXIS_RIGHT_X),
-		Input.get_joy_axis(0, JOY_AXIS_RIGHT_Y)
-	)
-	if joy_aim.length() > 0.25:
-		_aim_dir = joy_aim.normalized()
-	else:
-		_aim_dir = (get_global_mouse_position() - global_position).normalized()
+	if Settings.using_gamepad:
+		# Analógico direito mira; solto, a mira segue o movimento — exceto atirando, quando fica
+		# travada para o Teo poder recuar atirando para a frente
+		var joy_aim: Vector2 = Settings.get_right_stick()
+		if joy_aim != Vector2.ZERO:
+			_aim_dir = joy_aim.normalized()
+		elif not Input.is_action_pressed("shoot"):
+			var move_dir: Vector2 = _get_move_input()
+			if move_dir != Vector2.ZERO:
+				_aim_dir = move_dir.normalized()
+		return
+
+	_aim_dir = (get_global_mouse_position() - global_position).normalized()
+
+
+# Analógico esquerdo (proporcional) ou teclas/D-pad
+func _get_move_input() -> Vector2:
+	var stick: Vector2 = Settings.get_left_stick()
+	if stick != Vector2.ZERO:
+		return stick
+	return Input.get_vector("move_left", "move_right", "move_up", "move_down")
 
 
 func _handle_movement(delta: float) -> void:
 	_is_focusing = Input.is_action_pressed("focus")
-	var input_dir := Input.get_vector("move_left", "move_right", "move_up", "move_down")
+	var input_dir: Vector2 = _get_move_input()
 
 	if Input.is_action_just_pressed("dash"):
 		_dash_buffer_timer = float(_cfg.get("dash_buffer", 0.12))
@@ -298,6 +311,7 @@ func _activate_steam_pulse() -> void:
 				node.apply_knockback(push_dir * push)
 
 	AudioManager.play_sfx("steam_pulse")
+	Settings.rumble(0.6, 0.3, 0.3)
 	Events.request_screen_shake.emit(2.0, 0.2)
 	Events.request_screen_flash.emit(0.08)
 
@@ -312,6 +326,7 @@ func take_damage(amount: int, source_pos: Vector2 = Vector2.ZERO) -> void:
 		_shield_cooldown_timer = 16.0 if shield_lvl >= 2 else 20.0
 		_invuln_timer = 0.6
 		AudioManager.play_sfx("clang")
+		Settings.rumble(0.3, 0.0, 0.12)
 		return
 
 	GameState.current_hp = maxi(0, GameState.current_hp - amount)
@@ -331,6 +346,7 @@ func take_damage(amount: int, source_pos: Vector2 = Vector2.ZERO) -> void:
 		global_position += kb_dir * float(_cfg.get("knockback_dist", 24.0))
 
 	AudioManager.play_sfx("player_hurt")
+	Settings.rumble(0.5, 0.8, 0.25)
 	Events.request_screen_shake.emit(3.5, 0.18)
 	Events.request_screen_flash.emit(0.08)
 	Events.player_hit.emit(GameState.current_hp, GameState.max_hp)
@@ -387,6 +403,15 @@ func _draw() -> void:
 		draw_texture(FX_SHIELD, Vector2(-12.0, -12.0))
 	if _is_focusing or Settings.always_show_hitbox:
 		draw_texture(FX_HITBOX, Vector2(-3.0, -3.0))
+
+	# Retícula de mira no controle (o cursor do mouse fica escondido)
+	if Settings.using_gamepad:
+		var rc: Vector2 = (_aim_dir * 34.0).round() + Vector2(0.5, 0.5)
+		var col := Color("#f2c35b")
+		draw_line(rc + Vector2(-4.0, 0.0), rc + Vector2(-2.0, 0.0), col)
+		draw_line(rc + Vector2(2.0, 0.0), rc + Vector2(4.0, 0.0), col)
+		draw_line(rc + Vector2(0.0, -4.0), rc + Vector2(0.0, -2.0), col)
+		draw_line(rc + Vector2(0.0, 2.0), rc + Vector2(0.0, 4.0), col)
 
 
 func _draw_q_clip(canvas: CanvasItem, clip: Array) -> void:

@@ -66,7 +66,8 @@ func _ready() -> void:
 	add_child(_content)
 	_build_content()
 
-	var hint := _label("[ENTER] PULAR", 10, COL_STEAM)
+	var hint := _label("", 10, COL_STEAM)
+	Settings.bind_prompt_text(hint, "{confirm} PULAR")
 	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	hint.position = Vector2(300.0, 254.0)
 	hint.size = Vector2(172.0, 14.0)

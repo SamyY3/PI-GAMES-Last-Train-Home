@@ -71,7 +71,7 @@ func _build_ui() -> void:
 	_panel.add_child(_text_label)
 
 	_next_indicator = Label.new()
-	_next_indicator.text = "▼ [ENTER / F]"
+	Settings.bind_prompt_text(_next_indicator, "▼ {confirm}/{interact}", "▼ {confirm}")
 	_next_indicator.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	_next_indicator.position = Vector2(335.0, 44.0)
 	_next_indicator.size = Vector2(105.0, 12.0)
@@ -156,7 +156,7 @@ func _process(delta: float) -> void:
 	if not _is_active:
 		return
 
-	if Input.is_key_pressed(KEY_ESCAPE):
+	if Settings.is_skip_held():
 		_esc_hold_time += delta
 		if _esc_hold_time >= 1.0:
 			_finish_dialogue()

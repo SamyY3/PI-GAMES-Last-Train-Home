@@ -18,7 +18,7 @@
 | **Resolução** | 480x270 nativa com upscale inteiro (janela 1440x810) |
 | **Duração** | ~10–15 minutos por partida |
 | **Modo** | Single-player |
-| **Versão** | 1.1.0 |
+| **Versão** | 1.2.0 |
 
 ## Como executar
 
@@ -30,17 +30,20 @@
 
 | Ação | Teclado / mouse | Controle |
 |---|---|---|
-| Mover | WASD ou setas | — |
-| Mirar | Mouse (ou mira automática, nas Opções) | Analógico direito |
-| Atirar | Clique esquerdo, J ou Z | X / RB |
+| Mover | WASD ou setas | Analógico esquerdo ou D-pad |
+| Mirar | Mouse (ou mira automática, nas Opções) | Analógico direito (solto, mira para onde anda) |
+| Atirar | Clique esquerdo, J ou Z | RT |
 | Dash (invulnerável por instantes) | Espaço | B |
 | Pulso de vapor (limpa projéteis e empurra inimigos) | Q ou E | Y |
-| Foco (movimento lento e preciso) | Shift | LB |
+| Foco (movimento lento e preciso) | Shift | LT |
 | Interagir / avançar diálogo | F ou Enter | A |
+| Pular introdução / diálogo (segurar) | Esc | B |
+| Sortear melhorias / tentar de novo | R | X |
+| Trocar de aba (Opções e Pausa) | Mouse | LB / RB |
 | Pausar | Esc | Start |
 | Tela cheia | F11 | — |
 
-As teclas principais podem ser remapeadas em **Opções**.
+As teclas principais podem ser remapeadas em **Opções → Teclado**, e os botões do controle (atirar, dash, pulso, foco e interagir, incluindo gatilhos, L3/R3 e paddles traseiros) em **Opções → Controle**. Movimento, mira, Start e os botões de menu são fixos (layout Xbox; controles de PlayStation e Switch usam as posições equivalentes). O jogo detecta sozinho o último dispositivo usado: as dicas na tela trocam entre teclas e botões, o cursor do mouse some e o Teo ganha uma retícula de mira. A vibração pode ser desligada em **Opções → Jogo**.
 
 ## Fluxo do jogo
 

@@ -6,6 +6,8 @@ var _root: Control
 var _title_lbl: Label
 var _tab_pages: Array[Control] = []
 var _tab_buttons: Array[Button] = []
+var _current_tab: int = 0
+var _retry_btn: Button
 var _upgrades_grid: VBoxContainer
 var _stats_label: Label
 var _invincible_btn: Button
@@ -81,7 +83,8 @@ func _build_game_over_ui() -> void:
 	_game_over_card.add_child(sub_lbl)
 
 	var b_retry := Button.new()
-	b_retry.text = "TENTAR DE NOVO [R]"
+	Settings.bind_prompt_text(b_retry, "TENTAR DE NOVO {menu_alt}")
+	_retry_btn = b_retry
 	b_retry.position = Vector2(40.0, 72.0)
 	b_retry.size = Vector2(200.0, 28.0)
 	b_retry.pressed.connect(_retry_current_wagon)
@@ -206,7 +209,7 @@ func _build_fixed_pause_ui() -> void:
 	page_game.add_child(_stats_label)
 
 	var b_cont := Button.new()
-	b_cont.text = "CONTINUAR VIAGEM [ESC]"
+	Settings.bind_prompt_text(b_cont, "CONTINUAR VIAGEM {pause}")
 	b_cont.position = Vector2(46.0, 24.0)
 	b_cont.size = Vector2(240.0, 26.0)
 	b_cont.pressed.connect(_toggle_pause)
@@ -233,7 +236,8 @@ func _build_fixed_pause_ui() -> void:
 	ctrl_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	ctrl_hint.position = Vector2(0.0, 124.0)
 	ctrl_hint.size = Vector2(332.0, 20.0)
-	ctrl_hint.text = "[WASD] Mover · [Mouse/J] Atirar · [Esp] Dash · [Q] Pulso · [F] Ação"
+	Settings.bind_prompt_text(ctrl_hint, "{move} Mover · {shoot} Atirar · {dash} Dash · {ability} Pulso · {interact} Ação",
+		"{move} Mover · {aim} Mirar · {shoot} Tiro · {dash} Dash · {ability} Pulso")
 	ctrl_hint.add_theme_font_size_override("font_size", 10)
 	ctrl_hint.add_theme_color_override("font_color", Color("#dce9ee"))
 	page_game.add_child(ctrl_hint)
@@ -358,6 +362,7 @@ func _make_fixed_panel(pos: Vector2, sz: Vector2) -> Panel:
 
 
 func _switch_pause_tab(idx: int) -> void:
+	_current_tab = idx
 	for i in range(_tab_pages.size()):
 		_tab_pages[i].visible = (i == idx)
 		_tab_buttons[i].modulate = Color("#f2c35b") if i == idx else Color("#fff1c9")
@@ -421,9 +426,25 @@ func _unhandled_input(event: InputEvent) -> void:
 	if overlay_mode == "pause" and event.is_action_pressed("pause"):
 		if not get_tree().paused or _root.visible:
 			_toggle_pause()
+	elif overlay_mode == "pause" and _root.visible and (event.is_action_pressed("tab_prev") or event.is_action_pressed("tab_next")):
+		get_viewport().set_input_as_handled()
+		var step_dir: int = -1 if event.is_action_pressed("tab_prev") else 1
+		AudioManager.play_sfx("ui_hover")
+		_switch_pause_tab(posmod(_current_tab + step_dir, _tab_pages.size()))
+		_focus_tab_page(_current_tab)
 	elif overlay_mode == "game_over" and _root.visible and not _exploding_anim:
-		if event is InputEventKey and event.pressed and event.keycode == KEY_R:
+		if event.is_action_pressed("menu_alt"):
 			_retry_current_wagon()
+
+
+# Foco no primeiro botão da aba (navegação por controle); sem botões, fica na própria aba
+func _focus_tab_page(idx: int) -> void:
+	for child in _tab_pages[idx].find_children("*", "Button", true, false):
+		var b := child as Button
+		if b.is_visible_in_tree():
+			b.grab_focus()
+			return
+	_tab_buttons[idx].grab_focus()
 
 
 func _toggle_pause() -> void:
@@ -435,6 +456,7 @@ func _toggle_pause() -> void:
 		_populate_pause_upgrades()
 		_switch_pause_tab(0)
 		_root.visible = true
+		_focus_tab_page(0)
 	else:
 		_root.visible = false
 		get_tree().paused = false
@@ -450,15 +472,18 @@ func _on_player_died(reason: String) -> void:
 		_explosion_t = 0.0
 		_game_over_card.visible = false
 		AudioManager.play_sfx("bomb_explode", 0.0)
+		Settings.rumble(1.0, 1.0, 1.2)
 		Events.request_screen_shake.emit(6.0, 1.4)
 		await get_tree().create_timer(EXPLOSION_TIME, true, false, true).timeout
 		_exploding_anim = false
 		_explosion_drawer.queue_redraw()
 		_game_over_card.visible = true
+		_retry_btn.grab_focus()
 	else:
 		_exploding_anim = false
 		_game_over_card.visible = true
 		_title_lbl.text = "VOCÊ NÃO RESISTIU"
+		_retry_btn.grab_focus()
 
 
 func _retry_current_wagon() -> void:

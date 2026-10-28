@@ -54,10 +54,10 @@ func _process(delta: float) -> void:
 			_pulse_cd_bar.value = pratio * 100.0
 			var secs_left: float = float(player.get_pulse_seconds_left())
 			if secs_left > 0.05:
-				_pulse_cd_label.text = "[Q] %.0fs" % ceil(secs_left)
+				_pulse_cd_label.text = "[%s] %.0fs" % [Settings.get_prompt("ability"), ceil(secs_left)]
 				_pulse_cd_label.add_theme_color_override("font_color", Color("#8fb8c4"))
 			else:
-				_pulse_cd_label.text = "[Q] PRONTO"
+				_pulse_cd_label.text = "[%s] PRONTO" % Settings.get_prompt("ability")
 				_pulse_cd_label.add_theme_color_override("font_color", Color("#f2c35b"))
 
 
@@ -133,7 +133,7 @@ func _build_hud() -> void:
 	add_child(_wagon_label)
 
 	var dash_lbl := Label.new()
-	dash_lbl.text = "[ESP] DASH"
+	Settings.bind_prompt_text(dash_lbl, "{dash} DASH")
 	dash_lbl.position = Vector2(354.0, 6.0)
 	dash_lbl.add_theme_font_size_override("font_size", 10)
 	dash_lbl.add_theme_color_override("font_color", Color("#fff1c9"))
@@ -146,7 +146,7 @@ func _build_hud() -> void:
 	add_child(_dash_cd_bar)
 
 	_pulse_cd_label = Label.new()
-	_pulse_cd_label.text = "[Q] PRONTO"
+	_pulse_cd_label.text = "[%s] PRONTO" % Settings.get_prompt("ability")
 	_pulse_cd_label.position = Vector2(414.0, 6.0)
 	_pulse_cd_label.add_theme_font_size_override("font_size", 10)
 	_pulse_cd_label.add_theme_color_override("font_color", Color("#f2c35b"))
@@ -258,8 +258,9 @@ func _update_wagon_header_label() -> void:
 	_wagon_label.text = _base_wagon_title + _wave_text + key_str
 
 
+# Aceita marcadores {acao} (ex.: "{interact}"), trocados pela tecla ou botão do controle em uso
 func set_contextual_tip(text_str: String) -> void:
-	_tip_label.text = text_str
+	Settings.bind_prompt_text(_tip_label, text_str)
 
 
 func show_boss_bar(visible_flag: bool) -> void:
@@ -371,7 +372,7 @@ func _refresh_upgrades_list() -> void:
 
 	if keys.size() > 6:
 		var more_lbl := Label.new()
-		more_lbl.text = "+%d (Ver no ESC)" % (keys.size() - 6)
+		Settings.bind_prompt_text(more_lbl, "+%d (Ver no {pause})" % (keys.size() - 6))
 		more_lbl.add_theme_font_size_override("font_size", 10)
 		more_lbl.add_theme_color_override("font_color", Color("#8fb8c4"))
 		_upgrades_box.add_child(more_lbl)

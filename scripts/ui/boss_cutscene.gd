@@ -64,7 +64,7 @@ func _ready() -> void:
 		_name.add_theme_font_override("font", Settings.title_font)
 
 	_skip_hint = _make_label(10, Color("#8fb8c4"), 0)
-	_skip_hint.text = "[ENTER] PULAR"
+	Settings.bind_prompt_text(_skip_hint, "{confirm} PULAR")
 	_skip_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	_skip_hint.position = Vector2(300.0, 270.0 - BAR_H + 8.0)
 	_skip_hint.size = Vector2(172.0, 14.0)

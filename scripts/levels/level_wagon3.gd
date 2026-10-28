@@ -33,7 +33,7 @@ func _ready() -> void:
 	AudioManager.play_music("wagons_1_3")
 	hud.set_wagon_title("VAGÃO 3/4")
 	hud.set_wave_info(0, 3)
-	hud.set_contextual_tip("Aproxime-se das caixas e segure [F] (0,6s)! Siga o RADAR.")
+	hud.set_contextual_tip("Aproxime-se das caixas e segure {interact} (0,6s)! Siga o RADAR.")
 
 	_setup_crates()
 	_progress_drawer = Node2D.new()

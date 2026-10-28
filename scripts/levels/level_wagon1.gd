@@ -45,7 +45,7 @@ func _ready() -> void:
 	AudioManager.play_music("wagons_1_3")
 	hud.set_wagon_title("VAGÃO 1/4")
 	hud.set_wave_info(0, 2)
-	hud.set_contextual_tip("[WASD] Mover  |  Aproxime-se de qualquer Passageiro e pressione [F]")
+	hud.set_contextual_tip("{move} Mover  |  Aproxime-se de qualquer Passageiro e pressione {interact}")
 	_spawn_wagon1_npcs()
 
 
@@ -173,7 +173,7 @@ func _start_clang_sequence() -> void:
 	_elapsed = 0.0
 	_next_wave_delay = 0.0
 	hud.set_wave_info(1, 2)
-	hud.set_contextual_tip("[Mouse/J] Atirar  |  [Espaço] Dash (invulnerável)")
+	hud.set_contextual_tip("{shoot} Atirar  |  {dash} Dash (invulnerável)")
 	spawn_enemy("sentinel", Vector2(400.0, 110.0))
 	spawn_enemy("sentinel", Vector2(420.0, 160.0))
 	spawn_enemy("sentinel", Vector2(400.0, 210.0))
@@ -184,7 +184,7 @@ func _start_wave_2() -> void:
 	_elapsed = 0.0
 	hud.set_wave_info(2, 2)
 	player.reset_pulse_cooldown()
-	hud.set_contextual_tip("[Q ou E] Pulso de Vapor: apaga balas e empurra inimigos!")
+	hud.set_contextual_tip("{ability} Pulso de Vapor: apaga balas e empurra inimigos!")
 	spawn_enemy("sentinel", Vector2(80.0, 120.0))
 	spawn_enemy("sentinel", Vector2(410.0, 190.0))
 	spawn_enemy("drone", Vector2(360.0, 100.0))
