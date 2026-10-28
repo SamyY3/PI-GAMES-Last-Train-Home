@@ -4,6 +4,9 @@ const SFX_POOL_SIZE: int = 16
 
 var _sfx_players: Array[AudioStreamPlayer] = []
 var _music_player: AudioStreamPlayer
+var _music_calm_player: AudioStreamPlayer
+var _music_calm: bool = false
+var _music_fade: Tween
 var _train_ambience_player: AudioStreamPlayer
 var _current_music_name: String = ""
 var _ambience_enabled: bool = false
@@ -25,6 +28,10 @@ func _ready() -> void:
 			_music_player.play()
 	)
 	add_child(_music_player)
+
+	_music_calm_player = AudioStreamPlayer.new()
+	_music_calm_player.bus = "Music"
+	add_child(_music_calm_player)
 
 	_train_ambience_player = AudioStreamPlayer.new()
 	_train_ambience_player.bus = "SFX"
@@ -82,14 +89,51 @@ func play_sfx(sfx_name: String, pitch_variance: float = 0.05) -> void:
 func play_music(track_name: String, pitch: float = 1.0) -> void:
 	if _current_music_name == track_name and _music_player.playing:
 		_music_player.pitch_scale = pitch
+		_music_calm_player.pitch_scale = pitch
 		return
 	var path: String = "res://assets/audio/music/%s.wav" % track_name
 	if not ResourceLoader.exists(path):
 		return
 	_current_music_name = track_name
 	_music_player.stream = load(path)
+	var calm_path: String = "res://assets/audio/music/%s_calm.wav" % track_name
+	_music_calm_player.stream = load(calm_path) if ResourceLoader.exists(calm_path) else null
 	_music_player.pitch_scale = pitch
+	_music_calm_player.pitch_scale = pitch
+	_apply_music_layers(0.0)
 	_music_player.play()
+	if _music_calm_player.stream != null:
+		_music_calm_player.play()
+	else:
+		_music_calm_player.stop()
+
+
+func stop_music() -> void:
+	_current_music_name = ""
+	_music_player.stop()
+	_music_calm_player.stop()
+
+
+func set_music_calm(calm: bool) -> void:
+	if calm == _music_calm:
+		return
+	_music_calm = calm
+	_apply_music_layers(1.5)
+
+
+func _apply_music_layers(fade_time: float) -> void:
+	var calm_on: bool = _music_calm and _music_calm_player.stream != null
+	var main_vol: float = 0.0 if calm_on else 1.0
+	var calm_vol: float = 1.0 if calm_on else 0.0
+	if _music_fade != null:
+		_music_fade.kill()
+	if fade_time <= 0.0:
+		_music_player.volume_linear = main_vol
+		_music_calm_player.volume_linear = calm_vol
+		return
+	_music_fade = create_tween().set_parallel()
+	_music_fade.tween_property(_music_player, "volume_linear", main_vol, fade_time)
+	_music_fade.tween_property(_music_calm_player, "volume_linear", calm_vol, fade_time)
 
 
 func set_dialogue_ducking(active: bool) -> void:

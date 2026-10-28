@@ -21,6 +21,7 @@ var _left_door_sprite: Sprite2D
 var _right_door_sprite: Sprite2D
 var _exit_label: Label
 var _steam_cells: Array[Node2D] = []
+var _music_calm_t: float = 0.0
 
 var enemy_scene: PackedScene = preload("res://scenes/actors/Enemy_Base.tscn")
 
@@ -50,6 +51,7 @@ func _ready() -> void:
 
 	Events.enemy_died.connect(_on_enemy_died)
 	Events.request_screen_shake.connect(_on_request_shake)
+	AudioManager.set_music_calm(true)
 
 
 func _setup_doors() -> void:
@@ -81,12 +83,23 @@ func _setup_doors() -> void:
 
 func _process(delta: float) -> void:
 	_update_camera_offset(delta)
+	_update_music_layer(delta)
 	_check_steam_cell_pickups()
 	if door_unlocked and _exit_label != null:
 		_exit_label.visible = int(float(Time.get_ticks_msec()) * 0.004) % 2 == 0
 	if door_unlocked and not _transitioning_out and player != null:
 		if player.global_position.x >= 448.0:
 			_trigger_door_transition()
+
+
+func _update_music_layer(delta: float) -> void:
+	if get_tree().get_nodes_in_group("enemies").is_empty():
+		_music_calm_t += delta
+		if _music_calm_t >= 2.5:
+			AudioManager.set_music_calm(true)
+	else:
+		_music_calm_t = 0.0
+		AudioManager.set_music_calm(false)
 
 
 func _check_steam_cell_pickups() -> void:

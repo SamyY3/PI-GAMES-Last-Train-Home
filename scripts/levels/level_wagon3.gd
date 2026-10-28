@@ -30,7 +30,7 @@ func _ready() -> void:
 	super._ready()
 	GameState.has_cargo_key = false
 	TrainClock.apply_section_rubber_band("wagon_3")
-	AudioManager.play_music("wagons_1_3")
+	AudioManager.play_music("wagon_3")
 	hud.set_wagon_title("VAGÃO 3/4")
 	hud.set_wave_info(0, 3)
 	hud.set_contextual_tip("Aproxime-se das caixas e segure {interact} (0,6s)! Siga o RADAR.")

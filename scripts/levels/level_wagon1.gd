@@ -42,7 +42,7 @@ func _ready() -> void:
 	super._ready()
 	TrainClock.apply_section_rubber_band("wagon_1")
 	TrainClock.is_running = true
-	AudioManager.play_music("wagons_1_3")
+	AudioManager.play_music("wagon_1")
 	hud.set_wagon_title("VAGÃO 1/4")
 	hud.set_wave_info(0, 2)
 	hud.set_contextual_tip("{move} Mover  |  Aproxime-se de qualquer Passageiro e pressione {interact}")

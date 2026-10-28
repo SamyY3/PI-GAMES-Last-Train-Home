@@ -5,6 +5,7 @@ func _ready() -> void:
 	wagon_number = 5
 	next_scene_path = "res://scenes/levels/Level_Boss.tscn"
 	super._ready()
+	AudioManager.play_music("cabin")
 	TrainClock.apply_section_rubber_band("cabin")
 	TrainClock.is_running = false
 	hud.set_wagon_title("LOCOMOTIVA")

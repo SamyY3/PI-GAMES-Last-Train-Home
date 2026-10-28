@@ -100,6 +100,7 @@ func _ready() -> void:
 			_build_difficulty()
 		"intro":
 			AudioManager.set_train_ambience(true, 0.9)
+			AudioManager.play_music("intro")
 			_build_intro()
 		"options":
 			AudioManager.set_train_ambience(true, 1.0)

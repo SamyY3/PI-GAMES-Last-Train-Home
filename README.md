@@ -18,7 +18,7 @@
 | **Resolução** | 480x270 nativa com upscale inteiro (janela 1440x810) |
 | **Duração** | ~10–15 minutos por partida |
 | **Modo** | Single-player |
-| **Versão** | 1.3.1 |
+| **Versão** | 1.4.2 |
 
 ## Como executar
 
@@ -97,6 +97,8 @@ As teclas principais podem ser remapeadas em **Opções → Teclado**, e os bot�
 | Cadência inimiga | x0,8 | x1,0 | x1,2 |
 | Drops aleatórios | sim | sim | não |
 
+- **Trilha sonora por cena:** menu, embarque, cada um dos quatro vagões, cabine, as fases do Maquinista, desarme, final e créditos têm músicas próprias. Nos vagões, a música tem uma camada calma para a exploração e os diálogos e passa para a versão completa quando surgem inimigos.
+
 ## Estrutura do projeto
 
 ```
@@ -134,14 +136,14 @@ O ícone do jogo (`assets/sprites/ui/icon.png`, 64×64) é um relógio de bolso 
 Os assets prontos já estão em `assets/`. Para reconstruí-los a partir das fontes (rodar na raiz do projeto):
 
 ```bash
-pip install pillow numpy
+pip install pillow numpy scipy
 python tools/build_teo_sheet.py          # Teo
 python tools/build_family_sheets.py      # família (final/créditos)
 python tools/build_boss_sheets.py        # O Maquinista
 python tools/build_credits_media.py      # fotos/vídeos dos créditos
 python tools/clean_locomotive.py         # locomotiva
 python tools/generate_sfx.py             # efeitos sonoros
-python tools/generate_audio.py           # músicas dos vagões
+python tools/generate_music.py           # trilhas do jogo (menu, vagões, chefe, desarme, final)
 python tools/generate_credits_music.py   # tema dos créditos
 ```
 

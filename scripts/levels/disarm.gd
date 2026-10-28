@@ -41,6 +41,7 @@ func _ready() -> void:
 	add_child(preload("res://scenes/menus/GameOver.tscn").instantiate())
 
 	hud.set_wagon_title("DESARME DA BOMBA")
+	AudioManager.play_music("disarm")
 	_build_panel_ui()
 
 	dialogue_box.start_dialogue("post_boss")

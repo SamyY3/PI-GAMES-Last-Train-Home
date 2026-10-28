@@ -360,6 +360,7 @@ func _run_cinematic() -> void:
 
 	_set_stage(Stage.CABIN_SAFE, "[ 00:00 — BOMBA DESATIVADA ]")
 	_bomb_visor_lbl.add_theme_color_override("font_color", Color("#8fb8c4"))
+	AudioManager.stop_music()
 	AudioManager.play_sfx("steam_pulse")
 	await _wait(1.8)
 

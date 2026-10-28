@@ -21,6 +21,7 @@ var _tip_label: Label
 var _banner_panel: PanelContainer
 var _banner_label: Label
 var _flash_rect: ColorRect
+var _flash_tween: Tween
 var _vignette_rect: TextureRect
 var _clock_gear: TextureRect
 const TEX_HEART_FULL: Texture2D = preload("res://assets/sprites/ui/heart_full.png")
@@ -401,9 +402,11 @@ func _on_boss_hp_changed(cur: float, max_v: float) -> void:
 func _on_screen_flash(duration: float) -> void:
 	if Settings.reduce_flashes:
 		return
+	if _flash_tween != null:
+		_flash_tween.kill()
 	_flash_rect.color.a = 0.85
-	var tw := create_tween()
-	tw.tween_property(_flash_rect, "color:a", 0.0, duration)
+	_flash_tween = create_tween().set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
+	_flash_tween.tween_property(_flash_rect, "color:a", 0.0, duration)
 
 
 func _on_radar_updated(dist: float) -> void:
