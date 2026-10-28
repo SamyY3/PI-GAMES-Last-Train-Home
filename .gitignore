@@ -7,3 +7,6 @@ export_presets.cfg
 # Python
 __pycache__/
 *.pyc
+
+# PixelLab Pip (gerações, blueprints e manifests locais)
+pixellab-pip-generations/
