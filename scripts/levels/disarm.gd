@@ -24,13 +24,13 @@ const LEVER_TRACK_TEX: Texture2D = preload("res://assets/sprites/disarm/lever_tr
 const LEVER_HANDLE_TEX: Texture2D = preload("res://assets/sprites/disarm/lever_handle.png")
 const WIRE_TEX: Texture2D = preload("res://assets/sprites/disarm/wire.png")
 const CORE_TEX: Texture2D = preload("res://assets/sprites/disarm/core.png")
+const DISARM_TIME: float = 18.0
 
 
 func _ready() -> void:
 	GameState.current_wagon = 6
 	add_to_group("touch_dpad")
-	TrainClock.apply_section_rubber_band("disarm")
-	TrainClock.set_time(18.0)
+	TrainClock.set_time(DISARM_TIME)
 	GameState.save_wagon_checkpoint()
 
 	hud = preload("res://scenes/ui/HUD.tscn").instantiate()
@@ -39,6 +39,7 @@ func _ready() -> void:
 	add_child(dialogue_box)
 	add_child(preload("res://scenes/menus/Pause.tscn").instantiate())
 	add_child(preload("res://scenes/menus/GameOver.tscn").instantiate())
+	add_child(preload("res://scenes/ui/DebugOverlay.tscn").instantiate())
 
 	hud.set_wagon_title("DESARME DA BOMBA")
 	AudioManager.play_music("disarm")
@@ -47,7 +48,6 @@ func _ready() -> void:
 	dialogue_box.start_dialogue("post_boss")
 	await dialogue_box.dialogue_finished
 
-	TrainClock.set_time(18.0)
 	TrainClock.is_running = true
 	step = 1
 	_update_step_ui()
@@ -57,7 +57,10 @@ func _build_panel_ui() -> void:
 	# Fundo: a cabine da locomotiva escurecida (pixel art)
 	var bg := Sprite2D.new()
 	bg.texture = CABIN_TEX
-	bg.position = Vector2(240.0, 135.0)
+	bg.centered = false
+	bg.region_enabled = true
+	bg.region_rect = Rect2(8.0, 0.0, 496.0, 285.0)
+	bg.position = Vector2(-8.0, -16.0)
 	bg.modulate = Color(0.42, 0.38, 0.45)
 	add_child(bg)
 	_panel_style = Settings.make_ui_style("panel")
@@ -211,6 +214,8 @@ func _process(delta: float) -> void:
 			_status_label.text = "PASSO 4/4 — DESLIGANDO NÚCLEO: %d%%" % int(clampf(_hold_timer / 1.2, 0.0, 1.0) * 100.0)
 			if _hold_timer >= 1.2:
 				step = 5
+				TrainClock.is_running = false
+				GameState.run_finished = true
 				AudioManager.play_sfx("upgrade_get")
 				SceneRouter.goto_scene("res://scenes/levels/Ending.tscn")
 

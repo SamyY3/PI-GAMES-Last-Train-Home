@@ -11,7 +11,9 @@ var _retry_btn: Button
 var _upgrades_grid: VBoxContainer
 var _stats_label: Label
 var _invincible_btn: Button
-var _was_clock_running: bool = false
+var _freeze_btn: Button
+var _speed_btn: Button
+var _debug_list: VBoxContainer
 
 var _exploding_anim: bool = false
 var _explosion_t: float = 0.0
@@ -100,10 +102,7 @@ func _build_game_over_ui() -> void:
 	b_menu.text = "MENU PRINCIPAL"
 	b_menu.position = Vector2(40.0, 110.0)
 	b_menu.size = Vector2(200.0, 28.0)
-	b_menu.pressed.connect(func() -> void:
-		get_tree().paused = false
-		SceneRouter.goto_scene("res://scenes/menus/MainMenu.tscn")
-	)
+	b_menu.pressed.connect(func() -> void: SceneRouter.goto_scene("res://scenes/menus/MainMenu.tscn"))
 	_game_over_card.add_child(b_menu)
 
 
@@ -186,8 +185,10 @@ func _build_fixed_pause_ui() -> void:
 	header_lbl.add_theme_color_override("font_color", Color("#f2c35b"))
 	modal.add_child(header_lbl)
 
-	var tab_titles: Array[String] = ["JOGO", "MELHORIAS", "DEBUG"]
-	for i in range(3):
+	var tab_titles: Array[String] = ["JOGO", "MELHORIAS"]
+	if DebugCommands.enabled():
+		tab_titles.append("DEBUG")
+	for i in range(tab_titles.size()):
 		var tb := Button.new()
 		tb.text = tab_titles[i]
 		tb.position = Vector2(18.0 + float(i) * 110.0, 36.0)
@@ -232,10 +233,7 @@ func _build_fixed_pause_ui() -> void:
 	b_menu.text = "MENU PRINCIPAL"
 	b_menu.position = Vector2(46.0, 88.0)
 	b_menu.size = Vector2(240.0, 26.0)
-	b_menu.pressed.connect(func() -> void:
-		get_tree().paused = false
-		SceneRouter.goto_scene("res://scenes/menus/MainMenu.tscn")
-	)
+	b_menu.pressed.connect(func() -> void: SceneRouter.goto_scene("res://scenes/menus/MainMenu.tscn"))
 	page_game.add_child(b_menu)
 
 	var ctrl_hint := Label.new()
@@ -265,6 +263,11 @@ func _build_fixed_pause_ui() -> void:
 	_upgrades_grid.add_theme_constant_override("separation", 6)
 	scroll.add_child(_upgrades_grid)
 
+	if DebugCommands.enabled():
+		_build_debug_page(modal)
+
+
+func _build_debug_page(modal: Control) -> void:
 	var page_dbg := Control.new()
 	page_dbg.position = Vector2(14.0, 68.0)
 	page_dbg.size = Vector2(332.0, 148.0)
@@ -272,91 +275,93 @@ func _build_fixed_pause_ui() -> void:
 	modal.add_child(page_dbg)
 	_tab_pages.append(page_dbg)
 
-	_invincible_btn = Button.new()
-	_invincible_btn.position = Vector2(0.0, 6.0)
-	_invincible_btn.size = Vector2(162.0, 28.0)
-	_invincible_btn.add_theme_font_size_override("font_size", 10)
-	_invincible_btn.pressed.connect(func() -> void:
-		GameState.debug_invincible = not GameState.debug_invincible
-		_refresh_debug_buttons()
-	)
-	page_dbg.add_child(_invincible_btn)
+	var scroll := ScrollContainer.new()
+	scroll.size = page_dbg.size
+	scroll.follow_focus = true
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	page_dbg.add_child(scroll)
+	_debug_list = VBoxContainer.new()
+	_debug_list.custom_minimum_size = Vector2(320.0, 0.0)
+	_debug_list.add_theme_constant_override("separation", 3)
+	scroll.add_child(_debug_list)
 
-	var b_kill := Button.new()
-	b_kill.text = "[F4] Matar Inimigos"
-	b_kill.position = Vector2(170.0, 6.0)
-	b_kill.size = Vector2(162.0, 28.0)
-	b_kill.add_theme_font_size_override("font_size", 10)
-	b_kill.pressed.connect(func() -> void:
-		for e in get_tree().get_nodes_in_group("enemies"):
-			if e.has_method("take_damage"):
-				e.take_damage(99999.0)
-	)
-	page_dbg.add_child(b_kill)
 
-	var b_next := Button.new()
-	b_next.text = "[F2] Próximo Vagão"
-	b_next.position = Vector2(0.0, 42.0)
-	b_next.size = Vector2(162.0, 28.0)
-	b_next.add_theme_font_size_override("font_size", 10)
-	b_next.pressed.connect(func() -> void:
-		_toggle_pause()
-		var next_w: int = GameState.current_wagon + 1
-		if next_w <= 4:
-			GameState.current_wagon = next_w
-			SceneRouter.goto_scene("res://scenes/levels/Level_Wagon%d.tscn" % next_w)
-		else:
-			SceneRouter.goto_scene("res://scenes/levels/Level_Cabin.tscn")
-	)
-	page_dbg.add_child(b_next)
+func _rebuild_debug_list() -> void:
+	if _debug_list == null:
+		return
+	for child in _debug_list.get_children():
+		_debug_list.remove_child(child)
+		child.queue_free()
+	var list: VBoxContainer = _debug_list
+	var tree: SceneTree = get_tree()
+	var grid: GridContainer = _debug_section(list, "GERAL")
+	_invincible_btn = _make_debug_btn(grid, "", func() -> void: DebugCommands.toggle_invincible())
+	_freeze_btn = _make_debug_btn(grid, "", func() -> void: DebugCommands.toggle_clock_freeze())
+	_speed_btn = _make_debug_btn(grid, "", func() -> void: DebugCommands.cycle_speed())
+	_make_debug_btn(grid, "[F4] Matar inimigos", func() -> void: DebugCommands.kill_enemies(tree))
+	_make_debug_btn(grid, "Curar + 30s no relógio", func() -> void: DebugCommands.heal_and_time())
+	_make_debug_btn(grid, "+60s na reserva", func() -> void: DebugCommands.add_reserve())
 
-	var b_upg := Button.new()
-	b_upg.text = "[F6] +1 Melhoria"
-	b_upg.position = Vector2(170.0, 42.0)
-	b_upg.size = Vector2(162.0, 28.0)
-	b_upg.add_theme_font_size_override("font_size", 10)
-	b_upg.pressed.connect(func() -> void:
-		if not GameState.upgrades_db.is_empty():
-			var u: Dictionary = GameState.upgrades_db.pick_random()
-			GameState.add_upgrade(String(u.get("id", "dano")))
-			_populate_pause_upgrades()
-	)
-	page_dbg.add_child(b_upg)
+	grid = _debug_section(list, "MELHORIAS")
+	_make_debug_btn(grid, "[F6] +1 melhoria", func() -> void: DebugCommands.random_upgrade())
+	_make_debug_btn(grid, "[F7] Escolher carta", func() -> void: DebugCommands.open_card_choice(tree), true)
+	_make_debug_btn(grid, "Todas no máximo", func() -> void: DebugCommands.max_upgrades())
 
-	var b_boss := Button.new()
-	b_boss.text = "[F5] Boss 31% Vida"
-	b_boss.position = Vector2(0.0, 78.0)
-	b_boss.size = Vector2(162.0, 28.0)
-	b_boss.add_theme_font_size_override("font_size", 10)
-	b_boss.pressed.connect(func() -> void:
-		for e in get_tree().get_nodes_in_group("enemies"):
-			if "hp" in e and "max_hp" in e:
-				var target_hp: float = float(e.max_hp) * 0.31
-				if float(e.hp) > target_hp:
-					e.take_damage(float(e.hp) - target_hp)
-	)
-	page_dbg.add_child(b_boss)
+	grid = _debug_section(list, "IR PARA")
+	_make_debug_btn(grid, "[F2] Próxima seção", func() -> void: DebugCommands.next_section(tree), true)
+	for id in DebugCommands.SECTIONS:
+		var sec: String = id
+		_make_debug_btn(grid, String(DebugCommands.SECTION_NAMES[sec]), func() -> void: DebugCommands.goto_section(sec), true)
 
-	var b_heal := Button.new()
-	b_heal.text = "Curar +30s Relógio"
-	b_heal.position = Vector2(170.0, 78.0)
-	b_heal.size = Vector2(162.0, 28.0)
-	b_heal.add_theme_font_size_override("font_size", 10)
-	b_heal.pressed.connect(func() -> void:
-		GameState.heal_player(GameState.max_hp)
-		TrainClock.set_time(TrainClock.time_left + 30.0)
-		_populate_pause_upgrades()
-	)
-	page_dbg.add_child(b_heal)
+	if DebugCommands.has_boss(tree):
+		grid = _debug_section(list, "CHEFE")
+		_make_debug_btn(grid, "Ir para a fase 2", func() -> void: DebugCommands.boss_phase(tree, 2), true)
+		_make_debug_btn(grid, "[F5] Ir para a fase 3", func() -> void: DebugCommands.boss_phase(tree, 3), true)
+
+	if DebugCommands.current_section(tree) in ["wagon_2", "wagon_3", "wagon_4"]:
+		grid = _debug_section(list, "MODIFICADOR (REINICIA O VAGÃO)")
+		for m in ["", "tunnel", "curve", "passenger"]:
+			var mod: String = m
+			_make_debug_btn(grid, String(DebugCommands.MODIFIER_NAMES[mod]), func() -> void: DebugCommands.set_modifier(tree, mod), true)
 
 	var dbg_note := Label.new()
-	dbg_note.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	dbg_note.position = Vector2(0.0, 118.0)
-	dbg_note.size = Vector2(332.0, 20.0)
-	dbg_note.text = "Atalhos diretos em jogo: [F1] FPS · [F2..F6] Cheats"
+	dbg_note.custom_minimum_size = Vector2(320.0, 0.0)
+	dbg_note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	dbg_note.text = "Atalhos: F1 info · F2 próxima seção · F3 invencível · F4 matar · F5 fase do chefe · F6 melhoria · F7 carta · F8 relógio · F9 velocidade"
 	dbg_note.add_theme_font_size_override("font_size", 10)
 	dbg_note.add_theme_color_override("font_color", Color("#8fb8c4"))
-	page_dbg.add_child(dbg_note)
+	list.add_child(dbg_note)
+	_refresh_debug_buttons()
+
+
+func _debug_section(list: VBoxContainer, title: String) -> GridContainer:
+	var lbl := Label.new()
+	lbl.text = title
+	lbl.add_theme_font_size_override("font_size", 10)
+	lbl.add_theme_color_override("font_color", Color("#f2c35b"))
+	list.add_child(lbl)
+	var grid := GridContainer.new()
+	grid.columns = 2
+	grid.add_theme_constant_override("h_separation", 4)
+	grid.add_theme_constant_override("v_separation", 3)
+	list.add_child(grid)
+	return grid
+
+
+func _make_debug_btn(parent: Control, text: String, action: Callable, close_pause: bool = false) -> Button:
+	var b := Button.new()
+	b.text = text
+	b.custom_minimum_size = Vector2(158.0, 22.0)
+	b.add_theme_font_size_override("font_size", 10)
+	b.pressed.connect(func() -> void:
+		AudioManager.play_sfx("ui_confirm")
+		if close_pause and _root.visible:
+			_toggle_pause()
+		action.call()
+		_refresh_debug_buttons()
+		_populate_pause_upgrades())
+	parent.add_child(b)
+	return b
 
 
 func _make_fixed_panel(pos: Vector2, sz: Vector2) -> Panel:
@@ -377,6 +382,10 @@ func _switch_pause_tab(idx: int) -> void:
 func _refresh_debug_buttons() -> void:
 	if _invincible_btn != null:
 		_invincible_btn.text = "[F3] Invencível: %s" % ("SIM" if GameState.debug_invincible else "NÃO")
+	if _freeze_btn != null:
+		_freeze_btn.text = "[F8] Relógio: %s" % ("PARADO" if TrainClock.debug_frozen else "NORMAL")
+	if _speed_btn != null:
+		_speed_btn.text = "[F9] Velocidade: %sx" % str(GameState.debug_time_scale)
 
 
 func _populate_pause_upgrades() -> void:
@@ -455,22 +464,20 @@ func _focus_tab_page(idx: int) -> void:
 
 func _toggle_pause() -> void:
 	if not _root.visible:
-		_was_clock_running = TrainClock.is_running
-		TrainClock.is_running = false
-		get_tree().paused = true
+		Modals.push(self)
 		_refresh_debug_buttons()
 		_populate_pause_upgrades()
+		_rebuild_debug_list()
 		_switch_pause_tab(0)
 		_root.visible = true
 		_focus_tab_page(0)
 	else:
 		_root.visible = false
-		get_tree().paused = false
-		TrainClock.is_running = _was_clock_running
+		Modals.pop(self)
 
 
 func _on_player_died(reason: String) -> void:
-	get_tree().paused = true
+	Modals.push(self)
 	_root.visible = true
 	if reason == "bomb_exploded":
 		_title_lbl.text = "A BOMBA EXPLODIU!"
@@ -493,14 +500,12 @@ func _on_player_died(reason: String) -> void:
 
 
 func _retry_current_wagon() -> void:
-	_root.visible = false
-	get_tree().paused = false
-	GameState.restore_wagon_checkpoint()
-	TrainClock.is_running = true
 	var w: int = GameState.current_wagon
+	var path: String = "res://scenes/levels/Level_Boss.tscn"
 	if w >= 6:
-		SceneRouter.goto_scene("res://scenes/levels/Disarm.tscn")
+		path = "res://scenes/levels/Disarm.tscn"
 	elif w <= 4:
-		SceneRouter.goto_scene("res://scenes/levels/Level_Wagon%d.tscn" % w)
-	else:
-		SceneRouter.goto_scene("res://scenes/levels/Level_Boss.tscn")
+		path = "res://scenes/levels/Level_Wagon%d.tscn" % w
+	SceneRouter.goto_scene(path, 0.35, func() -> void:
+		GameState.restore_wagon_checkpoint()
+		TrainClock.is_running = true)

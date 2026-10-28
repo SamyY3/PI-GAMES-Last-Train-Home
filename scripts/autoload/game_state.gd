@@ -16,10 +16,12 @@ var has_cargo_key: bool = false
 var has_picked_first_upgrade: bool = false
 var random_drops_spawned: int = 0
 var debug_invincible: bool = false
+var debug_time_scale: float = 1.0
 
 var kills: int = 0
 var sucata_kill_counter: int = 0
 var active_run_time: float = 0.0
+var run_finished: bool = false
 var deaths_in_run: int = 0
 var damage_taken_in_run: int = 0
 var run_seed: int = 0
@@ -46,7 +48,7 @@ func _ready() -> void:
 
 
 func _process(delta: float) -> void:
-	if TrainClock.is_running:
+	if TrainClock.is_running and not run_finished:
 		active_run_time += delta
 
 
@@ -61,11 +63,13 @@ func _load_json_data() -> void:
 
 func _read_json(path: String) -> Dictionary:
 	if not FileAccess.file_exists(path):
+		push_error("GameState: arquivo de dados ausente: %s" % path)
 		return {}
 	var file := FileAccess.open(path, FileAccess.READ)
 	var parsed: Variant = JSON.parse_string(file.get_as_text())
 	if parsed is Dictionary:
 		return parsed
+	push_error("GameState: JSON inválido em %s" % path)
 	return {}
 
 
@@ -86,6 +90,7 @@ func start_new_run(diff_key: String, daily: bool = false) -> void:
 	kills = 0
 	sucata_kill_counter = 0
 	active_run_time = 0.0
+	run_finished = false
 	deaths_in_run = 0
 	damage_taken_in_run = 0
 	is_daily = daily
@@ -148,7 +153,9 @@ func save_wagon_checkpoint() -> void:
 		"has_picked_first_upgrade": has_picked_first_upgrade,
 		"clock_time": TrainClock.time_left,
 		"reserve": TrainClock.reserve,
-		"fiscal_purchases": fiscal_purchases
+		"fiscal_purchases": fiscal_purchases,
+		"kills": kills,
+		"sucata_kill_counter": sucata_kill_counter
 	}
 
 
@@ -166,6 +173,8 @@ func restore_wagon_checkpoint() -> void:
 	TrainClock.set_time(float(checkpoint_state["clock_time"]))
 	TrainClock.set_reserve(float(checkpoint_state.get("reserve", 0.0)))
 	fiscal_purchases = int(checkpoint_state.get("fiscal_purchases", 0))
+	kills = int(checkpoint_state.get("kills", kills))
+	sucata_kill_counter = int(checkpoint_state.get("sucata_kill_counter", 0))
 	Events.player_healed.emit(current_hp, max_hp)
 
 
@@ -180,6 +189,16 @@ func get_fiscal_price() -> float:
 
 func get_upgrade_level(upg_id: String) -> int:
 	return int(upgrades.get(upg_id, 0))
+
+
+func get_upgrade_value(upg_id: String, default_value: float = 0.0) -> float:
+	var lvl: int = get_upgrade_level(upg_id)
+	if lvl <= 0:
+		return default_value
+	var values: Array = get_upgrade_info(upg_id).get("values", [])
+	if values.is_empty():
+		return default_value
+	return float(values[mini(lvl, values.size()) - 1])
 
 
 func get_upgrade_info(upg_id: String) -> Dictionary:
@@ -233,6 +252,6 @@ func _on_enemy_died(_pos: Vector2, _is_elite: bool) -> void:
 	kills += 1
 	if get_upgrade_level("sucata") > 0:
 		sucata_kill_counter += 1
-		if sucata_kill_counter >= 15:
+		if sucata_kill_counter >= int(get_upgrade_value("sucata", 15.0)):
 			sucata_kill_counter = 0
 			heal_player(1)

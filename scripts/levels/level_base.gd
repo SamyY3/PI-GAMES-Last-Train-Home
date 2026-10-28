@@ -148,7 +148,7 @@ func _check_steam_cell_pickups() -> void:
 		if not is_instance_valid(cell):
 			_steam_cells.remove_at(i)
 			continue
-		if player.global_position.distance_to(cell.global_position) <= 18.0:
+		if player.global_position.distance_to(cell.global_position) <= float(GameState.balance_data.get("player", {}).get("pickup_radius", 18.0)):
 			_collect_steam_cell(cell)
 			_steam_cells.remove_at(i)
 
@@ -176,7 +176,7 @@ func _collect_steam_cell(cell: Node2D) -> void:
 func _update_camera_offset(delta: float) -> void:
 	var mult: float = Settings.get_shake_multiplier()
 	if mult <= 0.0:
-		position = Vector2.ZERO
+		_set_view_offset(Vector2.ZERO)
 		return
 
 	_sway_time += delta
@@ -188,7 +188,15 @@ func _update_camera_offset(delta: float) -> void:
 			randf_range(-_shake_strength, _shake_strength),
 			randf_range(-_shake_strength, _shake_strength)
 		) * mult
-	position = Vector2(shake_offset.x, sway_y + shake_offset.y + _lean_y)
+	_set_view_offset(Vector2(shake_offset.x, sway_y + shake_offset.y + _lean_y))
+
+
+func _set_view_offset(offset: Vector2) -> void:
+	get_viewport().canvas_transform = Transform2D(0.0, offset)
+
+
+func _exit_tree() -> void:
+	_set_view_offset(Vector2.ZERO)
 
 
 func _on_request_shake(strength: float, duration: float) -> void:
@@ -280,11 +288,11 @@ func _update_modifier(delta: float) -> void:
 		_modifier_announced = true
 		match _modifier:
 			"tunnel":
-				hud._show_banner("⚠ TÚNEIS NESTE VAGÃO")
+				hud.show_banner("⚠ TÚNEIS NESTE VAGÃO")
 			"curve":
-				hud._show_banner("⚠ TRECHO DE CURVAS")
+				hud.show_banner("⚠ TRECHO DE CURVAS")
 			"passenger":
-				hud._show_banner("⚠ PROTEJA O PASSAGEIRO!")
+				hud.show_banner("⚠ PROTEJA O PASSAGEIRO!")
 	match _modifier:
 		"tunnel":
 			_update_tunnel(delta, active)
@@ -328,7 +336,7 @@ func _update_curve(delta: float, active: bool) -> void:
 			if not _curve_warned:
 				_curve_warned = true
 				_curve_dir = -1.0 if randf() < 0.5 else 1.0
-				hud._show_banner("⚠ CURVA! SEGURE-SE")
+				hud.show_banner("⚠ CURVA! SEGURE-SE")
 				AudioManager.play_sfx("whistle", 0.03)
 		else:
 			_curve_warned = false
@@ -364,7 +372,7 @@ func _update_passenger(delta: float, active: bool) -> void:
 
 
 func _passenger_flee() -> void:
-	hud._show_banner("O PASSAGEIRO FUGIU APAVORADO!")
+	hud.show_banner("O PASSAGEIRO FUGIU APAVORADO!")
 	_passenger_drawer.queue_redraw()
 	var tw := _passenger_spr.create_tween()
 	tw.tween_property(_passenger_spr, "modulate", Color(0.86, 0.91, 0.93, 0.0), 0.4)

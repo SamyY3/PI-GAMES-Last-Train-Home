@@ -26,7 +26,8 @@ shape = SubResource("CapsuleShape2D_body")
 
 [node name="PlayerHurtbox" type="Area2D" parent="."]
 collision_layer = 4
-collision_mask = 96
+collision_mask = 0
+monitoring = false
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="PlayerHurtbox"]
 shape = SubResource("CircleShape2D_hurt")

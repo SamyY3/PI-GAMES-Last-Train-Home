@@ -59,8 +59,13 @@ func _ready() -> void:
 
 
 func _setup_crates() -> void:
-	seed(GameState.run_seed)
-	_crate_types.shuffle()
+	var rng := RandomNumberGenerator.new()
+	rng.seed = GameState.run_seed
+	for i in range(_crate_types.size() - 1, 0, -1):
+		var j: int = rng.randi_range(0, i)
+		var tmp: Variant = _crate_types[i]
+		_crate_types[i] = _crate_types[j]
+		_crate_types[j] = tmp
 	var tex_closed: Texture2D = load("res://assets/sprites/tiles/crate_closed.png")
 	for i in range(5):
 		var static_body := StaticBody2D.new()
@@ -117,7 +122,7 @@ func _draw_crate_progress() -> void:
 	if _active_crate_idx == -1:
 		return
 	var ring_pos: Vector2 = CRATE_POSITIONS[_active_crate_idx] + Vector2(0.0, -20.0)
-	draw_centered_f_prompt(_progress_drawer, ring_pos, _hold_f_timer / 0.6)
+	draw_centered_f_prompt(_progress_drawer, ring_pos, _hold_f_timer / _hold_time())
 
 
 func _spawn_stage_1() -> void:
@@ -138,7 +143,7 @@ func _spawn_freighter() -> void:
 	_wave_stage = 3
 	_stage_delay = 0.0
 	hud.set_wave_info(3, 3)
-	hud._show_banner("BLINDADO DE CARGA")
+	hud.show_banner("BLINDADO DE CARGA")
 	var f: Node2D = spawn_enemy("freighter", Vector2(410.0, 157.0))
 	if f.has_signal("enemy_killed"):
 		f.connect("enemy_killed", _on_freighter_killed_signal)
@@ -178,7 +183,7 @@ func _handle_crate_interaction(delta: float) -> void:
 	if _active_crate_idx != -1:
 		if Input.is_action_pressed("interact"):
 			_hold_f_timer += delta
-			if _hold_f_timer >= 0.6:
+			if _hold_f_timer >= _hold_time():
 				_hold_f_timer = 0.0
 				_open_crate(_active_crate_idx)
 		else:
@@ -229,3 +234,7 @@ func _open_crate(idx: int) -> void:
 func _check_wagon3_completion() -> void:
 	if _bomb_found and _freighter_dead and not door_unlocked:
 		unlock_exit_door()
+
+
+func _hold_time() -> float:
+	return float(GameState.balance_data.get("player", {}).get("interact_hold_time", 0.6))

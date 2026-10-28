@@ -20,6 +20,10 @@ var _upgrade_tooltip_lbl: Label
 var _tip_label: Label
 var _banner_panel: PanelContainer
 var _banner_label: Label
+var _banner_tween: Tween
+var _ghost_tween: Tween
+var _player_ref: Node
+var _clock_color: Color = Color(0.0, 0.0, 0.0, 0.0)
 var _flash_rect: ColorRect
 var _flash_tween: Tween
 var _vignette_rect: TextureRect
@@ -51,7 +55,9 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	_clock_gear.rotation += delta * 1.6
-	var player: Node = get_tree().get_first_node_in_group("player")
+	if _player_ref == null or not is_instance_valid(_player_ref):
+		_player_ref = get_tree().get_first_node_in_group("player")
+	var player: Node = _player_ref
 	if player != null:
 		if player.has_method("get_dash_cooldown_ratio"):
 			_dash_cd_bar.value = float(player.get_dash_cooldown_ratio()) * 100.0
@@ -310,67 +316,73 @@ func _refresh_hp(cur: int, max_v: int) -> void:
 
 
 func _on_timer_changed(secs: float) -> void:
-	_clock_label.text = TrainClock.format_time()
+	var txt: String = TrainClock.format_time()
+	if txt != _clock_label.text:
+		_clock_label.text = txt
+	var col: Color = Color("#fff1c9")
 	if TrainClock.freeze_left > 0.0:
-		_clock_label.add_theme_color_override("font_color", Color("#8fb8c4"))
+		col = Color("#8fb8c4")
 	elif secs < 15.0:
-		_clock_label.add_theme_color_override("font_color", Color("#ff3d6e"))
+		col = Color("#ff3d6e")
 		_vignette_rect.modulate.a = 0.7
 	elif secs < 60.0:
-		_clock_label.add_theme_color_override("font_color", Color("#b3342e"))
+		col = Color("#b3342e")
 	elif secs < 180.0:
-		_clock_label.add_theme_color_override("font_color", Color("#f2c35b"))
-	else:
-		_clock_label.add_theme_color_override("font_color", Color("#fff1c9"))
+		col = Color("#f2c35b")
+	if col != _clock_color:
+		_clock_color = col
+		_clock_label.add_theme_color_override("font_color", col)
 
 
 func _on_reserve_changed(reserve: float, gained: float) -> void:
 	_reserve_label.text = "+" + TrainClock.format_seconds(reserve)
 	_reserve_label.visible = reserve >= 1.0
 	if gained >= 1.0:
-		_show_banner("TEMPO EXCEDENTE NA RESERVA: +%s" % TrainClock.format_seconds(gained))
+		show_banner("TEMPO EXCEDENTE NA RESERVA: +%s" % TrainClock.format_seconds(gained))
 
 
 func _on_combo_discovered(combo_id: String, first_time: bool) -> void:
 	var info: Dictionary = GameState.get_combo_info(combo_id)
 	var prefix: String = "COMBINAÇÃO DESCOBERTA" if first_time else "COMBINAÇÃO"
-	_show_banner("%s: %s!" % [prefix, String(info.get("name", combo_id)).to_upper()])
+	show_banner("%s: %s!" % [prefix, String(info.get("name", combo_id)).to_upper()])
 
 
 func _on_player_grazed(total: int) -> void:
 	if total == 1:
-		_show_banner("RASPÃO! +TEMPO E RECARGA DO PULSO")
+		show_banner("RASPÃO! +TEMPO E RECARGA DO PULSO")
 
 
 func _on_upgrade_picked(upg_id: String, _lvl: int) -> void:
 	_refresh_upgrades_list()
 	var info: Dictionary = GameState.get_upgrade_info(upg_id)
-	_show_banner("MELHORIA OBTIDA: %s" % String(info.get("name", upg_id)))
+	show_banner("MELHORIA OBTIDA: %s" % String(info.get("name", upg_id)))
 
 
 func _on_item_obtained(item_name: String) -> void:
 	_update_wagon_header_label()
-	_show_banner("ITEM OBTIDO: %s" % item_name)
+	show_banner("ITEM OBTIDO: %s" % item_name)
 
 
 func _on_boss_phase_changed(new_phase: int) -> void:
 	_boss_name_label.text = "O MAQUINISTA — FASE %d/3" % new_phase
 	if new_phase == 2:
 		_boss_bar_fill.self_modulate = Color("#ff6b3d")
-		_show_banner("⚠ FASE 2: LOCOMOTIVA EM SOBRECARGA! ⚠")
+		show_banner("⚠ FASE 2: LOCOMOTIVA EM SOBRECARGA! ⚠")
 	elif new_phase == 3:
 		_boss_bar_fill.self_modulate = Color("#ff3d6e")
-		_show_banner("⚠ FASE 3: ESTAÇÃO ZERO — PULSO PRONTO! ⚠")
+		show_banner("⚠ FASE 3: ESTAÇÃO ZERO — PULSO PRONTO! ⚠")
 
 
-func _show_banner(msg: String) -> void:
+func show_banner(msg: String) -> void:
 	_banner_label.text = msg
 	_banner_panel.visible = true
 	_banner_panel.position.x = 180.0
-	var tw := create_tween()
-	tw.tween_property(_banner_panel, "position:x", 90.0, 0.22)
-	tw.tween_interval(1.6)
-	tw.tween_callback(func() -> void: _banner_panel.visible = false)
+	if _banner_tween != null and _banner_tween.is_valid():
+		_banner_tween.kill()
+	_banner_tween = create_tween()
+	_banner_tween.tween_property(_banner_panel, "position:x", 90.0, 0.22)
+	_banner_tween.tween_interval(1.6)
+	_banner_tween.tween_callback(func() -> void: _banner_panel.visible = false)
 
 
 func _refresh_upgrades_list() -> void:
@@ -429,9 +441,11 @@ func _on_boss_hp_changed(cur: float, max_v: float) -> void:
 	show_boss_bar(true)
 	var ratio: float = clampf(cur / maxf(1.0, max_v), 0.0, 1.0)
 	_boss_bar_fill.value = ratio * 100.0
-	var tw := create_tween()
-	tw.tween_interval(0.4)
-	tw.tween_property(_boss_bar_ghost, "value", ratio * 100.0, 0.25)
+	if _ghost_tween != null and _ghost_tween.is_valid():
+		_ghost_tween.kill()
+	_ghost_tween = create_tween()
+	_ghost_tween.tween_interval(0.4)
+	_ghost_tween.tween_property(_boss_bar_ghost, "value", ratio * 100.0, 0.25)
 
 
 func _on_screen_flash(duration: float) -> void:

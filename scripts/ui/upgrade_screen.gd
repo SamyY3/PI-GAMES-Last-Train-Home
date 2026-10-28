@@ -33,7 +33,6 @@ var _shop_hint: Label
 var _shop_price: float = -1.0
 var _root_control: Control
 var _focused_idx: int = 0
-var _was_clock_running: bool = false
 
 
 func _ready() -> void:
@@ -213,9 +212,7 @@ func _open() -> void:
 	_decline_btn.visible = shop
 	_hint.visible = not shop
 	_shop_hint.visible = shop
-	_was_clock_running = TrainClock.is_running
-	TrainClock.is_running = false
-	get_tree().paused = true
+	Modals.push(self)
 	_root_control.visible = true
 	_roll_three_cards(false)
 	_set_focused_card(0)
@@ -231,8 +228,7 @@ func _decline_shop() -> void:
 
 func _close() -> void:
 	_root_control.visible = false
-	get_tree().paused = false
-	TrainClock.is_running = _was_clock_running
+	Modals.pop(self)
 
 
 func _unhandled_input(event: InputEvent) -> void:

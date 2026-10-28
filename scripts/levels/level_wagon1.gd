@@ -118,7 +118,7 @@ func _process(delta: float) -> void:
 		if not _first_dash_slowmo_done and Input.is_action_just_pressed("dash"):
 			_first_dash_slowmo_done = true
 			Engine.time_scale = 0.3
-			get_tree().create_timer(0.4 * 0.3).timeout.connect(func() -> void: Engine.time_scale = 1.0)
+			get_tree().create_timer(0.4 * 0.3).timeout.connect(func() -> void: Engine.time_scale = GameState.debug_time_scale)
 
 		var alive: int = get_tree().get_nodes_in_group("enemies").size()
 		if _wave == 1:

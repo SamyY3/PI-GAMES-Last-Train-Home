@@ -163,8 +163,7 @@ func _play(level: Node2D, boss: Node2D, cfg: Dictionary) -> void:
 	_level = level
 	_skip = false
 	_running = true
-	var was_paused: bool = get_tree().paused
-	get_tree().paused = true
+	Modals.push(self)
 	var hud: CanvasLayer = level.get("hud")
 	if hud != null:
 		hud.visible = false
@@ -255,7 +254,7 @@ func _play(level: Node2D, boss: Node2D, cfg: Dictionary) -> void:
 	_shake_t = 0.0
 	if hud != null:
 		hud.visible = true
-	get_tree().paused = was_paused
+	Modals.pop(self)
 	finished.emit()
 
 

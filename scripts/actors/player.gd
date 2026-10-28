@@ -25,7 +25,6 @@ var _hurt_flash_timer: float = 0.0
 var _dash_timer: float = 0.0
 var _dash_cooldown_timer: float = 0.0
 var _dash_buffer_timer: float = 0.0
-var _dash_coyote_timer: float = 0.0
 var _dash_dir: Vector2 = Vector2.RIGHT
 var _pulse_cooldown_timer: float = 0.0
 var _pulse_visual_timer: float = 0.0
@@ -90,13 +89,13 @@ func _ready() -> void:
 
 
 func get_dash_cooldown_ratio() -> float:
-	var cd_mult: float = 1.0 - 0.25 * float(GameState.get_upgrade_level("valvula"))
+	var cd_mult: float = 1.0 - GameState.get_upgrade_value("valvula")
 	var max_cd: float = maxf(0.01, float(_cfg.get("dash_cooldown", 1.0)) * cd_mult)
 	return clampf(1.0 - (_dash_cooldown_timer / max_cd), 0.0, 1.0)
 
 
 func get_pulse_cooldown_ratio() -> float:
-	var cd_mult: float = 1.0 - 0.30 * float(GameState.get_upgrade_level("pressao"))
+	var cd_mult: float = 1.0 - GameState.get_upgrade_value("pressao")
 	var max_cd: float = maxf(0.01, float(_cfg.get("pulse_cooldown", 14.0)) * cd_mult)
 	return clampf(1.0 - (_pulse_cooldown_timer / max_cd), 0.0, 1.0)
 
@@ -113,7 +112,7 @@ func _on_upgrade_picked(upg_id: String, _lvl: int) -> void:
 
 
 func _update_hurtbox_size() -> void:
-	var radius: float = 2.0 if GameState.get_upgrade_level("casaco") > 0 else 3.0
+	var radius: float = GameState.get_upgrade_value("casaco", float(_cfg.get("hurtbox_radius", 3.0)))
 	var col: CollisionShape2D = hurtbox_area.get_node_or_null("CollisionShape2D")
 	if col and col.shape is CircleShape2D:
 		(col.shape as CircleShape2D).radius = radius
@@ -194,8 +193,6 @@ func _update_timers(delta: float) -> void:
 		_dash_cooldown_timer -= delta
 	if _dash_buffer_timer > 0.0:
 		_dash_buffer_timer -= delta
-	if _dash_coyote_timer > 0.0:
-		_dash_coyote_timer -= delta
 	if _pulse_cooldown_timer > 0.0:
 		_pulse_cooldown_timer -= delta
 	if _pulse_visual_timer > 0.0:
@@ -259,7 +256,7 @@ func _handle_movement(delta: float) -> void:
 	if Input.is_action_just_pressed("dash"):
 		_dash_buffer_timer = float(_cfg.get("dash_buffer", 0.12))
 
-	if _dash_buffer_timer > 0.0 and (_dash_cooldown_timer <= 0.0 or _dash_coyote_timer > 0.0):
+	if _dash_buffer_timer > 0.0 and _dash_cooldown_timer <= 0.0 and _dash_timer <= 0.0:
 		_start_dash(input_dir)
 
 	if _dash_timer > 0.0:
@@ -268,9 +265,8 @@ func _handle_movement(delta: float) -> void:
 		velocity = _dash_dir * dash_spd
 		if _dash_timer <= 0.0:
 			_invuln_timer = maxf(_invuln_timer, float(_cfg.get("dash_post_invuln", 0.06)))
-			_dash_coyote_timer = float(_cfg.get("dash_coyote", 0.06))
 	else:
-		var spd_mult: float = 1.0 + 0.12 * float(GameState.get_upgrade_level("velocidade"))
+		var spd_mult: float = 1.0 + GameState.get_upgrade_value("velocidade")
 		var base_spd: float = float(_cfg.get("focus_speed", 55.0)) if _is_focusing else float(_cfg.get("move_speed", 110.0))
 		if _is_focusing and GameState.get_upgrade_level("casaco") > 0:
 			base_spd *= 1.20
@@ -282,19 +278,17 @@ func _handle_movement(delta: float) -> void:
 	velocity += external_push
 	move_and_slide()
 	velocity = own_velocity
-	global_position.x = clampf(global_position.x, 22.0, 458.0)
-	global_position.y = clampf(global_position.y, 68.0, 244.0)
+	global_position = Arena.clamp_point(global_position, Arena.PLAYER)
 
 
 func _start_dash(input_dir: Vector2) -> void:
 	_dash_buffer_timer = 0.0
-	_dash_coyote_timer = 0.0
 	_dash_dir = input_dir.normalized() if input_dir != Vector2.ZERO else -_aim_dir
 	_dash_timer = float(_cfg.get("dash_duration", 0.18))
-	var cd_mult: float = 1.0 - 0.25 * float(GameState.get_upgrade_level("valvula"))
+	var cd_mult: float = 1.0 - GameState.get_upgrade_value("valvula")
 	_dash_cooldown_timer = float(_cfg.get("dash_cooldown", 1.0)) * cd_mult
 	_invuln_timer = maxf(_invuln_timer, _dash_timer)
-	_embalo_t = _dash_timer + 0.3
+	_embalo_t = _dash_timer + GameState.get_upgrade_value("embalo", 0.3)
 	_trail_drop_t = 0.0
 	AudioManager.play_sfx("dash")
 
@@ -308,23 +302,24 @@ func _handle_combat() -> void:
 
 
 func _fire_weapon() -> void:
-	var rate_mult: float = 1.0 + 0.20 * float(GameState.get_upgrade_level("cadencia"))
+	var rate_mult: float = 1.0 + GameState.get_upgrade_value("cadencia")
 	var fire_rate: float = float(_cfg.get("fire_rate", 5.0)) * rate_mult
 	_shoot_timer = 1.0 / fire_rate
 	_muzzle_flash_timer = 0.05
 
 	var dmg: float = get_bullet_damage()
 	var b_speed: float = float(_cfg.get("bullet_speed", 320.0))
+	var b_life: float = float(_cfg.get("bullet_lifetime", 1.2))
 	var multi_lvl: int = GameState.get_upgrade_level("tiro_duplo")
 	# ao atirar o Teo encara a mira, então o cano da arte aponta para o octante do disparo
 	var muzzle_pos: Vector2 = global_position + MUZZLE_OFFSETS[_get_dir_index(_aim_dir)]
 
 	if multi_lvl == 0:
-		BulletManager.spawn_bullet(muzzle_pos, _aim_dir, b_speed, true, dmg, 1.2)
+		BulletManager.spawn_bullet(muzzle_pos, _aim_dir, b_speed, true, dmg, b_life)
 	elif multi_lvl == 1:
 		var perp: Vector2 = _aim_dir.orthogonal() * 3.0
-		BulletManager.spawn_bullet(muzzle_pos + perp, _aim_dir, b_speed, true, dmg * 0.7, 1.2)
-		BulletManager.spawn_bullet(muzzle_pos - perp, _aim_dir, b_speed, true, dmg * 0.7, 1.2)
+		BulletManager.spawn_bullet(muzzle_pos + perp, _aim_dir, b_speed, true, dmg * 0.7, b_life)
+		BulletManager.spawn_bullet(muzzle_pos - perp, _aim_dir, b_speed, true, dmg * 0.7, b_life)
 	else:
 		BulletManager.spawn_fan(muzzle_pos, _aim_dir, 3, 20.0, b_speed, true, dmg * 0.6)
 
@@ -332,7 +327,7 @@ func _fire_weapon() -> void:
 
 
 func _activate_steam_pulse() -> void:
-	var cd_mult: float = 1.0 - 0.30 * float(GameState.get_upgrade_level("pressao"))
+	var cd_mult: float = 1.0 - GameState.get_upgrade_value("pressao")
 	_pulse_cooldown_timer = float(_cfg.get("pulse_cooldown", 14.0)) * cd_mult
 	_pulse_visual_timer = float(Q_TOTAL_FRAMES) / Q_FPS
 	_pulse_anim_t = 0.0
@@ -345,7 +340,7 @@ func _activate_steam_pulse() -> void:
 	else:
 		BulletManager.clear_enemy_bullets_in_radius(global_position, radius)
 	if GameState.get_upgrade_level("freio") > 0:
-		TrainClock.freeze(3.0)
+		TrainClock.freeze(GameState.get_upgrade_value("freio"))
 	for node in get_tree().get_nodes_in_group("enemies"):
 		if node is Node2D and node.global_position.distance_to(global_position) <= radius:
 			if node.has_method("take_damage"):
@@ -361,9 +356,7 @@ func _activate_steam_pulse() -> void:
 
 
 func get_bullet_damage() -> float:
-	var dmg_mult: float = 1.0 + 0.25 * float(GameState.get_upgrade_level("dano"))
-	if GameState.get_upgrade_level("sobrecarga") > 0:
-		dmg_mult += 0.5
+	var dmg_mult: float = 1.0 + GameState.get_upgrade_value("dano") + GameState.get_upgrade_value("sobrecarga")
 	return float(_cfg.get("base_damage", 10.0)) * dmg_mult
 
 
@@ -393,7 +386,7 @@ func _update_trail(delta: float) -> void:
 		_trail_tick_t -= delta
 		if _trail_tick_t <= 0.0:
 			_trail_tick_t = TRAIL_TICK_TIME
-			var dmg: float = 6.0 if lvl <= 1 else 10.0
+			var dmg: float = GameState.get_upgrade_value("rastro")
 			for node in get_tree().get_nodes_in_group("enemies"):
 				if not (node is Node2D) or not node.has_method("take_damage"):
 					continue
@@ -435,8 +428,7 @@ func take_damage(amount: int, source_pos: Vector2 = Vector2.ZERO) -> void:
 
 	if _shield_ready:
 		_shield_ready = false
-		var shield_lvl: int = GameState.get_upgrade_level("escudo")
-		_shield_cooldown_timer = 16.0 if shield_lvl >= 2 else 20.0
+		_shield_cooldown_timer = GameState.get_upgrade_value("escudo", 20.0)
 		_invuln_timer = 0.6
 		AudioManager.play_sfx("clang")
 		Settings.rumble(0.3, 0.0, 0.12)
@@ -485,7 +477,8 @@ func _spawn_floating_hurt_text() -> void:
 
 func _get_auto_aim_target() -> Node2D:
 	var best: Node2D = null
-	var best_d: float = 220.0 * 220.0
+	var aim_range: float = float(_cfg.get("auto_aim_range", 220.0))
+	var best_d: float = aim_range * aim_range
 	for node in get_tree().get_nodes_in_group("enemies"):
 		if node is Node2D:
 			var d: float = global_position.distance_squared_to(node.global_position)

@@ -22,6 +22,7 @@ const SHUTTER_TEX: Texture2D = preload("res://assets/sprites/menu/shutter.png")
 const NAMEPLATE_TEX: Texture2D = preload("res://assets/sprites/ui/kit/nameplate.png")
 const LAMP_TEX: Texture2D = preload("res://assets/sprites/menu/station_lamp.png")
 const PLATFORM_TEX: Texture2D = preload("res://assets/sprites/menu/platform_tile.png")
+const PLATFORM_EDGE_ROW: float = 30.0
 const CABIN_BG_TEX: Texture2D = preload("res://assets/sprites/backgrounds/wagon_5.png")
 const BAR_FILL_TEX: Texture2D = preload("res://assets/sprites/ui/kit/bar_fill.png")
 const BEAM_TEX: Texture2D = preload("res://assets/sprites/train/headlight_beam.png")
@@ -47,7 +48,7 @@ var _intro_teo_interior_pos: Vector2 = Vector2(218.0, 96.0)
 var _intro_boarding_alpha: float = 1.0
 var _intro_door_close_ratio: float = 0.0
 var _intro_train_x: float = 0.0
-var _intro_door_open: bool = true
+var _intro_clock_ticks: int = 0
 var _intro_skip_hold: float = 0.0
 var _intro_skipping: bool = false
 var _intro_teo_spr: Sprite2D
@@ -280,6 +281,8 @@ func _process_intro_skip(delta: float) -> void:
 		_intro_skip_hold += delta
 		if _intro_skip_hold >= 0.8:
 			_intro_skipping = true
+			TrainClock.set_time(TrainClock.time_left - float(_intro_clock_ticks))
+			_intro_clock_ticks = 0
 			AudioManager.set_dialogue_ducking(false)
 			AudioManager.play_sfx("ui_confirm")
 			SceneRouter.goto_scene("res://scenes/levels/Level_Wagon1.tscn")
@@ -421,7 +424,7 @@ func _draw() -> void:
 	if not (screen_type in ["main_menu", "difficulty", "options"]):
 		return
 
-	var cycle_duration: float = 18.0
+	var cycle_duration: float = 14.4
 	var phase_f: float = fmod(_anim_t / cycle_duration, 3.0)
 	var p_idx: int = int(floor(phase_f))
 	var frac: float = phase_f - float(p_idx)
@@ -701,9 +704,9 @@ func _build_difficulty() -> void:
 	title.add_theme_color_override("font_color", Color("#f2c35b"))
 	vbox.add_child(title)
 
-	var b_easy := _make_stylized_btn("FÁCIL · 6 ♥ · 08:00", func() -> void: _start_game("easy"))
-	var b_med := _make_stylized_btn("MÉDIA · 5 ♥ · 06:30", func() -> void: _start_game("medium"))
-	var b_hard := _make_stylized_btn("DIFÍCIL · 4 ♥ · 05:30", func() -> void: _start_game("hard"))
+	var b_easy := _make_stylized_btn(_difficulty_text("easy"), func() -> void: _start_game("easy"))
+	var b_med := _make_stylized_btn(_difficulty_text("medium"), func() -> void: _start_game("medium"))
+	var b_hard := _make_stylized_btn(_difficulty_text("hard"), func() -> void: _start_game("hard"))
 	var b_daily := _make_stylized_btn("VIAGEM DO DIA · %s" % Progress.daily_label(), func() -> void: _start_game("medium", true))
 	_tool_btn = _make_stylized_btn("", _cycle_starter_tool)
 	var b_back := _make_stylized_btn("VOLTAR [ESC]", func() -> void: SceneRouter.goto_scene("res://scenes/menus/MainMenu.tscn"))
@@ -724,6 +727,12 @@ func _build_difficulty() -> void:
 		b_hard.grab_focus()
 	else:
 		b_med.grab_focus()
+
+
+func _difficulty_text(diff: String) -> String:
+	var cfg: Dictionary = GameState.balance_data.get("difficulties", {}).get(diff, {})
+	var secs: int = int(cfg.get("initial_time", 390.0))
+	return "%s · %d ♥ · %02d:%02d" % [String(cfg.get("label", diff)).to_upper(), int(cfg.get("player_hp", 5)), floori(float(secs) / 60.0), secs % 60]
 
 
 func _build_records_panel() -> void:
@@ -817,7 +826,7 @@ func _build_intro() -> void:
 	_intro_boarding_alpha = 1.0
 	_intro_door_close_ratio = 0.0
 	_intro_train_x = 0.0
-	_intro_door_open = true
+	_intro_clock_ticks = 3
 
 	_intro_wagon_bg = Sprite2D.new()
 	if ResourceLoader.exists("res://assets/sprites/backgrounds/wagon_1.png"):
@@ -890,7 +899,6 @@ func _build_intro() -> void:
 	if _intro_skipping:
 		return
 
-	_intro_door_open = false
 	var tw_depart := create_tween()
 	tw_depart.tween_property(self, "_intro_train_x", 220.0, 1.25).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
 	await tw_depart.finished
@@ -943,6 +951,7 @@ func _build_intro() -> void:
 	for sec_tick in range(3):
 		AudioManager.play_sfx("tick", 0.0)
 		TrainClock.set_time(TrainClock.time_left - 1.0)
+		_intro_clock_ticks -= 1
 		_intro_bomb_visor_lbl.text = TrainClock.format_time()
 		var tw_pulse := create_tween()
 		tw_pulse.tween_property(_intro_bomb_spr, "scale", Vector2(2.65, 2.65), 0.15)
@@ -952,6 +961,15 @@ func _build_intro() -> void:
 			return
 
 	SceneRouter.goto_scene("res://scenes/levels/Level_Wagon1.tscn")
+
+
+func _draw_platform(y: float, tint: Color) -> void:
+	draw_texture_rect(BALLAST_TEX, Rect2(0.0, y, 480.0, PLATFORM_EDGE_ROW), true, tint)
+	var src := Rect2(0.0, PLATFORM_EDGE_ROW, 128.0, 72.0 - PLATFORM_EDGE_ROW)
+	var x: float = 0.0
+	while x < 480.0:
+		draw_texture_rect_region(PLATFORM_TEX, Rect2(Vector2(x, y + PLATFORM_EDGE_ROW), src.size), src, tint)
+		x += src.size.x
 
 
 func _draw_platform_boarding_scene() -> void:
@@ -967,7 +985,7 @@ func _draw_platform_boarding_scene() -> void:
 	_draw_steampunk_train_composition(_intro_train_x + 56.0, 197.0, 0.0, wheel_rot, true, _intro_door_close_ratio, 1.0)
 
 	# Plataforma de pedra (textura repetida) com o trilho por cima
-	draw_texture_rect(PLATFORM_TEX, Rect2(0.0, 198.0, 480.0, 72.0), true, Color(0.55, 0.52, 0.62))
+	_draw_platform(198.0, Color(0.55, 0.52, 0.62))
 	_draw_rail_row(196.0, 0.0)
 
 	for lx_lamp in [28.0, 102.0, 260.0, 410.0]:
@@ -985,7 +1003,7 @@ func _draw_intro_cutscene() -> void:
 		_draw_platform_boarding_scene()
 	elif _intro_stage == 4:
 		# Receptor da bomba: a cabine escurecida em alerta ao fundo
-		draw_texture(CABIN_BG_TEX, Vector2(-16.0, -16.0), Color(0.45, 0.25, 0.28))
+		draw_texture_rect_region(CABIN_BG_TEX, Rect2(-8.0, -16.0, 496.0, 285.0), Rect2(8.0, 0.0, 496.0, 285.0), Color(0.45, 0.25, 0.28))
 
 	# Caixa "Segure ESC": moldura do kit + barra de progresso texturizada
 	draw_style_box(_skip_box_style, Rect2(328.0, 6.0, 144.0, 18.0))

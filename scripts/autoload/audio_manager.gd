@@ -10,6 +10,7 @@ var _music_fade: Tween
 var _train_ambience_player: AudioStreamPlayer
 var _current_music_name: String = ""
 var _ambience_enabled: bool = false
+var _sfx_cache: Dictionary = {}
 
 
 func _ready() -> void:
@@ -20,6 +21,7 @@ func _ready() -> void:
 	if AudioServer.get_bus_index("SFX") == -1:
 		AudioServer.add_bus()
 		AudioServer.set_bus_name(AudioServer.bus_count - 1, "SFX")
+	Settings.apply_audio()
 
 	_music_player = AudioStreamPlayer.new()
 	_music_player.bus = "Music"
@@ -74,16 +76,28 @@ func set_train_ambience(active: bool, pitch: float = 1.0) -> void:
 
 
 func play_sfx(sfx_name: String, pitch_variance: float = 0.05) -> void:
-	var path: String = "res://assets/audio/sfx/%s.wav" % sfx_name
-	if not ResourceLoader.exists(path):
+	var stream: AudioStream = _get_sfx_stream(sfx_name)
+	if stream == null:
 		return
-	var stream: AudioStream = load(path)
 	for p in _sfx_players:
 		if not p.playing:
 			p.stream = stream
 			p.pitch_scale = randf_range(1.0 - pitch_variance, 1.0 + pitch_variance)
 			p.play()
 			return
+
+
+func _get_sfx_stream(sfx_name: String) -> AudioStream:
+	if _sfx_cache.has(sfx_name):
+		return _sfx_cache[sfx_name]
+	var path: String = "res://assets/audio/sfx/%s.wav" % sfx_name
+	var stream: AudioStream = null
+	if ResourceLoader.exists(path):
+		stream = load(path)
+	else:
+		push_warning("AudioManager: SFX ausente: %s" % path)
+	_sfx_cache[sfx_name] = stream
+	return stream
 
 
 func play_music(track_name: String, pitch: float = 1.0) -> void:
@@ -140,8 +154,4 @@ func set_dialogue_ducking(active: bool) -> void:
 	var idx: int = AudioServer.get_bus_index("Music")
 	if idx == -1:
 		return
-	var base_linear: float = float(Settings.music_volume) / 100.0
-	var target_db: float = linear_to_db(maxf(0.001, base_linear)) - 6.0
-	if active:
-		target_db -= 4.0
-	AudioServer.set_bus_volume_db(idx, target_db)
+	AudioServer.set_bus_volume_db(idx, Settings.music_bus_db(-4.0 if active else 0.0))

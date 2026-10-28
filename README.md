@@ -18,11 +18,11 @@
 | **Resolução** | 480x270 nativa com upscale inteiro (janela 1440x810) |
 | **Duração** | ~10–15 minutos por partida |
 | **Modo** | Single-player |
-| **Versão** | 1.6.0 |
+| **Versão** | 1.6.1 |
 
 ## Como executar
 
-1. Instale o **Godot 4.3 ou superior** (o projeto é testado no 4.7).
+1. Instale o **Godot 4.7 ou superior** (o projeto é testado no 4.7.2).
 2. No Project Manager, clique em **Importar** e selecione o `project.godot` desta pasta.
 3. Pressione **F5** para jogar. O jogo abre na tela de boot e depois no menu principal.
 
@@ -159,16 +159,23 @@ python tools/generate_music.py           # trilhas do jogo (menu, vagões, chefe
 python tools/generate_credits_music.py   # tema dos créditos
 ```
 
-## Atalhos de debug (apenas no editor)
+## Atalhos de debug (só no editor e em builds de debug)
+
+Nos builds de release os atalhos e a aba DEBUG da pausa ficam desativados.
 
 | Tecla | Efeito |
 |---|---|
-| F1 | Overlay de FPS, inimigos e relógio |
-| F2 | Avançar para o próximo vagão |
+| F1 | Overlay com FPS, tempo de física, inimigos, balas, relógio, seção, variante, modificador, seed e velocidade |
+| F2 | Próxima seção: vagões → cabine → chefe (derrota o chefe e segue para o desarme) → desarme → final |
 | F3 | Alternar imortalidade |
-| F4 | Eliminar todos os inimigos ativos |
-| F5 | Reduzir a vida do boss para 31% |
-| F6 | Conceder uma melhoria aleatória |
+| F4 | Eliminar os inimigos ativos (menos o chefe) |
+| F5 | Levar o chefe para a próxima fase |
+| F6 | Conceder uma melhoria aleatória (respeitando o nível máximo) |
+| F7 | Abrir a escolha de cartas |
+| F8 | Congelar ou soltar o relógio |
+| F9 | Alternar a velocidade do jogo (1x, 0,5x, 2x) |
+
+A aba **DEBUG** da pausa reúne esses comandos e mais: ir direto para qualquer seção, curar com +30 s, +60 s na reserva, todas as melhorias no máximo, escolher a fase do chefe e reiniciar o vagão com um modificador específico (túnel, curva, passageiro ou nenhum).
 
 ## Créditos
 

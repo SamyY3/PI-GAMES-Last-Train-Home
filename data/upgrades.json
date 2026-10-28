@@ -126,7 +126,7 @@
     {
       "id": "casaco",
       "name": "Casaco Justo",
-      "description": "Reduz hurtbox para 2 px e +20% velocidade no modo foco.",
+      "description": "Você vira um alvo menor e anda 20% mais rápido no Foco.",
       "max_level": 1,
       "rarity": "rare",
       "category": "Defesa",

@@ -11,7 +11,9 @@ func _ready() -> void:
 
 
 func _save() -> void:
-	_cfg.save(STATS_PATH)
+	var err: Error = _cfg.save(STATS_PATH)
+	if err != OK:
+		push_warning("Progress: falha ao salvar %s (erro %d)" % [STATS_PATH, err])
 
 
 func get_best_time(diff: String) -> float:

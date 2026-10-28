@@ -5,8 +5,16 @@ var _label: Label
 
 func _ready() -> void:
 	layer = 90
+	if not DebugCommands.enabled():
+		set_process(false)
+		set_process_unhandled_input(false)
+		return
 	_label = Label.new()
 	_label.position = Vector2(8.0, 46.0)
+	_label.size = Vector2(464.0, 40.0)
+	_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_label.add_theme_color_override("font_outline_color", Color("#0d0b12"))
+	_label.add_theme_constant_override("outline_size", 3)
 	_label.visible = false
 	_label.add_theme_font_size_override("font_size", 10)
 	_label.add_theme_color_override("font_color", Color("#dce9ee"))
@@ -15,42 +23,41 @@ func _ready() -> void:
 
 func _process(_delta: float) -> void:
 	if _label.visible:
-		var enemies_cnt: int = get_tree().get_nodes_in_group("enemies").size()
-		_label.text = "FPS: %d | Inimigos: %d | Clock: %s | Invencível [F3]: %s" % [
+		_label.text = "FPS: %d | Física: %.1f ms | Inimigos: %d | Balas: %d (%d inimigas) | Relógio: %s | Invencível [F3]: %s
+%s" % [
 			Engine.get_frames_per_second(),
-			enemies_cnt,
+			Performance.get_monitor(Performance.TIME_PHYSICS_PROCESS) * 1000.0,
+			get_tree().get_nodes_in_group("enemies").size(),
+			BulletManager.get_active_count(),
+			BulletManager._active_enemy_count,
 			TrainClock.format_time(),
-			"SIM" if GameState.debug_invincible else "NÃO"
+			"SIM" if GameState.debug_invincible else "NÃO",
+			DebugCommands.status_text(get_tree()),
 		]
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if not (event is InputEventKey and event.pressed):
+	if not (event is InputEventKey and event.pressed and not event.is_echo()):
 		return
 	match (event as InputEventKey).keycode:
 		KEY_F1:
 			_label.visible = not _label.visible
 		KEY_F2:
-			var next_w: int = GameState.current_wagon + 1
-			if next_w <= 4:
-				GameState.current_wagon = next_w
-				SceneRouter.goto_scene("res://scenes/levels/Level_Wagon%d.tscn" % next_w)
-			else:
-				SceneRouter.goto_scene("res://scenes/levels/Level_Cabin.tscn")
+			DebugCommands.next_section(get_tree())
 		KEY_F3:
-			GameState.debug_invincible = not GameState.debug_invincible
+			DebugCommands.toggle_invincible()
 			_label.visible = true
 		KEY_F4:
-			for e in get_tree().get_nodes_in_group("enemies"):
-				if e.has_method("take_damage"):
-					e.take_damage(99999.0)
+			DebugCommands.kill_enemies(get_tree())
 		KEY_F5:
-			for e in get_tree().get_nodes_in_group("enemies"):
-				if "hp" in e and "max_hp" in e:
-					var target_hp: float = float(e.max_hp) * 0.31
-					if float(e.hp) > target_hp:
-						e.take_damage(float(e.hp) - target_hp)
+			DebugCommands.boss_next_phase(get_tree())
 		KEY_F6:
-			if not GameState.upgrades_db.is_empty():
-				var u: Dictionary = GameState.upgrades_db.pick_random()
-				GameState.add_upgrade(String(u.get("id", "dano")))
+			DebugCommands.random_upgrade()
+		KEY_F7:
+			DebugCommands.open_card_choice(get_tree())
+		KEY_F8:
+			DebugCommands.toggle_clock_freeze()
+			_label.visible = true
+		KEY_F9:
+			DebugCommands.cycle_speed()
+			_label.visible = true

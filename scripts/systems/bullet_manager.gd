@@ -2,8 +2,11 @@ extends Node2D
 
 const POOL_SIZE: int = 400
 const MAX_ENEMY_BULLETS: int = 300
+const PLAYER_BULLET_LAYER: int = 1 << 3
+const PLAYER_BULLET_MASK: int = 1 << 4
 
 class PooledBullet:
+	var idx: int = 0
 	var area: Area2D
 	var sprite: Sprite2D
 	var active: bool = false
@@ -22,7 +25,11 @@ class PooledBullet:
 	var grazed: bool = false
 
 var _pool: Array[PooledBullet] = []
+var _free: Array[int] = []
 var _active_enemy_count: int = 0
+var _enemy_speed_mult: float = 1.0
+var _enemies_cache: Array[Node] = []
+var _enemies_cache_frame: int = -1
 const TEX_PLAYER: Texture2D = preload("res://assets/sprites/bullets/player_bolt.png")
 const TEX_ENEMY: Texture2D = preload("res://assets/sprites/bullets/enemy_orb.png")
 const TEX_ENEMY_HC: Texture2D = preload("res://assets/sprites/bullets/enemy_orb_hc.png")
@@ -52,59 +59,65 @@ func _ready() -> void:
 		area.body_entered.connect(_on_bullet_hit_body.bind(b))
 		add_child(area)
 
+		b.idx = i
 		b.area = area
 		b.sprite = spr
 		_pool.append(b)
+		_free.append(POOL_SIZE - 1 - i)
 
 
 func spawn_bullet(pos: Vector2, dir: Vector2, speed: float, is_player: bool,
 		damage: float = 1.0, lifetime: float = 4.0, splits: bool = false) -> void:
 	if not is_player and _active_enemy_count >= MAX_ENEMY_BULLETS:
 		return
+	if _free.is_empty():
+		return
 
-	var diff_mult: float = 1.0
-	if not is_player:
-		diff_mult = float(GameState.get_difficulty_config().get("bullet_speed_mult", 1.0))
+	var b: PooledBullet = _pool[_free.pop_back()]
+	b.active = true
+	b.is_player = is_player
+	b.pos = pos
+	b.vel = dir.normalized() * speed * (1.0 if is_player else _enemy_speed_mult)
+	b.damage = damage
+	b.lifetime = 0.0
+	b.max_lifetime = lifetime
+	b.splits_on_expire = splits
+	b.grazing = false
+	b.grazed = false
 
-	for b in _pool:
-		if not b.active:
-			b.active = true
-			b.is_player = is_player
-			b.pos = pos
-			b.vel = dir.normalized() * speed * diff_mult
-			b.damage = damage
-			b.lifetime = 0.0
-			b.max_lifetime = lifetime
-			b.splits_on_expire = splits
-			b.grazing = false
-			b.grazed = false
+	if is_player:
+		b.sprite.texture = TEX_PLAYER
+		b.sprite.rotation = b.vel.angle()
+		b.pierce_left = GameState.get_upgrade_level("perfurante")
+		b.bounce_left = GameState.get_upgrade_level("ricochete")
+		b.homing_deg_per_sec = GameState.get_upgrade_value("giroscopio", 0.0)
+		b.explosive_chance = GameState.get_upgrade_value("instavel", 0.0)
+		if GameState.has_combo("missil_latao"):
+			b.explosive_chance += 0.3
+		b.area.collision_layer = PLAYER_BULLET_LAYER
+		b.area.collision_mask = PLAYER_BULLET_MASK
+	else:
+		b.sprite.texture = TEX_ENEMY_HC if Settings.high_contrast_bullets else TEX_ENEMY
+		b.sprite.rotation = 0.0
+		b.pierce_left = 0
+		b.bounce_left = 0
+		b.homing_deg_per_sec = 0.0
+		b.explosive_chance = 0.0
+		b.area.collision_layer = 1 << 5
+		b.area.collision_mask = (1 << 2)
+		_active_enemy_count += 1
 
-			if is_player:
-				b.sprite.texture = TEX_PLAYER
-				b.sprite.rotation = b.vel.angle()
-				b.pierce_left = GameState.get_upgrade_level("perfurante")
-				b.bounce_left = GameState.get_upgrade_level("ricochete")
-				b.homing_deg_per_sec = float(GameState.get_upgrade_level("giroscopio")) * 110.0
-				b.explosive_chance = float(GameState.get_upgrade_level("instavel")) * 0.15
-				if GameState.has_combo("missil_latao"):
-					b.explosive_chance += 0.3
-				b.area.collision_layer = 1 << 3
-				b.area.collision_mask = (1 << 0) | (1 << 4)
-			else:
-				b.sprite.texture = TEX_ENEMY_HC if Settings.high_contrast_bullets else TEX_ENEMY
-				b.sprite.rotation = 0.0
-				b.pierce_left = 0
-				b.bounce_left = 0
-				b.homing_deg_per_sec = 0.0
-				b.explosive_chance = 0.0
-				b.area.collision_layer = 1 << 5
-				b.area.collision_mask = (1 << 2)
-				_active_enemy_count += 1
+	b.area.global_position = pos
+	b.area.visible = true
+	b.area.set_deferred("monitoring", true)
 
-			b.area.global_position = pos
-			b.area.visible = true
-			b.area.set_deferred("monitoring", true)
-			return
+
+func get_active_count() -> int:
+	return POOL_SIZE - _free.size()
+
+
+func refresh_difficulty() -> void:
+	_enemy_speed_mult = float(GameState.get_difficulty_config().get("bullet_speed_mult", 1.0))
 
 
 func spawn_fan(origin: Vector2, base_dir: Vector2, count: int, spread_deg: float, speed: float, is_player: bool, damage: float = 1.0) -> void:
@@ -153,8 +166,8 @@ func reflect_enemy_bullets_in_radius(center: Vector2, radius: float, damage: flo
 			b.explosive_chance = 0.0
 			b.sprite.texture = TEX_PLAYER
 			b.sprite.rotation = b.vel.angle()
-			b.area.collision_layer = 1 << 3
-			b.area.collision_mask = (1 << 0) | (1 << 4)
+			b.area.collision_layer = PLAYER_BULLET_LAYER
+			b.area.collision_mask = PLAYER_BULLET_MASK
 			_active_enemy_count = maxi(0, _active_enemy_count - 1)
 
 
@@ -175,6 +188,7 @@ func clear_all_bullets() -> void:
 
 
 func _physics_process(delta: float) -> void:
+	refresh_difficulty()
 	var player: Node2D = get_tree().get_first_node_in_group("player") as Node2D
 	var graze_r: float = float(GameState.balance_data.get("graze", {}).get("radius", 16.0))
 	var graze_r_sq: float = graze_r * graze_r
@@ -198,23 +212,25 @@ func _physics_process(delta: float) -> void:
 
 		b.pos += b.vel * delta
 
-		if b.pos.x < 16.0 or b.pos.x > 464.0:
+		var bounce: Rect2 = Arena.BULLET_BOUNCE
+		var discard: Rect2 = Arena.BULLET_DISCARD
+		if b.pos.x < bounce.position.x or b.pos.x > bounce.end.x:
 			if b.bounce_left > 0:
 				b.bounce_left -= 1
 				_refresh_pierce_on_bounce(b)
 				b.vel.x = -b.vel.x
-				b.pos.x = clampf(b.pos.x, 16.0, 464.0)
-			elif b.pos.x < -24.0 or b.pos.x > 504.0:
+				b.pos.x = clampf(b.pos.x, bounce.position.x, bounce.end.x)
+			elif b.pos.x < discard.position.x or b.pos.x > discard.end.x:
 				_deactivate_bullet(b)
 				continue
 
-		if b.pos.y < 64.0 or b.pos.y > 250.0:
+		if b.pos.y < bounce.position.y or b.pos.y > bounce.end.y:
 			if b.bounce_left > 0:
 				b.bounce_left -= 1
 				_refresh_pierce_on_bounce(b)
 				b.vel.y = -b.vel.y
-				b.pos.y = clampf(b.pos.y, 64.0, 250.0)
-			elif b.pos.y < 40.0 or b.pos.y > 294.0:
+				b.pos.y = clampf(b.pos.y, bounce.position.y, bounce.end.y)
+			elif b.pos.y < discard.position.y or b.pos.y > discard.end.y:
 				_deactivate_bullet(b)
 				continue
 
@@ -270,8 +286,12 @@ func _trigger_unstable_explosion(center: Vector2, dmg: float) -> void:
 func _find_nearest_enemy(from_pos: Vector2) -> Node2D:
 	var best: Node2D = null
 	var best_dist: float = 999999.0
-	for node in get_tree().get_nodes_in_group("enemies"):
-		if node is Node2D:
+	var frame: int = Engine.get_physics_frames()
+	if frame != _enemies_cache_frame:
+		_enemies_cache_frame = frame
+		_enemies_cache = get_tree().get_nodes_in_group("enemies")
+	for node in _enemies_cache:
+		if is_instance_valid(node) and node is Node2D:
 			var d: float = from_pos.distance_squared_to(node.global_position)
 			if d < best_dist:
 				best_dist = d
@@ -283,6 +303,7 @@ func _deactivate_bullet(b: PooledBullet) -> void:
 	if not b.active:
 		return
 	b.active = false
+	_free.append(b.idx)
 	b.area.visible = false
 	b.area.set_deferred("monitoring", false)
 	if not b.is_player:

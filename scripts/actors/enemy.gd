@@ -22,8 +22,9 @@ var _spiral_angle: float = 0.0
 var _shot_accum: float = 0.0
 var _orbit_time: float = 0.0
 var _charge_dir: Vector2 = Vector2.ZERO
+var _player_ref: Node2D
 var _ring_step_index: int = 0
-var _summoned_half_hp: bool = false
+var _staggered_half_hp: bool = false
 var _anim_t: float = 0.0
 var _hit_flash_t: float = 0.0
 
@@ -54,7 +55,7 @@ func _physics_process(delta: float) -> void:
 		_hit_flash_t -= delta
 
 	_state_timer -= delta
-	var player: Node2D = get_tree().get_first_node_in_group("player") as Node2D
+	var player: Node2D = _get_player()
 	if player == null:
 		return
 
@@ -85,8 +86,7 @@ func _physics_process(delta: float) -> void:
 				state = State.MOVE
 
 	move_and_slide()
-	global_position.x = clampf(global_position.x, 20.0, 460.0)
-	global_position.y = clampf(global_position.y, 68.0, 244.0)
+	global_position = Arena.clamp_point(global_position, Arena.ENEMY)
 	z_index = int(global_position.y)
 	queue_redraw()
 
@@ -101,6 +101,7 @@ func _process_move(delta: float, player: Node2D) -> void:
 			if dist > float(_cfg.get("stop_dist", 110.0)):
 				velocity = to_player.normalized() * spd
 			else:
+				_charge_dir = to_player.normalized()
 				state = State.TELEGRAPH
 				_state_timer = float(_cfg.get("telegraph", 0.5))
 		"drone":
@@ -144,7 +145,7 @@ func _process_move(delta: float, player: Node2D) -> void:
 			if _state_timer <= 0.0:
 				_charge_dir = to_player.normalized()
 				state = State.TELEGRAPH
-				_state_timer = float(_cfg.get("charge_telegraph", 0.8))
+				_state_timer = float(_cfg.get("ring_telegraph", 0.8))
 
 
 func _enter_attack(player: Node2D) -> void:
@@ -212,6 +213,12 @@ func _process_attack(delta: float, player: Node2D) -> void:
 				_state_timer = 2.5 / _fire_rate_mult
 
 
+func _get_player() -> Node2D:
+	if _player_ref == null or not is_instance_valid(_player_ref):
+		_player_ref = get_tree().get_first_node_in_group("player") as Node2D
+	return _player_ref
+
+
 func take_damage(amount: float) -> void:
 	if state == State.SPAWN or state == State.DEAD:
 		return
@@ -225,7 +232,7 @@ func take_damage(amount: float) -> void:
 		var tw := create_tween()
 		tw.tween_property(spr, "scale", Vector2.ONE, 0.12).set_trans(Tween.TRANS_BACK)
 
-	var player: Node2D = get_tree().get_first_node_in_group("player") as Node2D
+	var player: Node2D = _get_player()
 	if player != null and enemy_type != "turret":
 		var push_dir: Vector2 = (global_position - player.global_position).normalized()
 		global_position += push_dir * 4.0
@@ -233,8 +240,8 @@ func take_damage(amount: float) -> void:
 	if Settings.show_damage_numbers and get_parent() != null:
 		_spawn_damage_number(int(round(amount)))
 
-	if enemy_type == "freighter" and not _summoned_half_hp and hp <= max_hp * 0.5:
-		_summoned_half_hp = true
+	if enemy_type == "freighter" and not _staggered_half_hp and hp <= max_hp * 0.5:
+		_staggered_half_hp = true
 		state = State.RECOVER
 		_state_timer = 2.0
 
@@ -269,7 +276,13 @@ func _draw() -> void:
 		var sf: int = mini(int((1.0 - _hit_flash_t / 0.09) * 3.0), 2)
 		draw_texture_rect_region(FX_SPARK, Rect2(-12.0, -12.0, 25.0, 25.0), Rect2(sf * 25.0, 0.0, 25.0, 25.0))
 
-	if state == State.TELEGRAPH:
+	if state == State.TELEGRAPH and enemy_type == "freighter":
+		var t: float = clampf(1.0 - _state_timer / maxf(0.01, float(_cfg.get("ring_telegraph", 0.8))), 0.0, 1.0)
+		var dots: int = 16
+		for i in range(dots):
+			var p: Vector2 = Vector2.RIGHT.rotated(TAU * float(i) / float(dots)) * lerpf(34.0, 20.0, t)
+			draw_texture(FX_TELEGRAPH, (p - Vector2(4.0, 4.0)).round())
+	elif state == State.TELEGRAPH:
 		# Linha de mira tracejada (textura repetida) rumo ao ponto da investida
 		draw_set_transform(Vector2.ZERO, _charge_dir.angle())
 		draw_texture_rect(FX_DASH_LINE, Rect2(0.0, -1.0, 120.0, 3.0), true)

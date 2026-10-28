@@ -1,15 +1,13 @@
 {
   "player": {
-    "base_hp": 5,
     "invuln_time": 1.2,
     "knockback_dist": 24.0,
-    "hitstop_time": 0.06,
     "move_speed": 110.0,
     "focus_speed": 55.0,
     "accel": 900.0,
     "friction": 1200.0,
     "hurtbox_radius": 3.0,
-    "pickup_radius": 10.0,
+    "pickup_radius": 18.0,
     "fire_rate": 5.0,
     "base_damage": 10.0,
     "bullet_speed": 320.0,
@@ -20,9 +18,7 @@
     "dash_post_invuln": 0.06,
     "dash_cooldown": 1.0,
     "dash_buffer": 0.12,
-    "dash_coyote": 0.06,
     "pulse_radius": 80.0,
-    "pulse_duration": 0.35,
     "pulse_damage": 40.0,
     "pulse_pushback": 32.0,
     "pulse_cooldown": 14.0,
@@ -46,20 +42,51 @@
     }
   },
   "starter_tools": [
-    {"id": "botas", "name": "Botas Velhas", "upgrade": "velocidade", "unlock": "win_any", "hint": "Vença uma vez"},
-    {"id": "chave", "name": "Chave Inglesa", "upgrade": "caldeira", "unlock": "win_medium", "hint": "Vença na Média ou Difícil"},
-    {"id": "luneta", "name": "Luneta", "upgrade": "giroscopio", "unlock": "win_hard", "hint": "Vença na Difícil"}
+    {
+      "id": "botas",
+      "name": "Botas Velhas",
+      "upgrade": "velocidade",
+      "unlock": "win_any",
+      "hint": "Vença uma vez"
+    },
+    {
+      "id": "chave",
+      "name": "Chave Inglesa",
+      "upgrade": "caldeira",
+      "unlock": "win_medium",
+      "hint": "Vença na Média ou Difícil"
+    },
+    {
+      "id": "luneta",
+      "name": "Luneta",
+      "upgrade": "giroscopio",
+      "unlock": "win_hard",
+      "hint": "Vença na Difícil"
+    }
   ],
   "wagon_modifiers": {
     "chance": 0.7,
-    "tunnel": {"light_time": 9.0, "dark_time": 7.0, "fade_time": 0.6, "darkness": 0.88, "radius": 62.0},
-    "curve": {"interval": 11.0, "warn_time": 1.2, "push_time": 3.5, "push_speed": 46.0},
-    "passenger": {"hp": 3, "hit_radius": 9.0}
+    "tunnel": {
+      "light_time": 9.0,
+      "dark_time": 7.0,
+      "fade_time": 0.6,
+      "darkness": 0.88,
+      "radius": 62.0
+    },
+    "curve": {
+      "interval": 11.0,
+      "warn_time": 1.2,
+      "push_time": 3.5,
+      "push_speed": 46.0
+    },
+    "passenger": {
+      "hp": 3,
+      "hit_radius": 9.0
+    }
   },
   "difficulties": {
     "easy": {
       "label": "Fácil",
-      "summary": "Vida 6 · Tempo 08:00",
       "player_hp": 6,
       "enemy_hp_mult": 0.8,
       "bullet_speed_mult": 0.85,
@@ -71,7 +98,6 @@
     },
     "medium": {
       "label": "Média",
-      "summary": "Vida 5 · Tempo 06:30",
       "player_hp": 5,
       "enemy_hp_mult": 1.0,
       "bullet_speed_mult": 1.0,
@@ -83,7 +109,6 @@
     },
     "hard": {
       "label": "Difícil",
-      "summary": "Vida 4 · Tempo 05:30",
       "player_hp": 4,
       "enemy_hp_mult": 1.25,
       "bullet_speed_mult": 1.15,
@@ -101,8 +126,7 @@
     "wagon_4": 205.0,
     "cabin": 160.0,
     "boss_start": 150.0,
-    "boss_phase_3": 55.0,
-    "disarm": 14.0
+    "boss_phase_3": 55.0
   },
   "enemies": {
     "sentinel": {
@@ -111,11 +135,9 @@
       "stop_dist": 110.0,
       "telegraph": 0.5,
       "cooldown": 2.2,
-      "strafe_time": 0.8,
       "bullet_count": 3,
       "spread_deg": 18.0,
-      "bullet_speed": 90.0,
-      "contact_damage": false
+      "bullet_speed": 90.0
     },
     "drone": {
       "hp": 20,
@@ -125,8 +147,7 @@
       "sine_amp": 24.0,
       "sine_freq": 1.5,
       "cooldown": 1.8,
-      "bullet_speed": 110.0,
-      "contact_damage": false
+      "bullet_speed": 110.0
     },
     "wrench": {
       "hp": 60,
@@ -135,11 +156,9 @@
       "telegraph": 0.6,
       "charge_speed": 200.0,
       "charge_duration": 0.5,
-      "stun_duration": 0.8,
       "ring_bullets": 8,
       "ring_bullet_speed": 80.0,
-      "cooldown": 3.0,
-      "contact_damage": true
+      "cooldown": 3.0
     },
     "turret": {
       "hp": 45,
@@ -149,8 +168,7 @@
       "fire_duration": 2.0,
       "rot_speed_deg": 140.0,
       "bullet_speed": 85.0,
-      "rest_duration": 2.0,
-      "contact_damage": false
+      "rest_duration": 2.0
     },
     "sniper": {
       "hp": 40,
@@ -158,33 +176,23 @@
       "min_dist": 180.0,
       "max_dist": 220.0,
       "aim_time": 0.8,
-      "track_time": 0.5,
       "bullet_speed": 220.0,
-      "cooldown": 2.8,
-      "reposition_time": 1.0,
-      "contact_damage": false
+      "cooldown": 2.8
     },
     "freighter": {
       "hp": 350,
       "speed": 30.0,
-      "cycle_time": 6.0,
       "ring_count": 3,
       "ring_bullets": 14,
       "ring_speed": 75.0,
       "ring_interval": 0.4,
       "ring_rot_step": 12.0,
-      "charge_telegraph": 0.8,
-      "charge_speed": 240.0,
-      "charge_duration": 0.6,
-      "contact_damage": true
+      "ring_telegraph": 0.8
     }
   },
   "boss": {
     "hp": 2400,
     "phase2_threshold": 0.6,
-    "phase3_threshold": 0.3,
-    "patrol_speed": 30.0,
-    "patrol_min_x": 160.0,
-    "patrol_max_x": 320.0
+    "phase3_threshold": 0.3
   }
 }

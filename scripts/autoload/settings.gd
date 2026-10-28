@@ -18,6 +18,7 @@ const DEFAULT_KEYBINDS: Dictionary = {
 signal input_device_changed(using_gamepad: bool)
 const ALL_DEVICES: int = -1 # binds de controle valem para qualquer joypad conectado
 const STICK_DEADZONE: float = 0.25
+const MUSIC_OFFSET_DB: float = -6.0
 const CURSOR_POINTER: Texture2D = preload("res://assets/sprites/ui/pointer_cursor.png")
 const CURSOR_AIM: Texture2D = preload("res://assets/sprites/ui/crosshair_cursor.png")
 const NAV_STICK_PRESS: float = 0.5
@@ -120,6 +121,7 @@ var _nav_repeat_t: float = 0.0
 var _device_switch_msec: int = 0
 var _mouse_travel: float = 0.0
 var _cursor_kind: String = ""
+var _style_cache: Dictionary = {}
 var _prompt_bindings: Array = [] # [WeakRef do Control, modelo teclado, modelo controle]
 var ui_font: Font
 var title_font: Font # Jersey 10: nítida em 20px, usada nos títulos
@@ -191,7 +193,10 @@ func _setup_global_theme() -> void:
 
 # Kit de UI em pixel art (assets/sprites/ui/kit): molduras 9-slice de latão rebitado
 func make_ui_style(kind: String) -> StyleBoxTexture:
+	if _style_cache.has(kind):
+		return _style_cache[kind]
 	var st := StyleBoxTexture.new()
+	_style_cache[kind] = st
 	st.texture = load("res://assets/sprites/ui/kit/%s.png" % kind)
 	var is_button: bool = kind.begins_with("button")
 	var is_small: bool = kind == "panel_small"
@@ -591,9 +596,17 @@ func apply_settings() -> void:
 	else:
 		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED)
 
+	apply_audio()
+
+
+func apply_audio() -> void:
 	_set_bus_volume("Master", master_volume)
-	_set_bus_volume("Music", music_volume, -6.0)
+	_set_bus_volume("Music", music_volume, MUSIC_OFFSET_DB)
 	_set_bus_volume("SFX", sfx_volume)
+
+
+func music_bus_db(extra_db: float = 0.0) -> float:
+	return linear_to_db(maxf(0.001, float(music_volume) / 100.0)) + MUSIC_OFFSET_DB + extra_db
 
 
 func _set_bus_volume(bus_name: String, percent: int, offset_db: float = 0.0) -> void:
@@ -604,8 +617,7 @@ func _set_bus_volume(bus_name: String, percent: int, offset_db: float = 0.0) -> 
 		AudioServer.set_bus_mute(idx, true)
 	else:
 		AudioServer.set_bus_mute(idx, false)
-		var linear: float = float(percent) / 100.0
-		AudioServer.set_bus_volume_db(idx, linear_to_db(linear) + offset_db)
+		AudioServer.set_bus_volume_db(idx, linear_to_db(float(percent) / 100.0) + offset_db)
 
 
 func get_shake_multiplier() -> float:
@@ -634,7 +646,9 @@ func save_settings() -> void:
 		cfg.set_value("keybinds", String(act), int(custom_keybinds[act]))
 	for act in custom_pad_binds.keys():
 		cfg.set_value("padbinds", String(act), int(custom_pad_binds[act]))
-	cfg.save(SAVE_PATH)
+	var err: Error = cfg.save(SAVE_PATH)
+	if err != OK:
+		push_warning("Settings: falha ao salvar %s (erro %d)" % [SAVE_PATH, err])
 
 
 func load_settings() -> void:

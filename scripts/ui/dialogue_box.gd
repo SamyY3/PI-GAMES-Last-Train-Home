@@ -4,6 +4,19 @@ signal dialogue_finished
 
 const CHARS_PER_SEC: float = 40.0
 const MAX_LINES: int = 2
+const PORTRAITS: Dictionary = {
+	"teo": "portrait_teo",
+	"passageiro nervoso": "portrait_nervous",
+	"passageiro suspeito": "portrait_suspicious",
+	"passageiro curioso": "portrait_curious",
+	"funcionário": "portrait_worker",
+	"mulher misteriosa": "portrait_woman",
+	"mãe": "portrait_mother",
+	"pai": "portrait_father",
+	"lia": "portrait_lia",
+	"maquinista": "portrait_boss",
+	"fiscal": "portrait_fiscal",
+}
 const PALETTE_HEX: Dictionary = {
 	8: "#c98a3c",
 	9: "#f2c35b",
@@ -19,7 +32,7 @@ var _visible_chars: float = 0.0
 var _last_blip_char: int = 0
 var _is_active: bool = false
 var _esc_hold_time: float = 0.0
-var _was_clock_running: bool = false
+var _opened_frame: int = -1
 
 var _root_ctrl: Control
 var _panel: Panel
@@ -82,50 +95,27 @@ func _build_ui() -> void:
 
 
 func _get_portrait_path(speaker: String) -> String:
-	var s_low: String = speaker.to_lower()
-	if s_low.contains("teo"):
-		return "res://assets/sprites/portraits/portrait_teo.png"
-	elif s_low.contains("nervos"):
-		return "res://assets/sprites/portraits/portrait_nervous.png"
-	elif s_low.contains("suspeit"):
-		return "res://assets/sprites/portraits/portrait_suspicious.png"
-	elif s_low.contains("curios"):
-		return "res://assets/sprites/portraits/portrait_curious.png"
-	elif s_low.contains("funcion"):
-		return "res://assets/sprites/portraits/portrait_worker.png"
-	elif s_low.contains("mulher"):
-		return "res://assets/sprites/portraits/portrait_woman.png"
-	elif s_low.contains("mãe") or s_low.contains("mae"):
-		return "res://assets/sprites/portraits/portrait_mother.png"
-	elif s_low.contains("pai"):
-		return "res://assets/sprites/portraits/portrait_father.png"
-	elif s_low.contains("lia"):
-		return "res://assets/sprites/portraits/portrait_lia.png"
-	elif s_low.contains("maquinista"):
-		return "res://assets/sprites/portraits/portrait_boss.png"
-	elif s_low.contains("fiscal"):
-		return "res://assets/sprites/portraits/portrait_fiscal.png"
-	return "res://assets/sprites/portraits/portrait_system.png"
+	return "res://assets/sprites/portraits/%s.png" % String(PORTRAITS.get(speaker.to_lower(), "portrait_system"))
 
 
 func start_dialogue(dialogue_key: String) -> void:
 	var raw_lines: Variant = GameState.dialogue_db.get(dialogue_key, [])
 	if not (raw_lines is Array) or (raw_lines as Array).is_empty():
-		dialogue_finished.emit()
+		push_warning("DialogueBox: chave de diálogo ausente: %s" % dialogue_key)
+		dialogue_finished.emit.call_deferred()
 		return
 	start_custom_lines(raw_lines as Array)
 
 
 func start_custom_lines(custom_lines: Array) -> void:
 	if custom_lines.is_empty():
-		dialogue_finished.emit()
+		dialogue_finished.emit.call_deferred()
 		return
 	_lines = custom_lines.duplicate()
 	_current_index = 0
 	_is_active = true
-	_was_clock_running = TrainClock.is_running
-	TrainClock.is_running = false
-	get_tree().paused = true
+	_opened_frame = Engine.get_process_frames()
+	Modals.push(self)
 	AudioManager.set_dialogue_ducking(true)
 	_root_ctrl.visible = true
 	_show_line(0)
@@ -207,6 +197,8 @@ func _process(delta: float) -> void:
 	else:
 		_next_indicator.visible = int(float(Time.get_ticks_msec()) * 0.004) % 2 == 0
 
+	if Engine.get_process_frames() == _opened_frame:
+		return
 	if Input.is_action_just_pressed("skip_dialogue") or Input.is_action_just_pressed("confirm") or TouchControls.consume_tap():
 		if _text_label.visible_characters < total_chars:
 			_text_label.visible_characters = total_chars
@@ -222,6 +214,5 @@ func _finish_dialogue() -> void:
 	_is_active = false
 	_root_ctrl.visible = false
 	AudioManager.set_dialogue_ducking(false)
-	get_tree().paused = false
-	TrainClock.is_running = _was_clock_running
+	Modals.pop(self)
 	dialogue_finished.emit()

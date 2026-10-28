@@ -1,8 +1,11 @@
 extends Node
 
+const OVERLOAD_CLOCK_SPEED: float = 1.1
+
 var time_left: float = 390.0
 var reserve: float = 0.0
 var freeze_left: float = 0.0
+var debug_frozen: bool = false
 var is_running: bool = false
 var is_disarmed: bool = false
 var _tick_accumulator: float = 0.0
@@ -59,10 +62,7 @@ func apply_section_rubber_band(section_key: String) -> void:
 	var targets: Dictionary = GameState.balance_data.get("clock_targets_medium", {})
 	if not targets.has(section_key):
 		return
-	var target_sec: float = float(targets[section_key])
-	if section_key != "disarm":
-		var scale: float = float(GameState.get_difficulty_config().get("target_scale", 1.0))
-		target_sec *= scale
+	var target_sec: float = float(targets[section_key]) * float(GameState.get_difficulty_config().get("target_scale", 1.0))
 
 	if time_left > target_sec:
 		if section_key.begins_with("wagon_"):
@@ -83,7 +83,7 @@ func set_disarmed_countdown() -> void:
 
 
 func _process(delta: float) -> void:
-	if not is_running:
+	if not is_running or debug_frozen:
 		return
 
 	if freeze_left > 0.0 and not is_disarmed:
@@ -91,7 +91,7 @@ func _process(delta: float) -> void:
 		Events.timer_changed.emit(time_left)
 		return
 
-	var speed: float = 1.1 if GameState.get_upgrade_level("sobrecarga") > 0 and not is_disarmed else 1.0
+	var speed: float = OVERLOAD_CLOCK_SPEED if GameState.get_upgrade_level("sobrecarga") > 0 and not is_disarmed else 1.0
 	time_left = maxf(0.0, time_left - delta * speed)
 	Events.timer_changed.emit(time_left)
 

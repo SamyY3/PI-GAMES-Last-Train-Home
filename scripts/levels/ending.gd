@@ -39,6 +39,7 @@ const NAMEPLATE_TEX: Texture2D = preload("res://assets/sprites/ui/kit/nameplate.
 # Estação da colina: o trem para com a locomotiva à direita; a família espera na frente dela
 const TRAIN_STOP_X: float = 300.0
 const TRAIN_BASE_Y: float = 197.0
+const PLATFORM_EDGE_ROW: float = 30.0
 const PLATFORM_FEET_Y: float = 256.0 # no calçamento, bem abaixo da faixa dos trilhos
 const TEO_DOOR_X: float = 148.0
 const MEET_X: float = 292.0
@@ -163,7 +164,7 @@ func _draw() -> void:
 
 func _draw_cabin() -> void:
 	var dim: Color = Color(0.85, 0.75, 0.75) if _stage == Stage.CABIN_COUNT else Color(0.6, 0.66, 0.72)
-	draw_texture(CABIN_TEX, Vector2(-16.0, -16.0), dim)
+	draw_texture_rect_region(CABIN_TEX, Rect2(-8.0, -16.0, 496.0, 285.0), Rect2(8.0, 0.0, 496.0, 285.0), dim)
 	var bomb_col: Color = Color.WHITE if _stage == Stage.CABIN_COUNT else Color(0.7, 0.85, 0.8)
 	if _stage == Stage.CABIN_COUNT and int(_stage_t * 4.0) % 2 == 0:
 		bomb_col = Color(1.0, 0.75, 0.75)
@@ -223,7 +224,7 @@ func _draw_station() -> void:
 		var st: int = mini(int(age * 8.0), 7)
 		draw_texture_rect_region(PUFF_TEX, Rect2(round(tx + 81.0 - age * (90.0 if moving else 30.0)) - 16.0, round(TRAIN_BASE_Y - 58.0 - age * 44.0) - 16.0, 32.0, 32.0), Rect2(st * 32.0, 0.0, 32.0, 32.0), Color(1.0, 0.95, 0.92, (0.85 if moving else 0.5) - age * 0.5))
 
-	draw_texture_rect(PLATFORM_TEX, Rect2(0.0, 198.0, 480.0, 72.0), true, Color(0.8, 0.68, 0.66))
+	_draw_platform(198.0, Color(0.8, 0.68, 0.66))
 	_draw_rails(196.0, 0.0)
 
 	# Família na plataforma, virada para o trem (oeste): pai e mãe com o idle espelhado
@@ -316,6 +317,15 @@ func _draw_train(x: float, base_y: float, wheel_t: float) -> void:
 		draw_texture_rect_region(PUFF_TEX, Rect2(round(x + 81.0 - age * 90.0) - 16.0, round(base_y - 58.0 - age * 40.0) - 16.0, 32.0, 32.0), Rect2(st * 32.0, 0.0, 32.0, 32.0), Color(1.0, 1.0, 1.0, 0.85 - age * 0.6))
 
 
+func _draw_platform(y: float, tint: Color) -> void:
+	draw_texture_rect(BALLAST_TEX, Rect2(0.0, y, 480.0, PLATFORM_EDGE_ROW), true, tint)
+	var src := Rect2(0.0, PLATFORM_EDGE_ROW, 128.0, 72.0 - PLATFORM_EDGE_ROW)
+	var x: float = 0.0
+	while x < 480.0:
+		draw_texture_rect_region(PLATFORM_TEX, Rect2(Vector2(x, y + PLATFORM_EDGE_ROW), src.size), src, tint)
+		x += src.size.x
+
+
 func _draw_rails(y: float, scroll: float) -> void:
 	var x0: float = -round(fmod(scroll, 32.0))
 	for i in range(17):
@@ -405,7 +415,6 @@ func _run_cinematic() -> void:
 	add_child(dlg)
 	dlg.start_dialogue("ending_reunion")
 	await dlg.dialogue_finished
-	get_tree().paused = false
 	await _wait(0.6)
 
 	# --- Para casa: a família sobe o caminho da colina

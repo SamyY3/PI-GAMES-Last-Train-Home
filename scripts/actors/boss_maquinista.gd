@@ -25,8 +25,8 @@ const FX_VENT: Texture2D = preload("res://assets/sprites/fx/vent_warning.png")
 
 const HOME_Y: float = 94.0
 const STAGE_X: Array[float] = [96.0, 240.0, 384.0]
-const ARENA := Rect2(40.0, 84.0, 400.0, 150.0) # onde o boss pode pisar (investida)
-const FLOOR := Rect2(26.0, 74.0, 428.0, 166.0) # área jogável (avisos e chuva de carvão)
+const ARENA := Arena.BOSS_STEP # onde o boss pode pisar (investida)
+const FLOOR := Arena.BOSS_FLOOR # área jogável (avisos e chuva de carvão)
 
 const PHASE_SCRIPT: Array = [
 	["reposicionar", "apito", "bilhete", "reposicionar", "pendulo", "apito", "reposicionar", "bilhete"],
@@ -35,6 +35,7 @@ const PHASE_SCRIPT: Array = [
 ]
 const REST: Array[float] = [0.9, 0.7, 0.5]
 
+var _player_ref: Node2D
 var max_hp: float = 2400.0
 var hp: float = 2400.0
 var phase: int = 1
@@ -258,7 +259,9 @@ func _tick() -> float:
 func _player() -> Node2D:
 	if not is_inside_tree():
 		return null
-	return get_tree().get_first_node_in_group("player") as Node2D
+	if _player_ref == null or not is_instance_valid(_player_ref):
+		_player_ref = get_tree().get_first_node_in_group("player") as Node2D
+	return _player_ref
 
 
 func _to_player() -> Vector2:
@@ -602,7 +605,7 @@ func _move_contagem() -> void:
 
 
 func _clamp_arena(pos: Vector2) -> Vector2:
-	return Vector2(clampf(pos.x, ARENA.position.x, ARENA.end.x), clampf(pos.y, ARENA.position.y, ARENA.end.y))
+	return Arena.clamp_point(pos, ARENA)
 
 
 func _clamp_floor(pos: Vector2) -> Vector2:
@@ -679,14 +682,18 @@ func _transition_to_phase(next_phase: int) -> void:
 	is_transitioning = false
 
 
+func _exit_tree() -> void:
+	Engine.time_scale = GameState.debug_time_scale
+
+
 func _die() -> void:
 	if _is_dead:
 		return
 	_is_dead = true
 	is_transitioning = true
+	TrainClock.is_running = false
 	_charging = false
 	_telegraphs.clear()
-	get_tree().paused = false
 	BulletManager.clear_all_bullets()
 	_bark("derrota", true)
 	_play("death", 7.0, false)
@@ -694,7 +701,7 @@ func _die() -> void:
 	Events.request_screen_shake.emit(3.5, 1.5)
 	Engine.time_scale = 0.4
 	await get_tree().create_timer(1.4, true, false, true).timeout
-	Engine.time_scale = 1.0
+	Engine.time_scale = GameState.debug_time_scale
 	if not is_inside_tree():
 		return
 	var cs: Node = get_tree().get_first_node_in_group("boss_cutscene")
