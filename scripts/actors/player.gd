@@ -194,10 +194,10 @@ func _update_aim() -> void:
 			_aim_dir = (nearest.global_position - global_position).normalized()
 			return
 
-	if Settings.using_gamepad:
+	if Settings.using_gamepad or Settings.touch_mode:
 		# Analógico direito mira; solto, a mira segue o movimento — exceto atirando, quando fica
 		# travada para o Teo poder recuar atirando para a frente
-		var joy_aim: Vector2 = Settings.get_right_stick()
+		var joy_aim: Vector2 = Settings.get_right_stick() if Settings.using_gamepad else TouchControls.aim_vector
 		if joy_aim != Vector2.ZERO:
 			_aim_dir = joy_aim.normalized()
 		elif not Input.is_action_pressed("shoot"):
@@ -214,6 +214,8 @@ func _get_move_input() -> Vector2:
 	var stick: Vector2 = Settings.get_left_stick()
 	if stick != Vector2.ZERO:
 		return stick
+	if TouchControls.move_vector != Vector2.ZERO:
+		return TouchControls.move_vector
 	return Input.get_vector("move_left", "move_right", "move_up", "move_down")
 
 
@@ -405,7 +407,7 @@ func _draw() -> void:
 		draw_texture(FX_HITBOX, Vector2(-3.0, -3.0))
 
 	# Retícula de mira no controle (o cursor do mouse fica escondido)
-	if Settings.using_gamepad:
+	if Settings.using_gamepad or Settings.touch_mode:
 		var rc: Vector2 = (_aim_dir * 34.0).round() + Vector2(0.5, 0.5)
 		var col := Color("#f2c35b")
 		draw_line(rc + Vector2(-4.0, 0.0), rc + Vector2(-2.0, 0.0), col)

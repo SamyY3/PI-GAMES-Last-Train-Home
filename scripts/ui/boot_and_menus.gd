@@ -930,7 +930,9 @@ func _build_options() -> void:
 	tabs_hbox.add_theme_constant_override("separation", 4)
 	frame.add_child(tabs_hbox)
 
-	var tab_names: Array[String] = ["ÁUDIO", "VÍDEO", "JOGO", "TECLADO", "CONTROLE"]
+	var tab_names: Array[String] = ["ÁUDIO", "VÍDEO", "JOGO"]
+	if not Settings.touch_mode:
+		tab_names.append_array(["TECLADO", "CONTROLE"])
 	for i in range(tab_names.size()):
 		var tb := Button.new()
 		tb.text = tab_names[i]
@@ -970,7 +972,10 @@ func _build_options() -> void:
 		)
 
 	var audio_hint := Label.new()
-	Settings.bind_prompt_text(audio_hint, "Dica: Use [A/D], Setas [◀/▶] ou Clique para ajustar o volume", "Dica: Use {move_left}/{move_right} para ajustar · {tab_prev}/{tab_next} trocam de aba")
+	if Settings.touch_mode:
+		audio_hint.text = "Dica: toque para aumentar (depois de 100% volta a 0)"
+	else:
+		Settings.bind_prompt_text(audio_hint, "Dica: Use [A/D], Setas [◀/▶] ou Clique para ajustar o volume", "Dica: Use {move_left}/{move_right} para ajustar · {tab_prev}/{tab_next} trocam de aba")
 	audio_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	audio_hint.add_theme_font_size_override("font_size", 10)
 	audio_hint.add_theme_color_override("font_color", Color("#8fb8c4"))
@@ -1002,6 +1007,7 @@ func _build_options() -> void:
 		_refresh_options_texts()
 	)
 	page_video.add_child(_btn_fs)
+	_btn_fs.visible = not Settings.touch_mode
 	page_video.add_child(_btn_shake)
 	page_video.add_child(_btn_flash)
 
@@ -1053,7 +1059,8 @@ func _build_options() -> void:
 	page_ctrl.add_theme_constant_override("separation", 3)
 	page_ctrl.visible = false
 	frame.add_child(page_ctrl)
-	_opt_tabs.append(page_ctrl)
+	if not Settings.touch_mode:
+		_opt_tabs.append(page_ctrl)
 
 	var grid_ctrl := GridContainer.new()
 	grid_ctrl.columns = 3
@@ -1108,7 +1115,8 @@ func _build_options() -> void:
 	page_pad.add_theme_constant_override("separation", 3)
 	page_pad.visible = false
 	frame.add_child(page_pad)
-	_opt_tabs.append(page_pad)
+	if not Settings.touch_mode:
+		_opt_tabs.append(page_pad)
 
 	var grid_pad := GridContainer.new()
 	grid_pad.columns = 3

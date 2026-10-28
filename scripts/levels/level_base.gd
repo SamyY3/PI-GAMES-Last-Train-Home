@@ -221,6 +221,13 @@ func draw_centered_f_prompt(canvas: CanvasItem, center: Vector2, progress_ratio:
 		var fs: int = 10
 		var baseline: float = c.y + (Settings.ui_font.get_ascent(fs) - Settings.ui_font.get_descent(fs)) * 0.5
 		canvas.draw_string(Settings.ui_font, Vector2(c.x - 10.0, round(baseline)), Settings.get_prompt("interact"), HORIZONTAL_ALIGNMENT_CENTER, 20.0, fs, Color("#fff1c9"))
+	elif Settings.touch_mode:
+		var pill := Rect2(tl + Vector2(-5.0, 1.0), Vector2(30.0, 15.0))
+		canvas.draw_rect(pill, Color("#0d0b12"))
+		canvas.draw_rect(pill, Color("#f2c35b"), false, 1.0)
+		var tfs: int = 10
+		var tbase: float = pill.get_center().y + (Settings.ui_font.get_ascent(tfs) - Settings.ui_font.get_descent(tfs)) * 0.5
+		canvas.draw_string(Settings.ui_font, Vector2(pill.position.x, round(tbase)), Settings.get_prompt("interact"), HORIZONTAL_ALIGNMENT_CENTER, pill.size.x, tfs, Color("#fff1c9"))
 	else:
 		canvas.draw_texture(UI_KEY_F, tl)
 	if progress_ratio > 0.0:

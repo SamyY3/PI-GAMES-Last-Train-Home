@@ -44,6 +44,26 @@ const PAD_PROMPTS: Dictionary = {
 	"tab_next": "RB"
 }
 
+const TOUCH_PROMPTS: Dictionary = {
+	"move": "ESQ",
+	"aim": "DIR",
+	"move_up": "▲",
+	"move_down": "▼",
+	"move_left": "◀",
+	"move_right": "▶",
+	"shoot": "DIR",
+	"dash": "DASH",
+	"ability": "PULSO",
+	"focus": "FOCO",
+	"interact": "AÇÃO",
+	"confirm": "TOQUE",
+	"cancel": "",
+	"pause": "II",
+	"menu_alt": "",
+	"tab_prev": "",
+	"tab_next": ""
+}
+
 # Botões remapeáveis do controle (aba CONTROLE das Opções). Gatilhos são guardados como
 # PAD_TRIGGER_BASE + eixo, para caber no mesmo int dos botões.
 const PAD_TRIGGER_BASE: int = 100
@@ -91,6 +111,7 @@ var custom_keybinds: Dictionary = {}
 var custom_pad_binds: Dictionary = {}
 var vibration_enabled: bool = true
 var using_gamepad: bool = false
+var touch_mode: bool = false
 var joy_device: int = 0
 var _nav_button: int = -1 # botão do D-pad emulado pelo analógico esquerdo
 var _nav_repeat_t: float = 0.0
@@ -105,6 +126,7 @@ func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS # analógico e troca de dispositivo também com o jogo pausado
 	custom_keybinds = DEFAULT_KEYBINDS.duplicate()
 	custom_pad_binds = DEFAULT_PAD_BINDS.duplicate()
+	touch_mode = OS.has_feature("mobile") or OS.get_cmdline_user_args().has("--touch")
 	load_settings()
 	_setup_input_map()
 	_setup_global_theme()
@@ -224,9 +246,10 @@ func _setup_input_map() -> void:
 				InputMap.action_add_event(action, ev)
 
 	# Clique esquerdo é exclusivo para atirar (shoot)
-	var mb := InputEventMouseButton.new()
-	mb.button_index = MOUSE_BUTTON_LEFT
-	InputMap.action_add_event("shoot", mb)
+	if not touch_mode:
+		var mb := InputEventMouseButton.new()
+		mb.button_index = MOUSE_BUTTON_LEFT
+		InputMap.action_add_event("shoot", mb)
 
 	# O analógico esquerdo NÃO entra nas ações: o Teo lê o eixo direto (get_left_stick) e,
 	# nos menus, _update_stick_nav o converte em toques de D-pad com repetição controlada
@@ -349,6 +372,8 @@ func get_action_key_name(action: String) -> String:
 
 # Nome curto da tecla/botão de uma ação no dispositivo em uso (ex.: "F" no teclado, "A" no controle)
 func get_prompt(action: String) -> String:
+	if touch_mode and not using_gamepad:
+		return String(TOUCH_PROMPTS.get(action, ""))
 	if using_gamepad:
 		if custom_pad_binds.has(action):
 			return get_pad_bind_name(action)
@@ -380,7 +405,11 @@ func format_prompts(template: String) -> String:
 	for action in PAD_PROMPTS.keys():
 		var token: String = "{%s}" % action
 		if out.contains(token):
-			out = out.replace(token, "[%s]" % get_prompt(action))
+			var p: String = get_prompt(action)
+			if p == "":
+				out = out.replace(" " + token, "").replace(token + " ", "").replace(token, "")
+			else:
+				out = out.replace(token, "[%s]" % p)
 	return out
 
 
@@ -394,7 +423,7 @@ func bind_prompt_text(ctrl: Control, template: String, pad_template: String = ""
 
 
 func _apply_prompt_binding(ctrl: Control, template: String, pad_template: String) -> void:
-	var txt: String = format_prompts(pad_template if (using_gamepad and pad_template != "") else template)
+	var txt: String = format_prompts(pad_template if ((using_gamepad or touch_mode) and pad_template != "") else template)
 	if ctrl.has_meta("base_text"):
 		# botões estilizados do menu mostram "▶ texto ◀" quando focados
 		ctrl.set_meta("base_text", txt)
@@ -433,7 +462,7 @@ func _read_stick(axis_x: JoyAxis, axis_y: JoyAxis) -> Vector2:
 
 # Segurar para pular (introdução e diálogos): ESC no teclado, B no controle
 func is_skip_held() -> bool:
-	return Input.is_key_pressed(KEY_ESCAPE) or Input.is_joy_button_pressed(joy_device, JOY_BUTTON_B)
+	return Input.is_key_pressed(KEY_ESCAPE) or Input.is_joy_button_pressed(joy_device, JOY_BUTTON_B) or TouchControls.is_screen_held()
 
 
 func rumble(weak: float, strong: float, duration: float) -> void:
@@ -538,7 +567,7 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 func apply_settings() -> void:
-	if fullscreen:
+	if fullscreen or OS.has_feature("mobile"):
 		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN)
 	else:
 		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED)

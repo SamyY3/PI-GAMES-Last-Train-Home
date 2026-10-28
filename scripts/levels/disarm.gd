@@ -28,6 +28,7 @@ const CORE_TEX: Texture2D = preload("res://assets/sprites/disarm/core.png")
 
 func _ready() -> void:
 	GameState.current_wagon = 6
+	add_to_group("touch_dpad")
 	TrainClock.apply_section_rubber_band("disarm")
 	TrainClock.set_time(18.0)
 	GameState.save_wagon_checkpoint()
@@ -217,7 +218,7 @@ func _update_step_ui() -> void:
 	match step:
 		1:
 			Settings.bind_prompt_text(_instruction_label, "Alterne {move_left} e {move_right} (ou Setas Esq/Dir) 6 vezes para girar a válvula!",
-				"Alterne {move_left} e {move_right} (analógico ou D-pad) 6 vezes para girar a válvula!")
+				"Alterne {move_left} e {move_right} 6 vezes para girar a válvula!" if Settings.touch_mode else "Alterne {move_left} e {move_right} (analógico ou D-pad) 6 vezes para girar a válvula!")
 		2:
 			Settings.bind_prompt_text(_instruction_label, "Segure {move_down} ou {interact} por 1,0 segundo para baixar a alavanca!")
 		3:

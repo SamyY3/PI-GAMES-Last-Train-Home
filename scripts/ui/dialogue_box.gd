@@ -175,7 +175,7 @@ func _process(delta: float) -> void:
 	else:
 		_next_indicator.visible = int(float(Time.get_ticks_msec()) * 0.004) % 2 == 0
 
-	if Input.is_action_just_pressed("skip_dialogue") or Input.is_action_just_pressed("confirm"):
+	if Input.is_action_just_pressed("skip_dialogue") or Input.is_action_just_pressed("confirm") or TouchControls.consume_tap():
 		if _text_label.visible_characters < total_chars:
 			_text_label.visible_characters = total_chars
 		else:

@@ -140,7 +140,10 @@ func _build_ui() -> void:
 	_root_control.add_child(_reroll_btn)
 
 	var hint := Label.new()
-	Settings.bind_prompt_text(hint, "[A/D ou Setas] Selecionar   |   [ENTER ou Clique] Confirmar", "[◀/▶] Selecionar   |   {confirm} Confirmar   |   {menu_alt} Sortear")
+	if Settings.touch_mode:
+		hint.text = "Toque em uma carta para escolher"
+	else:
+		Settings.bind_prompt_text(hint, "[A/D ou Setas] Selecionar   |   [ENTER ou Clique] Confirmar", "[◀/▶] Selecionar   |   {confirm} Confirmar   |   {menu_alt} Sortear")
 	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	hint.position = Vector2(0.0, 228.0)
 	hint.size = Vector2(480.0, 16.0)

@@ -94,7 +94,7 @@ func _make_label(font_size: int, col: Color, outline: int) -> Label:
 func _process(delta: float) -> void:
 	if not _running:
 		return
-	if Input.is_action_just_pressed("confirm") or Input.is_action_just_pressed("interact") or Input.is_action_just_pressed("skip_dialogue"):
+	if Input.is_action_just_pressed("confirm") or Input.is_action_just_pressed("interact") or Input.is_action_just_pressed("skip_dialogue") or TouchControls.consume_tap():
 		_skip = true
 	# tremida própria (o tremor do nível não roda com a árvore pausada)
 	if _shake_t > 0.0:

@@ -26,6 +26,12 @@ func _ready() -> void:
 	_root.visible = false
 	if overlay_mode == "game_over":
 		Events.player_died.connect(_on_player_died)
+	elif overlay_mode == "pause":
+		add_to_group("pause_overlay")
+
+
+func is_open() -> bool:
+	return _root.visible
 
 
 func _process(delta: float) -> void:

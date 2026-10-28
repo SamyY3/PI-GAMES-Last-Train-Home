@@ -54,10 +54,10 @@ func _process(delta: float) -> void:
 			_pulse_cd_bar.value = pratio * 100.0
 			var secs_left: float = float(player.get_pulse_seconds_left())
 			if secs_left > 0.05:
-				_pulse_cd_label.text = "[%s] %.0fs" % [Settings.get_prompt("ability"), ceil(secs_left)]
+				_pulse_cd_label.text = "%s%.0fs" % [_pulse_prefix(), ceil(secs_left)]
 				_pulse_cd_label.add_theme_color_override("font_color", Color("#8fb8c4"))
 			else:
-				_pulse_cd_label.text = "[%s] PRONTO" % Settings.get_prompt("ability")
+				_pulse_cd_label.text = _pulse_prefix() + "PRONTO"
 				_pulse_cd_label.add_theme_color_override("font_color", Color("#f2c35b"))
 
 
@@ -133,7 +133,7 @@ func _build_hud() -> void:
 	add_child(_wagon_label)
 
 	var dash_lbl := Label.new()
-	Settings.bind_prompt_text(dash_lbl, "{dash} DASH")
+	Settings.bind_prompt_text(dash_lbl, "DASH" if Settings.touch_mode else "{dash} DASH")
 	dash_lbl.position = Vector2(354.0, 6.0)
 	dash_lbl.add_theme_font_size_override("font_size", 10)
 	dash_lbl.add_theme_color_override("font_color", Color("#fff1c9"))
@@ -146,7 +146,7 @@ func _build_hud() -> void:
 	add_child(_dash_cd_bar)
 
 	_pulse_cd_label = Label.new()
-	_pulse_cd_label.text = "[%s] PRONTO" % Settings.get_prompt("ability")
+	_pulse_cd_label.text = _pulse_prefix() + "PRONTO"
 	_pulse_cd_label.position = Vector2(414.0, 6.0)
 	_pulse_cd_label.add_theme_font_size_override("font_size", 10)
 	_pulse_cd_label.add_theme_color_override("font_color", Color("#f2c35b"))
@@ -209,6 +209,11 @@ func _build_hud() -> void:
 	_tip_label.size = Vector2(332.0, 14.0)
 	_tip_label.add_theme_font_size_override("font_size", 10)
 	_tip_label.add_theme_color_override("font_color", Color("#dce9ee"))
+	if Settings.touch_mode:
+		_tip_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		_tip_label.vertical_alignment = VERTICAL_ALIGNMENT_BOTTOM
+		_tip_label.position = Vector2(100.0, 221.0)
+		_tip_label.size = Vector2(372.0, 26.0)
 	add_child(_tip_label)
 
 	_banner_panel = PanelContainer.new()
@@ -256,6 +261,12 @@ func set_wave_info(current_wave: int, total_waves: int) -> void:
 func _update_wagon_header_label() -> void:
 	var key_str: String = " [CHAVE]" if GameState.has_cargo_key else ""
 	_wagon_label.text = _base_wagon_title + _wave_text + key_str
+
+
+func _pulse_prefix() -> String:
+	if Settings.touch_mode and not Settings.using_gamepad:
+		return ""
+	return "[%s] " % Settings.get_prompt("ability")
 
 
 # Aceita marcadores {acao} (ex.: "{interact}"), trocados pela tecla ou botão do controle em uso

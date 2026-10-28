@@ -266,6 +266,8 @@ func _label(txt: String, font_size: int, col: Color, title: bool = false) -> Lab
 # ------------------------------------------------------------------------------
 func _process(delta: float) -> void:
 	_t += delta
+	if TouchControls.consume_tap():
+		_finish()
 	if not _done:
 		_scroll = maxf(_end_y, _scroll - SCROLL_SPEED * delta)
 		if _scroll <= _end_y:

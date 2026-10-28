@@ -18,7 +18,7 @@
 | **Resolução** | 480x270 nativa com upscale inteiro (janela 1440x810) |
 | **Duração** | ~10–15 minutos por partida |
 | **Modo** | Single-player |
-| **Versão** | 1.2.3 |
+| **Versão** | 1.3.0 |
 
 ## Como executar
 
@@ -38,6 +38,16 @@ godot --headless --path . --export-release "Windows Desktop" build/windows/LastT
 
 O resultado é um único `.exe` (com os dados embutidos) em `build/windows/`, pasta que não vai para o git.
 
+### Exportar para Android
+
+A predefinição **Android** gera um APK para arm64 com o pacote `com.pigames.lasttrainhome`. Além dos templates do Godot 4.7.2, é preciso o JDK 17 e o Android SDK (platform-tools, build-tools 36.1.0 e a plataforma android-36), configurados em **Editor → Configurações do Editor → Exportar → Android**. Para gerar um APK de teste, assinado com a chave de debug do Godot:
+
+```bash
+godot --headless --path . --export-debug "Android" build/android/LastTrainHome.apk
+```
+
+Para testar os controles de toque no PC, rode o jogo com `-- --touch`.
+
 ## Controles
 
 | Ação | Teclado / mouse | Controle |
@@ -54,6 +64,8 @@ O resultado é um único `.exe` (com os dados embutidos) em `build/windows/`, pa
 | Trocar de aba (Opções e Pausa) | Mouse | LB / RB |
 | Pausar | Esc | Start |
 | Tela cheia | F11 | — |
+
+No celular aparecem controles na tela: o analógico esquerdo move, o direito mira e atira enquanto estiver pressionado, e os botões **DASH**, **PULSO**, **FOCO** (liga e desliga) e **AÇÃO** ficam acima dele, com a pausa no canto superior direito (o botão também fecha o menu de pausa, em qualquer aba). O botão Voltar do Android pausa e despausa o jogo e volta nos menus. Os analógicos surgem onde o dedo toca em cada metade da tela. Nos diálogos, tocar avança e segurar pula; no desarme da bomba aparecem os botões ◀ ▶ ▼ e **AÇÃO**. Com um controle conectado, os botões da tela somem. No celular, as Opções mostram só as abas Áudio, Vídeo e Jogo: as abas Teclado e Controle e a opção de tela cheia ficam escondidas.
 
 As teclas principais podem ser remapeadas em **Opções → Teclado**, e os botões do controle (atirar, dash, pulso, foco e interagir, incluindo gatilhos, L3/R3 e paddles traseiros) em **Opções → Controle**. Movimento, mira, Start e os botões de menu são fixos (layout Xbox; controles de PlayStation e Switch usam as posições equivalentes). O jogo detecta sozinho o último dispositivo usado: as dicas na tela trocam entre teclas e botões, o cursor do mouse some e o Teo ganha uma retícula de mira. A vibração pode ser desligada em **Opções → Jogo**.
 
