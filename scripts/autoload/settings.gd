@@ -121,7 +121,6 @@ func _load_pixel_font(path: String) -> FontFile:
 	var f := load(path) as FontFile
 	if f == null:
 		return null
-	# mesmos ajustes da fonte carregada do .ttf: sem suavização e hinting leve (pixels nítidos)
 	f.antialiasing = TextServer.FONT_ANTIALIASING_NONE
 	f.subpixel_positioning = TextServer.SUBPIXEL_POSITIONING_DISABLED
 	f.hinting = TextServer.HINTING_LIGHT
@@ -129,7 +128,6 @@ func _load_pixel_font(path: String) -> FontFile:
 
 
 func _setup_global_theme() -> void:
-	# load() usa a fonte importada: o .ttf cru não vai para o .exe exportado
 	ui_font = _load_pixel_font("res://assets/fonts/DotGothic16.ttf") # mais legível em 10px (números e acentos claros)
 	title_font = _load_pixel_font("res://assets/fonts/Jersey10.ttf")
 	if ui_font == null:
