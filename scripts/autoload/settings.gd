@@ -115,21 +115,23 @@ func _ready() -> void:
 		joy_device = pads[0]
 
 
+func _load_pixel_font(path: String) -> FontFile:
+	if not ResourceLoader.exists(path):
+		return null
+	var f := load(path) as FontFile
+	if f == null:
+		return null
+	# mesmos ajustes da fonte carregada do .ttf: sem suavização e hinting leve (pixels nítidos)
+	f.antialiasing = TextServer.FONT_ANTIALIASING_NONE
+	f.subpixel_positioning = TextServer.SUBPIXEL_POSITIONING_DISABLED
+	f.hinting = TextServer.HINTING_LIGHT
+	return f
+
+
 func _setup_global_theme() -> void:
-	var font_path: String = "res://assets/fonts/DotGothic16.ttf" # mais legível em 10px (números e acentos claros)
-	if FileAccess.file_exists(font_path):
-		var ffile := FontFile.new()
-		if ffile.load_dynamic_font(font_path) == OK:
-			ffile.antialiasing = TextServer.FONT_ANTIALIASING_NONE
-			ffile.subpixel_positioning = TextServer.SUBPIXEL_POSITIONING_DISABLED
-			ui_font = ffile
-	var title_path: String = "res://assets/fonts/Jersey10.ttf"
-	if FileAccess.file_exists(title_path):
-		var tfile := FontFile.new()
-		if tfile.load_dynamic_font(title_path) == OK:
-			tfile.antialiasing = TextServer.FONT_ANTIALIASING_NONE
-			tfile.subpixel_positioning = TextServer.SUBPIXEL_POSITIONING_DISABLED
-			title_font = tfile
+	# load() usa a fonte importada: o .ttf cru não vai para o .exe exportado
+	ui_font = _load_pixel_font("res://assets/fonts/DotGothic16.ttf") # mais legível em 10px (números e acentos claros)
+	title_font = _load_pixel_font("res://assets/fonts/Jersey10.ttf")
 	if ui_font == null:
 		var sysf := SystemFont.new()
 		sysf.font_names = PackedStringArray(["Consolas", "Lucida Console", "Monospace"])
