@@ -83,7 +83,7 @@ func set_disarmed_countdown() -> void:
 
 
 func _process(delta: float) -> void:
-	if not is_running or debug_frozen:
+	if not is_running or debug_frozen or GameState.is_malha():
 		return
 
 	if freeze_left > 0.0 and not is_disarmed:

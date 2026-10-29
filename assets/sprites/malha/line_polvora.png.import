@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://wha1h1dhqprv"
-path="res://.godot/imported/wagon_door.png-a7b1277eaf3549a4c6d520a17f97377a.ctex"
+uid="uid://fquak2egbqqn"
+path="res://.godot/imported/line_polvora.png-7b40a1a5575c41deaa0dbf73547549d6.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/sprites/train/wagon_door.png"
-dest_files=["res://.godot/imported/wagon_door.png-a7b1277eaf3549a4c6d520a17f97377a.ctex"]
+source_file="res://assets/sprites/malha/line_polvora.png"
+dest_files=["res://.godot/imported/line_polvora.png-7b40a1a5575c41deaa0dbf73547549d6.ctex"]
 
 [params]
 

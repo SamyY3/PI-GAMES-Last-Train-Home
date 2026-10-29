@@ -115,6 +115,7 @@ const BALLAST_TEX: Texture2D = preload("res://assets/sprites/train/ballast_tile.
 const RAIL_TILE_TEX: Texture2D = preload("res://assets/sprites/train/rail_tile.png")
 const LOCO_TEX: Texture2D = preload("res://assets/sprites/train/locomotive.png")
 const WAGON_TEX: Texture2D = preload("res://assets/sprites/train/wagon.png")
+const COUPLER_TEX: Texture2D = preload("res://assets/sprites/train/coupler.png")
 
 
 # Cutscene em pixel art: trem à noite -> alarme -> explosão (sprite 3x) -> fumaça sobre os destroços
@@ -132,6 +133,7 @@ func _draw_bomb_explosion() -> void:
 	if t < 0.7 and int(t * 8.0) % 2 == 0:
 		train_col = Color(1.0, 0.55, 0.55)
 	for w in range(3):
+		d.draw_texture(COUPLER_TEX, Vector2(123.0 + float(w) * 100.0, 192.0), train_col)
 		d.draw_texture(WAGON_TEX, Vector2(30.0 + float(w) * 100.0, 158.0), train_col)
 	d.draw_texture(LOCO_TEX, Vector2(330.0, 144.0), train_col)
 	for i in range(16):
@@ -307,11 +309,15 @@ func _rebuild_debug_list() -> void:
 	_make_debug_btn(grid, "[F7] Escolher carta", func() -> void: DebugCommands.open_card_choice(tree), true)
 	_make_debug_btn(grid, "Todas no máximo", func() -> void: DebugCommands.max_upgrades())
 
+	if GameState.is_malha():
+		_build_malha_debug(list, tree)
+
 	grid = _debug_section(list, "IR PARA")
-	_make_debug_btn(grid, "[F2] Próxima seção", func() -> void: DebugCommands.next_section(tree), true)
-	for id in DebugCommands.SECTIONS:
-		var sec: String = id
-		_make_debug_btn(grid, String(DebugCommands.SECTION_NAMES[sec]), func() -> void: DebugCommands.goto_section(sec), true)
+	_make_debug_btn(grid, "[F2] Concluir parada" if GameState.is_malha() else "[F2] Próxima seção", func() -> void: DebugCommands.next_section(tree), true)
+	if not GameState.is_malha():
+		for id in DebugCommands.SECTIONS:
+			var sec: String = id
+			_make_debug_btn(grid, String(DebugCommands.SECTION_NAMES[sec]), func() -> void: DebugCommands.goto_section(sec), true)
 
 	if DebugCommands.has_boss(tree):
 		grid = _debug_section(list, "CHEFE")
@@ -332,6 +338,38 @@ func _rebuild_debug_list() -> void:
 	dbg_note.add_theme_color_override("font_color", Color("#8fb8c4"))
 	list.add_child(dbg_note)
 	_refresh_debug_buttons()
+
+
+func _build_malha_debug(list: VBoxContainer, tree: SceneTree) -> void:
+	var grid: GridContainer = _debug_section(list, "MALHA")
+	_make_debug_btn(grid, "+100 fichas", func() -> void: DebugCommands.malha_add_fichas(100))
+	_make_debug_btn(grid, "Subir nível do Teo", func() -> void: DebugCommands.malha_level_up(), true)
+	_make_debug_btn(grid, "Habilidade pronta", func() -> void: DebugCommands.malha_skill_ready())
+	_make_debug_btn(grid, "Cartas de habilidade máx.", func() -> void: DebugCommands.malha_max_skill_cards())
+	_make_debug_btn(grid, "Achado aleatório", func() -> void: DebugCommands.malha_random_curio())
+	_make_debug_btn(grid, "Todos os achados", func() -> void: DebugCommands.malha_all_curios())
+	_make_debug_btn(grid, "Liberar os 10 níveis", func() -> void: DebugCommands.malha_unlock_levels())
+	_make_debug_btn(grid, "Vencer a malha", func() -> void: DebugCommands.malha_win(), true)
+
+	grid = _debug_section(list, "MALHA · IR PARA")
+	for t in [["station", "Estação"], ["event", "Evento"], ["elite", "Elite"], ["shop", "Fiscal"], ["rest", "Dormitório"], ["boss", "Chefe"]]:
+		var kind: String = t[0]
+		_make_debug_btn(grid, String(t[1]), func() -> void: DebugCommands.malha_goto(kind), true)
+
+	grid = _debug_section(list, "MALHA · CHEFE DA VIAGEM (atual: %s)" % Malha.boss_id)
+	for b in Malha.data.get("bosses", []):
+		var bid: String = String(b)
+		_make_debug_btn(grid, String(Malha.get_boss_def(bid).get("name", bid)), func() -> void:
+			DebugCommands.malha_set_boss(bid)
+			_rebuild_debug_list())
+
+	grid = _debug_section(list, "MALHA · GERAR INIMIGO")
+	for e in ["flamer", "medic", "magnet", "bomber", "shield", "spark"]:
+		var et: String = e
+		_make_debug_btn(grid, et, func() -> void: DebugCommands.malha_spawn(tree, et), true)
+	for a in ["blindado", "veloz", "explosivo", "divisor"]:
+		var af: String = a
+		_make_debug_btn(grid, "Sentinela %s" % af, func() -> void: DebugCommands.malha_spawn(tree, "sentinel", af), true)
 
 
 func _debug_section(list: VBoxContainer, title: String) -> GridContainer:
@@ -389,7 +427,11 @@ func _refresh_debug_buttons() -> void:
 
 
 func _populate_pause_upgrades() -> void:
-	if _stats_label != null:
+	if _stats_label != null and GameState.is_malha():
+		_stats_label.text = "Parada: %d/%d  ·  Abates: %d  ·  Fichas: %d" % [
+			Malha.current_column() + 1, Malha.total_stops(), GameState.kills, Malha.fichas
+		]
+	elif _stats_label != null:
 		_stats_label.text = "Vagão: %d/4  ·  Abates: %d  ·  Relógio: %s" % [
 			mini(4, GameState.current_wagon), GameState.kills, TrainClock.format_time()
 		]
@@ -397,6 +439,28 @@ func _populate_pause_upgrades() -> void:
 		return
 	for child in _upgrades_grid.get_children():
 		child.queue_free()
+
+	if GameState.is_malha():
+		for cid in Malha.curios:
+			var info_c: Dictionary = Malha.get_curio(cid)
+			var crow := HBoxContainer.new()
+			crow.custom_minimum_size = Vector2(316.0, 22.0)
+			crow.add_theme_constant_override("separation", 8)
+			_upgrades_grid.add_child(crow)
+			var cpath: String = "res://assets/sprites/malha/curio_%s.png" % cid
+			if ResourceLoader.exists(cpath):
+				var ctex := TextureRect.new()
+				ctex.custom_minimum_size = Vector2(24.0, 20.0)
+				ctex.stretch_mode = TextureRect.STRETCH_KEEP_CENTERED
+				ctex.texture = load(cpath)
+				crow.add_child(ctex)
+			var clbl := Label.new()
+			clbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			clbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+			clbl.text = "ACHADO · %s — %s" % [String(info_c.get("name", cid)), String(info_c.get("description", ""))]
+			clbl.add_theme_font_size_override("font_size", 10)
+			clbl.add_theme_color_override("font_color", Color("#8fb8c4"))
+			crow.add_child(clbl)
 
 	if GameState.upgrades.is_empty():
 		var empty_lbl := Label.new()
@@ -429,8 +493,9 @@ func _populate_pause_upgrades() -> void:
 		var item_lbl := Label.new()
 		item_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		item_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		var desc: String = String(info.get("description_malha", info.get("description", ""))) if GameState.is_malha() else String(info.get("description", ""))
 		item_lbl.text = "%s (Nv %d) — %s" % [
-			String(info.get("name", uid)), lvl, String(info.get("description", "")).replace("\n", " ")
+			String(info.get("name", uid)), lvl, desc.replace("\n", " ")
 		]
 		item_lbl.add_theme_font_size_override("font_size", 10)
 		item_lbl.add_theme_color_override("font_color", Color("#fff1c9"))
@@ -506,6 +571,8 @@ func _retry_current_wagon() -> void:
 		path = "res://scenes/levels/Disarm.tscn"
 	elif w <= 4:
 		path = "res://scenes/levels/Level_Wagon%d.tscn" % w
+	if GameState.is_malha():
+		path = Malha.scene_for(Malha.current_node)
 	SceneRouter.goto_scene(path, 0.35, func() -> void:
 		GameState.restore_wagon_checkpoint()
 		TrainClock.is_running = true)

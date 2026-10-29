@@ -41,25 +41,19 @@
       "cursed": 15
     }
   },
-  "starter_tools": [
+  "starter_skills": [
     {
-      "id": "botas",
-      "name": "Botas Velhas",
-      "upgrade": "velocidade",
+      "id": "polvora",
       "unlock": "win_any",
       "hint": "Vença uma vez"
     },
     {
-      "id": "chave",
-      "name": "Chave Inglesa",
-      "upgrade": "caldeira",
+      "id": "vapor",
       "unlock": "win_medium",
       "hint": "Vença na Média ou Difícil"
     },
     {
-      "id": "luneta",
-      "name": "Luneta",
-      "upgrade": "giroscopio",
+      "id": "engrenagem",
       "unlock": "win_hard",
       "hint": "Vença na Difícil"
     }
@@ -188,6 +182,60 @@
       "ring_interval": 0.4,
       "ring_rot_step": 12.0,
       "ring_telegraph": 0.8
+    },
+    "bomber": {
+      "hp": 28,
+      "speed": 60.0,
+      "cooldown": 2.4,
+      "fuse": 1.0,
+      "ring_bullets": 10,
+      "ring_speed": 80.0
+    },
+    "shield": {
+      "hp": 80,
+      "speed": 32.0,
+      "cooldown": 2.6,
+      "telegraph": 0.5,
+      "open_time": 1.4,
+      "bullet_speed": 130.0
+    },
+    "spark": {
+      "hp": 16,
+      "speed": 95.0,
+      "trigger_dist": 34.0,
+      "telegraph": 0.5,
+      "ring_bullets": 12,
+      "ring_speed": 85.0,
+      "death_ring": 6
+    },
+    "flamer": {
+      "hp": 55,
+      "speed": 45.0,
+      "range": 70.0,
+      "telegraph": 0.45,
+      "spray_time": 1.2,
+      "cooldown": 2.4,
+      "bullet_speed": 120.0,
+      "bullet_life": 0.75
+    },
+    "medic": {
+      "hp": 45,
+      "speed": 50.0,
+      "keep_dist": 150.0,
+      "heal_ratio": 0.4,
+      "heal_range": 170.0,
+      "cooldown": 3.2,
+      "bullet_speed": 90.0
+    },
+    "magnet": {
+      "hp": 70,
+      "speed": 28.0,
+      "cooldown": 4.0,
+      "charge": 1.0,
+      "pull_time": 1.6,
+      "pull_speed": 70.0,
+      "ring_bullets": 10,
+      "ring_speed": 70.0
     }
   },
   "boss": {

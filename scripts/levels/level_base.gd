@@ -4,6 +4,10 @@ class_name LevelBase
 const UI_KEY_F: Texture2D = preload("res://assets/sprites/ui/kit/key_f.png")
 const UI_SPEECH: Texture2D = preload("res://assets/sprites/ui/kit/speech_bubble.png")
 const FX_HP_FILL: Texture2D = preload("res://assets/sprites/fx/hpbar_fill.png")
+const DOOR_LOCKED_TEX: Texture2D = preload("res://assets/sprites/tiles/door_locked.png")
+const DOOR_OPEN_TEX: Texture2D = preload("res://assets/sprites/tiles/door_open.png")
+const DOOR_FRAME_TEX: Texture2D = preload("res://assets/sprites/tiles/door_open_frame.png")
+const PLAYER_SPAWN: Vector2 = Vector2(44.0, 157.0)
 const FISCAL_POS: Vector2 = Vector2(408.0, 214.0)
 const FISCAL_TALK_DIST: float = 36.0
 const PASSENGER_POS: Dictionary = {2: Vector2(200.0, 214.0), 3: Vector2(240.0, 222.0), 4: Vector2(250.0, 222.0)}
@@ -35,6 +39,8 @@ var _shake_strength: float = 0.0
 var _shake_timer: float = 0.0
 var _left_door_sprite: Sprite2D
 var _right_door_sprite: Sprite2D
+var _left_door_frame: Sprite2D
+var _right_door_frame: Sprite2D
 var _exit_label: Label
 var _steam_cells: Array[Node2D] = []
 var _music_calm_t: float = 0.0
@@ -60,6 +66,10 @@ var _passenger_hurt_t: float = 0.0
 var _passenger_anim_t: float = 0.0
 
 var enemy_scene: PackedScene = preload("res://scenes/actors/Enemy_Base.tscn")
+const FX_GEAR: Texture2D = preload("res://assets/sprites/ui/golden_gear.png")
+var _xp_gems: Array[Vector3] = []
+var _xp_drawer: Node2D
+var _levelup_open: bool = false
 
 
 func _ready() -> void:
@@ -81,19 +91,28 @@ func _ready() -> void:
 	add_child(preload("res://scenes/menus/GameOver.tscn").instantiate())
 
 	player = preload("res://scenes/actors/Player.tscn").instantiate()
-	player.global_position = Vector2(44.0, 157.0)
+	player.global_position = PLAYER_SPAWN
 	add_child(player)
+	_play_door_entry.call_deferred()
 
 	Events.enemy_died.connect(_on_enemy_died)
 	Events.request_screen_shake.connect(_on_request_shake)
+	if GameState.is_malha():
+		Events.xp_dropped.connect(_on_xp_dropped)
+	else:
+		Malha.skill_cd = 0.0
+		_xp_drawer = Node2D.new()
+		_xp_drawer.z_index = 3
+		_xp_drawer.z_as_relative = false
+		_xp_drawer.draw.connect(_draw_xp_gems)
+		add_child(_xp_drawer)
 	AudioManager.set_music_calm(true)
 	_setup_modifier()
 
 
 func _setup_doors() -> void:
-	var tex_locked: Texture2D = load("res://assets/sprites/tiles/door_locked.png")
 	_left_door_sprite = Sprite2D.new()
-	_left_door_sprite.texture = tex_locked
+	_left_door_sprite.texture = DOOR_LOCKED_TEX
 	# a arte tem a lateral do batente à esquerda (porta da parede esquerda, de frente para o vagão);
 	# na parede direita ela é espelhada
 	_left_door_sprite.position = Vector2(10.0, 157.0)
@@ -101,11 +120,14 @@ func _setup_doors() -> void:
 	add_child(_left_door_sprite)
 
 	_right_door_sprite = Sprite2D.new()
-	_right_door_sprite.texture = tex_locked
+	_right_door_sprite.texture = DOOR_LOCKED_TEX
 	_right_door_sprite.flip_h = true
 	_right_door_sprite.position = Vector2(470.0, 157.0)
 	_right_door_sprite.z_index = 157
 	add_child(_right_door_sprite)
+
+	_left_door_frame = _make_door_frame(_left_door_sprite)
+	_right_door_frame = _make_door_frame(_right_door_sprite)
 
 	_exit_label = Label.new()
 	_exit_label.text = "SAÍDA ➔"
@@ -117,12 +139,39 @@ func _setup_doors() -> void:
 	add_child(_exit_label)
 
 
+func _make_door_frame(door: Sprite2D) -> Sprite2D:
+	var frame := Sprite2D.new()
+	frame.texture = DOOR_FRAME_TEX
+	frame.flip_h = door.flip_h
+	frame.z_as_relative = false
+	frame.z_index = 300
+	frame.visible = false
+	door.add_child(frame)
+	return frame
+
+
+func _play_door_entry() -> void:
+	if player == null or player.global_position != PLAYER_SPAWN:
+		return
+	_left_door_sprite.texture = DOOR_OPEN_TEX
+	_left_door_frame.visible = true
+	player.global_position = Vector2(_left_door_sprite.position.x, PLAYER_SPAWN.y)
+	player.scripted_walk([PLAYER_SPAWN], true)
+	await player.scripted_walk_finished
+	_left_door_frame.visible = false
+	_left_door_sprite.texture = DOOR_LOCKED_TEX
+	AudioManager.play_sfx("tick")
+
+
 func _process(delta: float) -> void:
 	_update_camera_offset(delta)
 	_update_music_layer(delta)
 	_check_steam_cell_pickups()
 	_update_fiscal(delta)
 	_update_modifier(delta)
+	if GameState.is_malha():
+		_update_xp_gems(delta)
+		_check_levelup()
 	if door_unlocked and _exit_label != null:
 		_exit_label.visible = int(float(Time.get_ticks_msec()) * 0.004) % 2 == 0
 	if door_unlocked and not _transitioning_out and player != null:
@@ -204,9 +253,10 @@ func _on_request_shake(strength: float, duration: float) -> void:
 	_shake_timer = maxf(_shake_timer, duration)
 
 
-func spawn_enemy(type_name: String, pos: Vector2) -> Node2D:
+func spawn_enemy(type_name: String, pos: Vector2, affix: String = "") -> Node2D:
 	var e: CharacterBody2D = enemy_scene.instantiate()
 	e.set("enemy_type", type_name)
+	e.set("affix", affix)
 	var spawn_pos: Vector2 = pos
 	if player != null and spawn_pos.distance_to(player.global_position) < 100.0:
 		spawn_pos.x = 415.0 if player.global_position.x < 240.0 else 65.0
@@ -217,26 +267,84 @@ func spawn_enemy(type_name: String, pos: Vector2) -> Node2D:
 
 func spawn_wave(entries: Array) -> void:
 	for entry in entries:
-		spawn_enemy(String(entry[0]), entry[1])
+		spawn_enemy(String(entry[0]), entry[1], String(entry[2]) if entry.size() > 2 else "")
+
+
+func _on_xp_dropped(pos: Vector2, value: int) -> void:
+	var left: int = value
+	while left > 0:
+		var v: int = mini(left, 3)
+		left -= v
+		var off := Vector2(randf_range(-8.0, 8.0), randf_range(-6.0, 6.0))
+		_xp_gems.append(Vector3(pos.x + off.x, pos.y + off.y, float(v)))
+
+
+func _update_xp_gems(delta: float) -> void:
+	if player == null or _xp_gems.is_empty():
+		if _xp_drawer != null:
+			_xp_drawer.queue_redraw()
+		return
+	var magnet: float = Malha.magnet_radius()
+	var pick: float = float((Malha.data.get("xp", {}) as Dictionary).get("pickup_radius", 10.0))
+	var exit_open: bool = door_unlocked
+	for i in range(_xp_gems.size() - 1, -1, -1):
+		var g: Vector3 = _xp_gems[i]
+		var gp := Vector2(g.x, g.y)
+		var d: float = gp.distance_to(player.global_position)
+		if d <= pick:
+			Malha.add_xp(int(g.z))
+			AudioManager.play_sfx("blip", 0.15)
+			_xp_gems.remove_at(i)
+			continue
+		if d <= magnet or exit_open:
+			gp = gp.move_toward(player.global_position, delta * (260.0 if exit_open else 170.0))
+			_xp_gems[i] = Vector3(gp.x, gp.y, g.z)
+	_xp_drawer.queue_redraw()
+
+
+func _draw_xp_gems() -> void:
+	var t: float = float(Time.get_ticks_msec()) * 0.004
+	for g in _xp_gems:
+		var sc: float = 0.35 + 0.08 * g.z
+		_xp_drawer.draw_set_transform(Vector2(g.x, g.y).round(), t, Vector2(sc, sc))
+		_xp_drawer.draw_texture(FX_GEAR, -FX_GEAR.get_size() * 0.5)
+	_xp_drawer.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+
+
+func _check_levelup() -> void:
+	if _levelup_open or Malha.pending_levelups <= 0 or Modals.is_open() or upgrade_screen == null or upgrade_screen.is_open():
+		return
+	if player == null or GameState.current_hp <= 0 or _transitioning_out:
+		return
+	_levelup_open = true
+	Malha.pending_levelups -= 1
+	AudioManager.play_sfx("upgrade_get")
+	Events.request_screen_flash.emit(0.1)
+	upgrade_screen.open_upgrade_choices("levelup")
+	await upgrade_screen.upgrade_selected
+	_levelup_open = false
 
 
 func unlock_exit_door() -> void:
 	door_unlocked = true
-	if ResourceLoader.exists("res://assets/sprites/tiles/door_open.png"):
-		_right_door_sprite.texture = load("res://assets/sprites/tiles/door_open.png")
+	_right_door_sprite.texture = DOOR_OPEN_TEX
 	AudioManager.play_sfx("ui_confirm")
 	if hud.has_method("set_contextual_tip"):
 		hud.set_contextual_tip("PORTA ABERTA — SIGA PARA A DIREITA ➔")
 	if _modifier == "passenger" and _passenger_hp > 0:
 		await _reward_passenger()
-	if wagon_number <= 4:
+	if wagon_number <= 4 and not GameState.is_malha():
 		_spawn_fiscal()
 
 
-func _setup_modifier() -> void:
+func _get_modifier_id() -> String:
 	if wagon_number < 2 or wagon_number > 4:
-		return
-	_modifier = GameState.get_wagon_modifier(wagon_number)
+		return ""
+	return GameState.get_wagon_modifier(wagon_number)
+
+
+func _setup_modifier() -> void:
+	_modifier = _get_modifier_id()
 	if _modifier == "":
 		return
 	var all_cfg: Dictionary = GameState.balance_data.get("wagon_modifiers", {})
@@ -392,8 +500,11 @@ func _draw_passenger_hp() -> void:
 
 
 func _reward_passenger() -> void:
-	dialogue_box.start_dialogue("passenger_saved")
-	await dialogue_box.dialogue_finished
+	if GameState.is_malha():
+		hud.show_banner("PASSAGEIRO SALVO! CARTA EXTRA")
+	else:
+		dialogue_box.start_dialogue("passenger_saved")
+		await dialogue_box.dialogue_finished
 	upgrade_screen.open_upgrade_choices()
 	await upgrade_screen.upgrade_selected
 
@@ -477,7 +588,10 @@ func _trigger_door_transition() -> void:
 	TrainClock.is_running = false
 	BulletManager.clear_all_bullets()
 	AudioManager.play_sfx("steam_pulse")
-	await get_tree().create_timer(0.35).timeout
+	_right_door_frame.visible = true
+	var door_x: float = _right_door_sprite.position.x
+	player.scripted_walk([Vector2(Arena.PLAYER.end.x, PLAYER_SPAWN.y), Vector2(door_x + 18.0, PLAYER_SPAWN.y)])
+	await player.scripted_walk_finished
 	SceneRouter.goto_scene(next_scene_path, 0.35)
 
 

@@ -29,6 +29,13 @@ var _flash_tween: Tween
 var _vignette_rect: TextureRect
 var _clock_gear: TextureRect
 var _reserve_label: Label
+var _fichas_label: Label
+var _apito_label: Label
+var _apito_bar: ProgressBar
+var _boss_title: String = "O MAQUINISTA"
+var _xp_bar: ProgressBar
+var _xp_label: Label
+var _boss_phase_names: Array = []
 const TEX_HEART_FULL: Texture2D = preload("res://assets/sprites/ui/heart_full.png")
 const TEX_HEART_EMPTY: Texture2D = preload("res://assets/sprites/ui/heart_empty.png")
 
@@ -48,13 +55,21 @@ func _ready() -> void:
 	Events.reserve_changed.connect(_on_reserve_changed)
 	Events.player_grazed.connect(_on_player_grazed)
 	Events.combo_discovered.connect(_on_combo_discovered)
+	Events.apito_ready.connect(_on_apito_ready)
+	Events.apito_tier_changed.connect(_on_apito_tier_changed)
+	Events.curio_obtained.connect(_on_curio_obtained)
+	Events.xp_level_up.connect(_on_xp_level_up)
 	_on_reserve_changed(TrainClock.reserve, 0.0)
+	if GameState.is_malha():
+		_setup_malha_hud()
 	_refresh_hp(GameState.current_hp, GameState.max_hp)
 	_refresh_upgrades_list()
 
 
 func _process(delta: float) -> void:
 	_clock_gear.rotation += delta * 1.6
+	if GameState.is_malha():
+		_update_malha_hud()
 	if _player_ref == null or not is_instance_valid(_player_ref):
 		_player_ref = get_tree().get_first_node_in_group("player")
 	var player: Node = _player_ref
@@ -65,7 +80,11 @@ func _process(delta: float) -> void:
 			var pratio: float = float(player.get_pulse_cooldown_ratio())
 			_pulse_cd_bar.value = pratio * 100.0
 			var secs_left: float = float(player.get_pulse_seconds_left())
-			if secs_left > 0.05:
+			if Malha.apito_tier() > 0:
+				var short: String = Malha.skill_name().to_upper().get_slice(" ", 0)
+				_pulse_cd_label.text = _pulse_prefix() + (short if secs_left <= 0.05 else "%.0fs" % ceil(secs_left))
+				_pulse_cd_label.add_theme_color_override("font_color", Malha.get_line_color(Malha.active_skill()) if secs_left <= 0.05 else Color("#8fb8c4"))
+			elif secs_left > 0.05:
 				_pulse_cd_label.text = "%s%.0fs" % [_pulse_prefix(), ceil(secs_left)]
 				_pulse_cd_label.add_theme_color_override("font_color", Color("#8fb8c4"))
 			else:
@@ -315,7 +334,88 @@ func _refresh_hp(cur: int, max_v: int) -> void:
 	_vignette_rect.modulate.a = 0.55 if cur <= 1 else 0.0
 
 
+func _setup_malha_hud() -> void:
+	_clock_title.text = "MALHA · %s" % String(Malha.get_line().get("short", ""))
+	_clock_title.add_theme_color_override("font_color", Malha.get_line_color())
+
+	_fichas_label = Label.new()
+	_fichas_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	_fichas_label.position = Vector2(276.0, 12.0)
+	_fichas_label.size = Vector2(64.0, 12.0)
+	_fichas_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_fichas_label.add_theme_font_size_override("font_size", 10)
+	_fichas_label.add_theme_color_override("font_color", Color("#f2c35b"))
+	add_child(_fichas_label)
+
+	_apito_label = Label.new()
+	_apito_label.position = Vector2(354.0, 29.0)
+	_apito_label.size = Vector2(96.0 if Settings.touch_mode else 120.0, 12.0)
+	_apito_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_apito_label.add_theme_font_size_override("font_size", 10)
+	_apito_label.add_theme_color_override("font_color", Malha.get_line_color())
+	add_child(_apito_label)
+
+	_xp_bar = _make_bar(Color("#f2c35b"))
+	_xp_bar.position = Vector2(8.0, 22.0)
+	_xp_bar.size = Vector2(92.0, 4.0)
+	add_child(_xp_bar)
+
+	_xp_label = Label.new()
+	_xp_label.position = Vector2(102.0, 15.0)
+	_xp_label.size = Vector2(30.0, 12.0)
+	_xp_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_xp_label.add_theme_font_size_override("font_size", 10)
+	_xp_label.add_theme_color_override("font_color", Color("#f2c35b"))
+	add_child(_xp_label)
+
+	_apito_bar = _make_bar(Malha.get_line_color())
+	_apito_bar.position = Vector2(354.0, 41.0)
+	_apito_bar.size = Vector2(96.0 if Settings.touch_mode else 120.0, 5.0)
+	add_child(_apito_bar)
+	_update_malha_hud()
+
+
+func _update_malha_hud() -> void:
+	var txt: String = TrainClock.format_seconds(GameState.active_run_time)
+	if _clock_label.text != txt:
+		_clock_label.text = txt
+	_fichas_label.text = "%d FICHAS" % Malha.fichas
+	_xp_bar.value = Malha.xp_ratio() * 100.0
+	_xp_label.text = "NV%d" % Malha.xp_level
+	var tier: int = Malha.apito_tier()
+	if tier <= 0:
+		_apito_label.text = "HABILIDADE %d/%d CARTAS" % [Malha.line_card_count(), int(Malha.get_apito_cfg().get("unlock_cards", 3))]
+		_apito_bar.value = 0.0
+		_apito_label.modulate.a = 0.6
+	else:
+		_apito_label.text = "%s NV %d" % [Malha.skill_name().to_upper().get_slice(" ", 0), tier]
+		_apito_label.modulate.a = 1.0
+		_apito_bar.value = Malha.skill_ratio() * 100.0
+
+
+func _on_xp_level_up(level: int) -> void:
+	show_banner("TEO NÍVEL %d!" % level)
+
+
+func _on_curio_obtained(curio_id: String) -> void:
+	show_banner("ACHADO: %s" % String(Malha.get_curio(curio_id).get("name", curio_id)).to_upper())
+
+
+func _on_apito_ready() -> void:
+	show_banner("%s PRONTO! %s" % [Malha.skill_name().to_upper(), "[PULSO]" if Settings.touch_mode else "[%s]" % Settings.get_prompt("ability")])
+
+
+func _on_apito_tier_changed(tier: int) -> void:
+	var line: Dictionary = Malha.get_line(Malha.active_skill())
+	if tier == 1:
+		show_banner("HABILIDADE: %s — USE NO LUGAR DO PULSO" % String(line.get("apito_name", "")).to_upper())
+	else:
+		show_banner("HABILIDADE NV %d: %s" % [tier, String(line.get("apito_name", "")).to_upper()])
+
+
 func _on_timer_changed(secs: float) -> void:
+	if GameState.is_malha():
+		return
 	var txt: String = TrainClock.format_time()
 	if txt != _clock_label.text:
 		_clock_label.text = txt
@@ -335,6 +435,9 @@ func _on_timer_changed(secs: float) -> void:
 
 
 func _on_reserve_changed(reserve: float, gained: float) -> void:
+	if GameState.is_malha():
+		_reserve_label.visible = false
+		return
 	_reserve_label.text = "+" + TrainClock.format_seconds(reserve)
 	_reserve_label.visible = reserve >= 1.0
 	if gained >= 1.0:
@@ -349,7 +452,7 @@ func _on_combo_discovered(combo_id: String, first_time: bool) -> void:
 
 func _on_player_grazed(total: int) -> void:
 	if total == 1:
-		show_banner("RASPÃO! +TEMPO E RECARGA DO PULSO")
+		show_banner("RASPÃO! CARGA DO PULSO E DO APITO" if GameState.is_malha() else "RASPÃO! +TEMPO E RECARGA DO PULSO")
 
 
 func _on_upgrade_picked(upg_id: String, _lvl: int) -> void:
@@ -363,9 +466,18 @@ func _on_item_obtained(item_name: String) -> void:
 	show_banner("ITEM OBTIDO: %s" % item_name)
 
 
+func set_boss_info(title: String, phase_names: Array) -> void:
+	_boss_title = title
+	_boss_phase_names = phase_names
+	_boss_name_label.text = "%s — FASE 1/3" % _boss_title
+
+
 func _on_boss_phase_changed(new_phase: int) -> void:
-	_boss_name_label.text = "O MAQUINISTA — FASE %d/3" % new_phase
-	if new_phase == 2:
+	_boss_name_label.text = "%s — FASE %d/3" % [_boss_title, new_phase]
+	if not _boss_phase_names.is_empty():
+		_boss_bar_fill.self_modulate = Color("#ff6b3d") if new_phase == 2 else Color("#ff3d6e")
+		show_banner("⚠ FASE %d: %s ⚠" % [new_phase, String(_boss_phase_names[mini(new_phase, _boss_phase_names.size()) - 1])])
+	elif new_phase == 2:
 		_boss_bar_fill.self_modulate = Color("#ff6b3d")
 		show_banner("⚠ FASE 2: LOCOMOTIVA EM SOBRECARGA! ⚠")
 	elif new_phase == 3:
@@ -420,7 +532,7 @@ func _refresh_upgrades_list() -> void:
 
 		badge.mouse_entered.connect(func() -> void:
 			_upgrade_tooltip_lbl.text = "%s (Nv %d)\n%s" % [
-				String(info.get("name", uid)), lvl, String(info.get("description", ""))
+				String(info.get("name", uid)), lvl, String(info.get("description_malha", info.get("description", ""))) if GameState.is_malha() else String(info.get("description", ""))
 			]
 			_upgrade_tooltip.visible = true
 		)

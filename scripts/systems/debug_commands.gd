@@ -46,6 +46,13 @@ static func goto_section(id: String) -> void:
 
 
 static func next_section(tree: SceneTree) -> void:
+	if GameState.is_malha():
+		var boss: Node = _boss(tree)
+		if boss != null and not bool(boss.get("_is_dead")):
+			boss.take_damage(999999.0)
+		elif tree.current_scene != null and tree.current_scene.scene_file_path == Malha.STOP_SCENE:
+			Malha.debug_finish_stop()
+		return
 	var id: String = current_section(tree)
 	match id:
 		"", "ending":
@@ -119,7 +126,7 @@ static func random_upgrade() -> void:
 	var pool: Array = []
 	for u in GameState.upgrades_db:
 		var id_str: String = String(u.get("id", ""))
-		if GameState.get_upgrade_level(id_str) < int(u.get("max_level", 1)):
+		if GameState.upgrade_in_mode(u) and Malha.card_allowed(u) and GameState.get_upgrade_level(id_str) < int(u.get("max_level", 1)):
 			pool.append(id_str)
 	if not pool.is_empty():
 		GameState.add_upgrade(String(pool.pick_random()))
@@ -127,7 +134,7 @@ static func random_upgrade() -> void:
 
 static func max_upgrades() -> void:
 	for u in GameState.upgrades_db:
-		if String(u.get("rarity", "")) == "cursed":
+		if String(u.get("rarity", "")) == "cursed" or not GameState.upgrade_in_mode(u) or not Malha.card_allowed(u):
 			continue
 		var id_str: String = String(u.get("id", ""))
 		while GameState.get_upgrade_level(id_str) < int(u.get("max_level", 1)):
@@ -165,6 +172,8 @@ static func set_modifier(tree: SceneTree, modifier: String) -> void:
 
 
 static func status_text(tree: SceneTree) -> String:
+	if GameState.is_malha():
+		return malha_status() + " | Seed: %d | Velocidade: %sx" % [GameState.run_seed, str(GameState.debug_time_scale)]
 	var id: String = current_section(tree)
 	var w: int = int(SECTION_WAGON.get(id, 0))
 	var modifier: String = String(GameState.wagon_modifiers.get(w, "")) if w >= 2 and w <= 4 else ""
@@ -175,4 +184,79 @@ static func status_text(tree: SceneTree) -> String:
 		GameState.run_seed,
 		str(GameState.debug_time_scale),
 		"CONGELADO" if TrainClock.debug_frozen else "normal",
+	]
+
+
+static func malha_add_fichas(amount: int = 100) -> void:
+	Malha.add_fichas(amount)
+
+
+static func malha_level_up() -> void:
+	Malha.add_xp(maxi(1, Malha.xp_next() - Malha.xp))
+
+
+static func malha_skill_ready() -> void:
+	Malha.skill_cd = 0.0
+
+
+static func malha_max_skill_cards() -> void:
+	for u in GameState.upgrades_db:
+		if String(u.get("skill", "")) == Malha.active_skill():
+			while GameState.get_upgrade_level(String(u.get("id", ""))) < int(u.get("max_level", 1)):
+				GameState.add_upgrade(String(u.get("id", "")))
+
+
+static func malha_random_curio() -> void:
+	var got: Array[String] = Malha.roll_curios(1)
+	if not got.is_empty():
+		Malha.add_curio(got[0])
+
+
+static func malha_all_curios() -> void:
+	for id in Malha.available_curios():
+		Malha.add_curio(id)
+
+
+static func malha_unlock_levels() -> void:
+	Progress._cfg.set_value("malha", "unlocked_level", Malha.max_level())
+	Progress._save()
+
+
+static func malha_set_boss(id: String) -> void:
+	Malha.boss_id = id
+
+
+static func malha_goto(type: String) -> void:
+	var target: int = -1
+	for n in Malha.nodes:
+		if String(n.get("type", "")) == type and not bool(n.get("done", false)):
+			target = int(n["id"])
+			break
+	if target < 0:
+		return
+	Malha.current_node = target
+	Malha.path.append(target)
+	var scene: String = Malha.scene_for(target)
+	SceneRouter.goto_scene(scene if scene != "" else Malha.MAP_SCENE)
+
+
+static func malha_win() -> void:
+	var boss_col: Array = Malha.columns[Malha.columns.size() - 1]
+	Malha.current_node = int(boss_col[0])
+	Malha.complete_current()
+	SceneRouter.goto_scene(Malha.MAP_SCENE)
+
+
+static func malha_spawn(tree: SceneTree, type: String, affix: String = "") -> void:
+	var scene: Node = tree.current_scene
+	if scene == null or not scene.has_method("spawn_enemy"):
+		return
+	scene.spawn_enemy(type, Vector2(randf_range(300.0, 420.0), randf_range(100.0, 220.0)), affix)
+
+
+static func malha_status() -> String:
+	var cur: Dictionary = Malha.current()
+	return "Malha: parada %d/%d (%s) | Chefe: %s | Nível %d | Teo NV %d (%d/%d) | Fichas %d | Habilidade NV %d cd %.1fs" % [
+		Malha.current_column() + 1, Malha.total_stops(), String(cur.get("type", "-")), Malha.boss_id, Malha.level,
+		Malha.xp_level, Malha.xp, Malha.xp_next(), Malha.fichas, Malha.apito_tier(), Malha.skill_cd,
 	]

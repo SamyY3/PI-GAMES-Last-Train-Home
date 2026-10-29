@@ -29,8 +29,8 @@ const BEAM_TEX: Texture2D = preload("res://assets/sprites/train/headlight_beam.p
 const COUPLER_TEX: Texture2D = preload("res://assets/sprites/train/coupler.png")
 var _ui_gear_sprites: Array[Sprite2D] = []
 var _gauge_needle: Sprite2D
-var _tool_btn: Button
-var _tool_info: Label
+var _skill_btn: Button
+var _skill_info: Label
 var _tex_moon: Texture2D
 var _tex_sun_day: Texture2D
 var _tex_sun_sunset: Texture2D
@@ -46,6 +46,7 @@ var _intro_sub_t: float = 0.0
 var _intro_teo_x: float = 24.0
 var _intro_teo_interior_pos: Vector2 = Vector2(218.0, 96.0)
 var _intro_boarding_alpha: float = 1.0
+var _intro_enter_t: float = 0.0
 var _intro_door_close_ratio: float = 0.0
 var _intro_train_x: float = 0.0
 var _intro_clock_ticks: int = 0
@@ -79,6 +80,10 @@ var _remap_status_lbl: Label
 var _pad_bind_buttons: Dictionary = {}
 var _waiting_pad_action: String = ""
 var _pad_status_lbl: Label
+var _malha_info: Label
+var _malha_title: Label
+var _malha_emblem: TextureRect
+var _malha_diff_btn: Button
 
 
 func _ready() -> void:
@@ -100,6 +105,9 @@ func _ready() -> void:
 		"difficulty":
 			AudioManager.set_train_ambience(true, 1.0)
 			_build_difficulty()
+		"malha_setup":
+			AudioManager.set_train_ambience(true, 1.0)
+			_build_malha_setup()
 		"intro":
 			AudioManager.set_train_ambience(true, 0.9)
 			AudioManager.play_music("intro")
@@ -159,7 +167,7 @@ func _process(delta: float) -> void:
 			_boot_whistle_done = true
 			AudioManager.play_sfx("whistle")
 		queue_redraw()
-	elif screen_type in ["main_menu", "difficulty", "options"]:
+	elif screen_type in ["main_menu", "difficulty", "options", "malha_setup"]:
 		_update_smoke_system(delta)
 		queue_redraw()
 	elif screen_type == "intro":
@@ -223,13 +231,13 @@ func _update_intro_sprites() -> void:
 		_intro_wagon_bg.visible = false
 		_intro_bomb_spr.visible = false
 		_intro_teo_spr.visible = (_intro_boarding_alpha > 0.02)
-		var enter_scale: float = lerpf(0.92, 1.0, _intro_boarding_alpha)
-		_intro_teo_spr.scale = Vector2(enter_scale, enter_scale)
-		_intro_teo_spr.modulate = Color(1.0, 1.0, 1.0, _intro_boarding_alpha)
-		var step_up: float = clampf((_intro_teo_x - 122.0) * 0.42, 0.0, 6.0)
+		_intro_teo_spr.scale = Vector2(1.0, 1.0)
+		var shade: float = lerpf(1.0, 0.15, _intro_enter_t)
+		_intro_teo_spr.modulate = Color(shade, shade, shade, _intro_boarding_alpha)
+		var step_up: float = clampf((_intro_teo_x - 86.0) * 0.42, 0.0, 6.0)
 		_intro_teo_spr.position = Vector2(round(_intro_teo_x), round(194.0 - step_up))
 		# Linhas do teo_sheet_8dir: idle 9+dir, walk 17+dir (dir 2 = leste, 4 = norte)
-		if _intro_teo_x < 128.0:
+		if _intro_teo_x < 92.0:
 			_intro_teo_spr.frame_coords = Vector2i(int(_anim_t * 10.0) % 6, 17 + 2)
 		else:
 			_intro_teo_spr.frame_coords = Vector2i(int(_anim_t * 10.0) % 6, 17 + 4)
@@ -297,7 +305,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		SceneRouter.goto_scene("res://scenes/menus/MainMenu.tscn")
 		return
 
-	if screen_type in ["options", "difficulty"]:
+	if screen_type in ["options", "difficulty", "malha_setup"]:
 		if event.is_action_pressed("cancel") or event.is_action_pressed("pause"):
 			get_viewport().set_input_as_handled()
 			AudioManager.play_sfx("ui_confirm")
@@ -350,7 +358,7 @@ const TRAIN_LOCO_ANIM_TEX: Texture2D = preload("res://assets/sprites/train/locom
 const TRAIN_BOGIE_TEX: Texture2D = preload("res://assets/sprites/train/wagon_bogie.png") # 4 quadros 26x12
 const STEAM_PUFF_TEX: Texture2D = preload("res://assets/sprites/fx/steam_puff.png") # 8 estágios 32x32
 const RAIL_TILE_TEX: Texture2D = preload("res://assets/sprites/train/rail_tile.png") # 32x12, emenda sem costura
-const TRAIN_WAGON_DOOR_TEX: Texture2D = preload("res://assets/sprites/train/wagon_door.png")
+const TRAIN_WAGON_DOOR_TEX: Texture2D = preload("res://assets/sprites/train/wagon_door_anim.png")
 
 func _draw_rail_row(y: float, scroll: float) -> void:
 	var x0: float = -round(fmod(scroll, 32.0))
@@ -369,11 +377,11 @@ func _draw_steampunk_train_composition(offset_x: float, base_y: float, bob: floa
 		# Engate entre vagões
 		draw_texture(COUPLER_TEX, Vector2(wx + 94.0, wagon_y + 34.0))
 		var wy: float = wagon_y
-		draw_texture(TRAIN_WAGON_TEX, Vector2(wx, wy), lit)
 		if show_boarding_door and w == 0:
-			var open_a: float = 1.0 - clampf(door_close_ratio, 0.0, 1.0)
-			if open_a > 0.01:
-				draw_texture(TRAIN_WAGON_DOOR_TEX, Vector2(wx, wy), Color(lit.r, lit.g, lit.b, open_a))
+			var door_frame: int = roundi((1.0 - clampf(door_close_ratio, 0.0, 1.0)) * 5.0)
+			draw_texture_rect_region(TRAIN_WAGON_DOOR_TEX, Rect2(wx, wy, 96.0, 48.0), Rect2(door_frame * 96.0, 0.0, 96.0, 48.0), lit)
+		else:
+			draw_texture(TRAIN_WAGON_TEX, Vector2(wx, wy), lit)
 		# Truques com rodas em pixel art (4 quadros de giro)
 		var bogie_frame: int = anim_frame % 4
 		for bogie_x in [wx + 18.0, wx + 76.0]:
@@ -421,7 +429,7 @@ func _draw() -> void:
 	if screen_type == "intro":
 		_draw_intro_cutscene()
 		return
-	if not (screen_type in ["main_menu", "difficulty", "options"]):
+	if not (screen_type in ["main_menu", "difficulty", "options", "malha_setup"]):
 		return
 
 	var cycle_duration: float = 14.4
@@ -647,7 +655,7 @@ func _build_main_menu() -> void:
 	sub.add_theme_color_override("font_color", Color("#8fb8c4"))
 	title_vbox.add_child(sub)
 
-	var m_sz := Vector2(184.0, 140.0)
+	var m_sz := Vector2(184.0, 168.0)
 	var m_gears: Array[Vector2] = [
 		Vector2(2.0, 2.0), Vector2(m_sz.x - 2.0, 2.0),
 		Vector2(2.0, m_sz.y - 2.0), Vector2(m_sz.x - 2.0, m_sz.y - 2.0)
@@ -657,15 +665,17 @@ func _build_main_menu() -> void:
 
 	var vbox := VBoxContainer.new()
 	vbox.position = Vector2(12.0, 10.0)
-	vbox.size = Vector2(160.0, 120.0)
+	vbox.size = Vector2(160.0, 148.0)
 	vbox.alignment = BoxContainer.ALIGNMENT_CENTER
 	vbox.add_theme_constant_override("separation", 6)
 	menu_box.add_child(vbox)
 
-	var btn_play := _make_stylized_btn("JOGAR", func() -> void: SceneRouter.goto_scene("res://scenes/menus/DifficultySelect.tscn"))
+	var btn_play := _make_stylized_btn("MODO HISTÓRIA", func() -> void: SceneRouter.goto_scene("res://scenes/menus/DifficultySelect.tscn"))
+	var btn_malha := _make_stylized_btn("MALHA FERROVIÁRIA", func() -> void: SceneRouter.goto_scene("res://scenes/menus/MalhaSetup.tscn"))
 	var btn_opt := _make_stylized_btn("OPÇÕES", func() -> void: SceneRouter.goto_scene("res://scenes/menus/Options.tscn"))
 	var btn_cred := _make_stylized_btn("CRÉDITOS", func() -> void: SceneRouter.goto_scene("res://scenes/menus/Credits.tscn"))
 	vbox.add_child(btn_play)
+	vbox.add_child(btn_malha)
 	vbox.add_child(btn_opt)
 	vbox.add_child(btn_cred)
 
@@ -708,17 +718,17 @@ func _build_difficulty() -> void:
 	var b_med := _make_stylized_btn(_difficulty_text("medium"), func() -> void: _start_game("medium"))
 	var b_hard := _make_stylized_btn(_difficulty_text("hard"), func() -> void: _start_game("hard"))
 	var b_daily := _make_stylized_btn("VIAGEM DO DIA · %s" % Progress.daily_label(), func() -> void: _start_game("medium", true))
-	_tool_btn = _make_stylized_btn("", _cycle_starter_tool)
+	_skill_btn = _make_stylized_btn("", _cycle_story_skill)
 	var b_back := _make_stylized_btn("VOLTAR [ESC]", func() -> void: SceneRouter.goto_scene("res://scenes/menus/MainMenu.tscn"))
 
 	vbox.add_child(b_easy)
 	vbox.add_child(b_med)
 	vbox.add_child(b_hard)
 	vbox.add_child(b_daily)
-	vbox.add_child(_tool_btn)
+	vbox.add_child(_skill_btn)
 	vbox.add_child(b_back)
 	_build_records_panel()
-	_refresh_tool_texts()
+	_refresh_skill_texts()
 	Settings.bind_prompt_text(b_back, "VOLTAR {cancel}")
 
 	if Settings.last_difficulty == "easy":
@@ -768,12 +778,12 @@ func _build_records_panel() -> void:
 	rec.add_theme_color_override("font_color", Color("#fff1c9"))
 	vbox.add_child(rec)
 
-	_tool_info = Label.new()
-	_tool_info.custom_minimum_size = Vector2(148.0, 0.0)
-	_tool_info.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_tool_info.add_theme_font_size_override("font_size", 10)
-	_tool_info.add_theme_color_override("font_color", Color("#8fb8c4"))
-	vbox.add_child(_tool_info)
+	_skill_info = Label.new()
+	_skill_info.custom_minimum_size = Vector2(148.0, 0.0)
+	_skill_info.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_skill_info.add_theme_font_size_override("font_size", 10)
+	_skill_info.add_theme_color_override("font_color", Color("#8fb8c4"))
+	vbox.add_child(_skill_info)
 
 
 func _format_record(t: float) -> String:
@@ -782,34 +792,33 @@ func _format_record(t: float) -> String:
 	return "%02d:%02d" % [floori(t / 60.0), int(t) % 60]
 
 
-func _cycle_starter_tool() -> void:
+func _cycle_story_skill() -> void:
 	var options: Array[String] = [""]
-	options.append_array(Progress.get_unlocked_tool_ids())
-	var idx: int = options.find(Progress.get_selected_tool())
-	Progress.set_selected_tool(options[(idx + 1) % options.size()])
-	_refresh_tool_texts()
+	options.append_array(Progress.get_unlocked_skill_ids())
+	var idx: int = options.find(Progress.get_selected_skill())
+	Progress.set_selected_skill(options[(idx + 1) % options.size()])
+	_refresh_skill_texts()
 
 
-func _refresh_tool_texts() -> void:
-	var tool_id: String = Progress.get_selected_tool()
-	var unlocked: Array[String] = Progress.get_unlocked_tool_ids()
-	var label: String = "NENHUMA"
-	if tool_id != "":
-		label = String(Progress.get_tool(tool_id).get("name", tool_id)).to_upper()
-	elif unlocked.is_empty():
-		label = "BLOQUEADA"
-	var txt: String = "FERRAMENTA: %s" % label
-	_tool_btn.set_meta("base_text", txt)
-	_tool_btn.text = ("▶ " + txt + " ◀") if _tool_btn.has_focus() else txt
+func _refresh_skill_texts() -> void:
+	var skill_id: String = Progress.get_selected_skill()
+	var label: String = "PULSO DE VAPOR"
+	if skill_id != "":
+		label = Malha.skill_name(skill_id).to_upper()
+	var txt: String = "HABILIDADE: %s" % label
+	_skill_btn.set_meta("base_text", txt)
+	_skill_btn.text = ("▶ " + txt + " ◀") if _skill_btn.has_focus() else txt
+	_skill_btn.add_theme_color_override("font_color", Malha.get_line_color(skill_id) if skill_id != "" else Color("#fff1c9"))
 
 	var info := PackedStringArray()
-	if tool_id != "":
-		var upg: Dictionary = GameState.get_upgrade_info(String(Progress.get_tool(tool_id).get("upgrade", "")))
-		info.append("Começa com %s Nv 1. Não vale na Viagem do Dia." % String(upg.get("name", "")))
-	for t in Progress.get_starter_tools():
-		if not unlocked.has(String(t.get("id", ""))):
-			info.append("%s: %s" % [String(t.get("name", "")), String(t.get("hint", ""))])
-	_tool_info.text = "
+	if skill_id != "":
+		info.append("%s no lugar do Pulso. As cartas dela entram no sorteio e as do Pulso saem. Não vale na Viagem do Dia." % Malha.skill_name(skill_id))
+	var unlocked: Array[String] = Progress.get_unlocked_skill_ids()
+	for sk in Progress.get_starter_skills():
+		var sid: String = String(sk.get("id", ""))
+		if not unlocked.has(sid):
+			info.append("%s: %s" % [Malha.skill_name(sid), String(sk.get("hint", ""))])
+	_skill_info.text = "
 ".join(info)
 
 
@@ -818,13 +827,124 @@ func _start_game(diff: String, daily: bool = false) -> void:
 	SceneRouter.goto_scene("res://scenes/levels/Intro.tscn")
 
 
+func _build_malha_setup() -> void:
+	var sz := Vector2(268.0, 214.0)
+	var corners: Array[Vector2] = [Vector2(2, 2), Vector2(sz.x - 2, 2), Vector2(2, sz.y - 2), Vector2(sz.x - 2, sz.y - 2)]
+	var frame := _make_stylized_brass_frame(Vector2(16.0, 18.0), sz, corners)
+	add_child(frame)
+
+	var vbox := VBoxContainer.new()
+	vbox.position = Vector2(14.0, 12.0)
+	vbox.size = Vector2(240.0, 190.0)
+	vbox.alignment = BoxContainer.ALIGNMENT_CENTER
+	vbox.add_theme_constant_override("separation", 5)
+	frame.add_child(vbox)
+
+	var title := Label.new()
+	title.text = "MALHA FERROVIÁRIA — ESCOLHA A LINHA"
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.add_theme_font_size_override("font_size", 10)
+	title.add_theme_color_override("font_color", Color("#f2c35b"))
+	vbox.add_child(title)
+
+	var first: Button = null
+	for line in Malha.get_lines():
+		var line_id: String = String(line.get("id", ""))
+		var b := _make_stylized_btn(String(line.get("name", "")).to_upper(), func() -> void: _start_malha(line_id))
+		b.focus_entered.connect(_show_malha_line.bind(line_id))
+		vbox.add_child(b)
+		if first == null:
+			first = b
+
+	_malha_diff_btn = _make_stylized_btn("", _cycle_malha_level)
+	vbox.add_child(_malha_diff_btn)
+	_refresh_malha_diff()
+
+	var b_back := _make_stylized_btn("VOLTAR [ESC]", func() -> void: SceneRouter.goto_scene("res://scenes/menus/MainMenu.tscn"))
+	vbox.add_child(b_back)
+	Settings.bind_prompt_text(b_back, "VOLTAR {cancel}")
+
+	var rsz := Vector2(168.0, 214.0)
+	var rcorners: Array[Vector2] = [Vector2(2, 2), Vector2(rsz.x - 2, 2), Vector2(2, rsz.y - 2), Vector2(rsz.x - 2, rsz.y - 2)]
+	var rframe := _make_stylized_brass_frame(Vector2(296.0, 18.0), rsz, rcorners)
+	add_child(rframe)
+
+	_malha_emblem = TextureRect.new()
+	_malha_emblem.position = Vector2(10.0, 9.0)
+	_malha_emblem.size = Vector2(24.0, 24.0)
+	_malha_emblem.stretch_mode = TextureRect.STRETCH_KEEP_CENTERED
+	rframe.add_child(_malha_emblem)
+
+	_malha_title = Label.new()
+	_malha_title.position = Vector2(38.0, 14.0)
+	_malha_title.size = Vector2(122.0, 14.0)
+	_malha_title.add_theme_font_size_override("font_size", 10)
+	rframe.add_child(_malha_title)
+
+	_malha_info = Label.new()
+	_malha_info.position = Vector2(10.0, 38.0)
+	_malha_info.size = Vector2(148.0, 170.0)
+	_malha_info.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_malha_info.add_theme_font_size_override("font_size", 10)
+	_malha_info.add_theme_constant_override("line_spacing", -2)
+	_malha_info.add_theme_color_override("font_color", Color("#dce9ee"))
+	rframe.add_child(_malha_info)
+
+	if first != null:
+		first.grab_focus()
+		_show_malha_line(String(Malha.get_lines()[0].get("id", "")))
+
+
+func _show_malha_line(line_id: String) -> void:
+	var line: Dictionary = Malha.get_line(line_id)
+	var emblem_path: String = "res://assets/sprites/malha/line_%s.png" % line_id
+	_malha_emblem.texture = load(emblem_path) if ResourceLoader.exists(emblem_path) else null
+	_malha_title.text = String(line.get("short", "")).to_upper()
+	_malha_title.add_theme_color_override("font_color", Malha.get_line_color(line_id))
+	_malha_info.text = "%s\n\nHABILIDADE: %s\n%s\n\nVitórias: %d (linha: %d)\nNível liberado: %d/%d\nMelhor no nível: %s" % [
+		String(line.get("description", "")),
+		String(line.get("apito_name", "")).to_upper(),
+		String(line.get("apito_description", "")),
+		Progress.get_malha_wins(), Progress.get_malha_line_wins(line_id),
+		Progress.get_malha_unlocked_level(), Malha.max_level(),
+		_format_record(Progress.get_malha_level_best(Malha.level)),
+	]
+	var perks: Array = Malha.unlocked_perks()
+	if not perks.is_empty():
+		var names := PackedStringArray()
+		for perk in perks:
+			names.append(String(perk.get("name", "")))
+		_malha_info.text += "\nBônus: %s" % ", ".join(names)
+
+
+func _cycle_malha_level() -> void:
+	var unlocked: int = Progress.get_malha_unlocked_level()
+	Malha.level = Malha.level % unlocked + 1
+	_refresh_malha_diff()
+
+
+func _refresh_malha_diff() -> void:
+	Malha.level = clampi(Malha.level, 1, Progress.get_malha_unlocked_level())
+	var cfg: Dictionary = Malha.level_config()
+	var txt: String = "NÍVEL %d/%d · %d ♥" % [Malha.level, Progress.get_malha_unlocked_level(), int(cfg.get("player_hp", 5))]
+	_malha_diff_btn.set_meta("base_text", txt)
+	_malha_diff_btn.text = ("▶ " + txt + " ◀") if _malha_diff_btn.has_focus() else txt
+
+
+func _start_malha(line_id: String) -> void:
+	GameState.start_new_run("medium", false, "malha")
+	Malha.start(line_id)
+	SceneRouter.goto_scene(Malha.MAP_SCENE)
+
+
 func _build_intro() -> void:
 	_intro_stage = 1
 	_intro_sub_t = 0.0
 	_intro_teo_x = 24.0
 	_intro_teo_interior_pos = Vector2(218.0, 96.0)
 	_intro_boarding_alpha = 1.0
-	_intro_door_close_ratio = 0.0
+	_intro_enter_t = 0.0
+	_intro_door_close_ratio = 1.0
 	_intro_train_x = 0.0
 	_intro_clock_ticks = 3
 
@@ -880,14 +1000,17 @@ func _build_intro() -> void:
 	var all_intro_lines: Array = GameState.dialogue_db.get("intro", [])
 
 	AudioManager.play_sfx("whistle")
-	var tw1 := create_tween()
-	tw1.tween_property(self, "_intro_teo_x", 136.0, 1.85)
+	var tw1 := create_tween().set_parallel()
+	tw1.tween_property(self, "_intro_teo_x", 100.0, 1.5)
+	tw1.tween_property(self, "_intro_door_close_ratio", 0.0, 0.35).set_delay(0.8)
+	tw1.tween_callback(AudioManager.play_sfx.bind("clang", 0.05)).set_delay(0.8)
 	await tw1.finished
 	if _intro_skipping:
 		return
 
-	var tw_enter := create_tween()
-	tw_enter.tween_property(self, "_intro_boarding_alpha", 0.0, 0.32)
+	var tw_enter := create_tween().set_parallel()
+	tw_enter.tween_property(self, "_intro_enter_t", 1.0, 0.45)
+	tw_enter.tween_property(self, "_intro_boarding_alpha", 0.0, 0.3).set_delay(0.25)
 	await tw_enter.finished
 	if _intro_skipping:
 		return
@@ -988,7 +1111,7 @@ func _draw_platform_boarding_scene() -> void:
 	_draw_platform(198.0, Color(0.55, 0.52, 0.62))
 	_draw_rail_row(196.0, 0.0)
 
-	for lx_lamp in [28.0, 102.0, 260.0, 410.0]:
+	for lx_lamp in [28.0, 168.0, 260.0, 410.0]:
 		draw_texture(LAMP_TEX, Vector2(lx_lamp - 7.0, 130.0))
 
 	# Névoa de vapor rasteira na plataforma
@@ -1125,7 +1248,13 @@ func _build_options() -> void:
 	_opt_tabs.append(page_game)
 
 	_btn_aim = _make_stylized_btn("", func() -> void:
-		Settings.auto_aim = not Settings.auto_aim
+		if Settings.auto_aim:
+			Settings.auto_aim = false
+			Settings.aim_assist = false
+		elif Settings.aim_assist:
+			Settings.auto_aim = true
+		else:
+			Settings.aim_assist = true
 		Settings.save_settings()
 		_refresh_options_texts()
 	)
@@ -1281,6 +1410,7 @@ func _build_options() -> void:
 		Settings.screen_shake_mode = 2
 		Settings.reduce_flashes = false
 		Settings.auto_aim = false
+		Settings.aim_assist = true
 		Settings.always_show_hitbox = false
 		Settings.show_damage_numbers = true
 		Settings.high_contrast_bullets = false
@@ -1430,7 +1560,8 @@ func _refresh_options_texts() -> void:
 	_btn_shake.set_meta("base_text", "Tremor de Câmera: %s" % modes[Settings.screen_shake_mode])
 	_btn_flash.set_meta("base_text", "Reduzir Flashes: %s" % ("SIM" if Settings.reduce_flashes else "NÃO"))
 
-	_btn_aim.set_meta("base_text", "Mira Automática: %s" % ("LIGADA" if Settings.auto_aim else "DESLIGADA"))
+	var aim_mode: String = "AUTOMÁTICA" if Settings.auto_aim else ("ASSISTIDA" if Settings.aim_assist else "MANUAL")
+	_btn_aim.set_meta("base_text", "Mira: %s" % aim_mode)
 	_btn_hb.set_meta("base_text", "Mostrar Hitbox Sempre: %s" % ("SIM" if Settings.always_show_hitbox else "NÃO"))
 	_btn_dmg.set_meta("base_text", "Números de Dano: %s" % ("SIM" if Settings.show_damage_numbers else "NÃO"))
 	_btn_hc.set_meta("base_text", "Balas Alto Contraste: %s" % ("SIM" if Settings.high_contrast_bullets else "NÃO"))

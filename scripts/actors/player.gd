@@ -17,6 +17,13 @@ const FX_PUFF: Texture2D = preload("res://assets/sprites/fx/steam_puff.png")
 const TRAIL_DROP_TIME: float = 0.03
 const TRAIL_TICK_TIME: float = 0.25
 const TRAIL_RADIUS: float = 11.0
+const FX_GEAR: Texture2D = preload("res://assets/sprites/ui/golden_gear.png")
+const FX_MORTEIRO: Texture2D = preload("res://assets/sprites/fx/skill_morteiro.png")
+const FX_EXPRESSO: Texture2D = preload("res://assets/sprites/fx/skill_expresso.png")
+const GEAR_ORBIT: float = 26.0
+const SCRIPTED_WALK_SPEED: float = 75.0
+
+signal scripted_walk_finished
 
 var _cfg: Dictionary = {}
 var _shoot_timer: float = 0.0
@@ -44,7 +51,23 @@ var _trail_drop_t: float = 0.0
 var _trail_tick_t: float = 0.0
 var _trail_drawer: Node2D
 var _embalo_t: float = 0.0
+var _couraca_t: float = 0.0
+var _dash_charges: int = 1
+var _expresso_t: float = 0.0
+var _expresso_dir: Vector2 = Vector2.RIGHT
+var _expresso_speed: float = 500.0
+var _expresso_dmg: float = 60.0
+var _expresso_ring: bool = false
+var _expresso_hit: Array = []
+var _expresso_fx_t: float = 0.0
+var _gear_angle: float = 0.0
+var _gear_tick: float = 0.0
+var _gear_shot: float = 0.0
+var _reator_t: float = 0.0
+var _fornalha_busy: bool = false
 var external_push: Vector2 = Vector2.ZERO
+var _walk_path: Array[Vector2] = []
+var extra_push: Vector2 = Vector2.ZERO
 
 # teo_sheet_8dir.png: a arma é desenhada na própria arte (Teo segura com as duas mãos).
 # Linhas sem arma (cutscenes/dash): rotações 0, hurt 1+dir, idle 9+dir, walk 17+dir, dash 25+dir.
@@ -76,6 +99,7 @@ func _ready() -> void:
 	_fx_front.draw.connect(func() -> void:
 		_draw_q_clip(_fx_front, Q_FRONT)
 		_draw_graze_sparks(_fx_front)
+		_draw_gears(_fx_front)
 	)
 	add_child(_fx_front)
 
@@ -95,13 +119,37 @@ func get_dash_cooldown_ratio() -> float:
 
 
 func get_pulse_cooldown_ratio() -> float:
-	var cd_mult: float = 1.0 - GameState.get_upgrade_value("pressao")
+	if Malha.apito_tier() > 0:
+		return Malha.skill_ratio()
+	var cd_mult: float = (1.0 - GameState.get_upgrade_value("pressao")) * Malha.pulse_cooldown_mult()
 	var max_cd: float = maxf(0.01, float(_cfg.get("pulse_cooldown", 14.0)) * cd_mult)
 	return clampf(1.0 - (_pulse_cooldown_timer / max_cd), 0.0, 1.0)
 
 
 func get_pulse_seconds_left() -> float:
+	if Malha.apito_tier() > 0:
+		return maxf(0.0, Malha.skill_cd)
 	return maxf(0.0, _pulse_cooldown_timer)
+
+
+func max_dash_charges() -> int:
+	return 1 + GameState.get_upgrade_level("asas")
+
+
+func start_expresso(damage: float, ring: bool) -> void:
+	var cfg: Dictionary = Malha.get_skill_cfg("vapor")
+	var duration: float = float(cfg.get("duration", 0.38)) * (1.0 + GameState.get_upgrade_value("desvio"))
+	var distance: float = float(cfg.get("distance", 190.0)) * (1.0 + 0.2 * float(GameState.get_upgrade_level("pistao")))
+	_expresso_t = duration
+	_expresso_speed = distance / float(cfg.get("duration", 0.38))
+	_embalo_t = duration + GameState.get_upgrade_value("embalo", 0.3)
+	_expresso_dir = _aim_dir if _aim_dir != Vector2.ZERO else Vector2.RIGHT
+	_expresso_dmg = damage
+	_expresso_ring = ring
+	_expresso_hit.clear()
+	_expresso_fx_t = 0.0
+	AudioManager.play_sfx("dash")
+	Events.request_screen_shake.emit(2.0, 0.3)
 
 
 func _on_upgrade_picked(upg_id: String, _lvl: int) -> void:
@@ -122,8 +170,24 @@ func reset_pulse_cooldown() -> void:
 	_pulse_cooldown_timer = 0.0
 
 
+func reset_dash_cooldown() -> void:
+	_dash_cooldown_timer = 0.0
+	_dash_charges = max_dash_charges()
+
+
+func grant_couraca(seconds: float) -> void:
+	_couraca_t = maxf(_couraca_t, seconds)
+
+
 func _physics_process(delta: float) -> void:
 	_anim_time += delta
+	if not _walk_path.is_empty():
+		_step_scripted_walk(delta)
+		_update_sprite_animation()
+		z_index = int(global_position.y)
+		queue_redraw()
+		_fx_front.queue_redraw()
+		return
 	_update_timers(delta)
 	_update_aim()
 	_handle_movement(delta)
@@ -133,6 +197,44 @@ func _physics_process(delta: float) -> void:
 	z_index = int(global_position.y)
 	queue_redraw()
 	_fx_front.queue_redraw()
+
+
+func scripted_walk(points: Array, ignore_pause: bool = false) -> void:
+	_walk_path.assign(points)
+	_dash_timer = 0.0
+	_expresso_t = 0.0
+	_pulse_anim_t = -1.0
+	velocity = Vector2.ZERO
+	process_mode = Node.PROCESS_MODE_ALWAYS if ignore_pause else Node.PROCESS_MODE_INHERIT
+	_update_door_tint()
+
+
+func is_scripted() -> bool:
+	return not _walk_path.is_empty()
+
+
+func _step_scripted_walk(delta: float) -> void:
+	var to: Vector2 = _walk_path[0] - global_position
+	var step: float = SCRIPTED_WALK_SPEED * delta
+	if to.length() > 0.01:
+		_aim_dir = to.normalized()
+	velocity = _aim_dir * SCRIPTED_WALK_SPEED
+	if to.length() <= step:
+		global_position = _walk_path.pop_front()
+	else:
+		global_position += _aim_dir * step
+	_update_door_tint()
+	if _walk_path.is_empty():
+		velocity = Vector2.ZERO
+		process_mode = Node.PROCESS_MODE_INHERIT
+		scripted_walk_finished.emit()
+
+
+func _update_door_tint() -> void:
+	var x: float = global_position.x
+	var depth: float = maxf(clampf((x - Arena.PLAYER.end.x) / 12.0, 0.0, 1.0), clampf((Arena.PLAYER.position.x - x) / 12.0, 0.0, 1.0))
+	var c: float = lerpf(1.0, 0.1, depth)
+	modulate = Color(c, c, c, clampf((x - 2.0) / 8.0, 0.0, 1.0) * (1.0 - clampf((x - 476.0) / 10.0, 0.0, 1.0)))
 
 
 func _get_dir_index(dir: Vector2) -> int:
@@ -191,6 +293,12 @@ func _update_timers(delta: float) -> void:
 
 	if _dash_cooldown_timer > 0.0:
 		_dash_cooldown_timer -= delta
+		if _dash_cooldown_timer <= 0.0:
+			_dash_charges = mini(max_dash_charges(), _dash_charges + 1)
+			if _dash_charges < max_dash_charges():
+				_dash_cooldown_timer = _dash_cd_full()
+	elif _dash_charges < max_dash_charges():
+		_dash_charges = max_dash_charges()
 	if _dash_buffer_timer > 0.0:
 		_dash_buffer_timer -= delta
 	if _pulse_cooldown_timer > 0.0:
@@ -199,6 +307,14 @@ func _update_timers(delta: float) -> void:
 		_pulse_visual_timer -= delta
 	if _embalo_t > 0.0:
 		_embalo_t -= delta
+	if _couraca_t > 0.0:
+		_couraca_t -= delta
+	if GameState.get_upgrade_level("reator") > 0 and not _shield_ready:
+		_reator_t += delta
+		if _reator_t >= GameState.get_upgrade_value("reator", 12.0):
+			_reator_t = 0.0
+			_shield_ready = true
+			AudioManager.play_sfx("clang", 0.05)
 	if _graze_sfx_cd > 0.0:
 		_graze_sfx_cd -= delta
 	for i in range(_graze_sparks.size() - 1, -1, -1):
@@ -229,7 +345,7 @@ func _update_aim() -> void:
 		# travada para o Teo poder recuar atirando para a frente
 		var joy_aim: Vector2 = Settings.get_right_stick() if Settings.using_gamepad else TouchControls.aim_vector
 		if joy_aim != Vector2.ZERO:
-			_aim_dir = joy_aim.normalized()
+			_aim_dir = _assisted_aim(joy_aim.normalized()) if Settings.aim_assist else joy_aim.normalized()
 		elif not Input.is_action_pressed("shoot"):
 			var move_dir: Vector2 = _get_move_input()
 			if move_dir != Vector2.ZERO:
@@ -237,6 +353,30 @@ func _update_aim() -> void:
 		return
 
 	_aim_dir = (get_global_mouse_position() - global_position).normalized()
+
+
+func _assisted_aim(dir: Vector2) -> Vector2:
+	var best: Node2D = null
+	var best_score: float = INF
+	var max_angle: float = deg_to_rad(28.0)
+	var aim_range: float = float(_cfg.get("auto_aim_range", 220.0)) + 60.0
+	for node in get_tree().get_nodes_in_group("enemies"):
+		if not (node is Node2D):
+			continue
+		var to: Vector2 = (node as Node2D).global_position - global_position
+		var dist: float = to.length()
+		if dist > aim_range or dist < 1.0:
+			continue
+		var ang: float = absf(dir.angle_to(to))
+		if ang > max_angle:
+			continue
+		var score: float = rad_to_deg(ang) + dist * 0.05
+		if score < best_score:
+			best_score = score
+			best = node
+	if best == null:
+		return dir
+	return (best.global_position - global_position).normalized()
 
 
 # Analógico esquerdo (proporcional) ou teclas/D-pad
@@ -256,10 +396,12 @@ func _handle_movement(delta: float) -> void:
 	if Input.is_action_just_pressed("dash"):
 		_dash_buffer_timer = float(_cfg.get("dash_buffer", 0.12))
 
-	if _dash_buffer_timer > 0.0 and _dash_cooldown_timer <= 0.0 and _dash_timer <= 0.0:
+	if _dash_buffer_timer > 0.0 and _dash_charges > 0 and _dash_timer <= 0.0 and _expresso_t <= 0.0:
 		_start_dash(input_dir)
 
-	if _dash_timer > 0.0:
+	if _expresso_t > 0.0:
+		_update_expresso(delta)
+	elif _dash_timer > 0.0:
 		_dash_timer -= delta
 		var dash_spd: float = float(_cfg.get("dash_distance", 56.0)) / float(_cfg.get("dash_duration", 0.18))
 		velocity = _dash_dir * dash_spd
@@ -275,7 +417,8 @@ func _handle_movement(delta: float) -> void:
 		velocity = velocity.move_toward(target_vel, rate * delta)
 
 	var own_velocity: Vector2 = velocity
-	velocity += external_push
+	velocity += external_push + extra_push
+	extra_push = Vector2.ZERO
 	move_and_slide()
 	velocity = own_velocity
 	global_position = Arena.clamp_point(global_position, Arena.PLAYER)
@@ -285,20 +428,90 @@ func _start_dash(input_dir: Vector2) -> void:
 	_dash_buffer_timer = 0.0
 	_dash_dir = input_dir.normalized() if input_dir != Vector2.ZERO else -_aim_dir
 	_dash_timer = float(_cfg.get("dash_duration", 0.18))
-	var cd_mult: float = 1.0 - GameState.get_upgrade_value("valvula")
-	_dash_cooldown_timer = float(_cfg.get("dash_cooldown", 1.0)) * cd_mult
+	_dash_charges -= 1
+	if _dash_cooldown_timer <= 0.0:
+		_dash_cooldown_timer = _dash_cd_full()
 	_invuln_timer = maxf(_invuln_timer, _dash_timer)
 	_embalo_t = _dash_timer + GameState.get_upgrade_value("embalo", 0.3)
 	_trail_drop_t = 0.0
 	AudioManager.play_sfx("dash")
 
 
+func _dash_cd_full() -> float:
+	return float(_cfg.get("dash_cooldown", 1.0)) * (1.0 - GameState.get_upgrade_value("valvula"))
+
+
+func _update_expresso(delta: float) -> void:
+	_expresso_t -= delta
+	var nxt: Vector2 = global_position + _expresso_dir * _expresso_speed * delta
+	if GameState.get_upgrade_level("desvio") > 0 and not Arena.PLAYER.has_point(nxt):
+		if nxt.x < Arena.PLAYER.position.x or nxt.x > Arena.PLAYER.end.x:
+			_expresso_dir.x = -_expresso_dir.x
+		if nxt.y < Arena.PLAYER.position.y or nxt.y > Arena.PLAYER.end.y:
+			_expresso_dir.y = -_expresso_dir.y
+		_expresso_hit.clear()
+		AudioManager.play_sfx("clang", 0.08)
+	velocity = _expresso_dir * _expresso_speed
+	BulletManager.clear_enemy_bullets_in_radius(global_position, 22.0)
+	for node in get_tree().get_nodes_in_group("enemies"):
+		if node is Node2D and not _expresso_hit.has(node) and (node as Node2D).global_position.distance_to(global_position) <= 22.0:
+			_expresso_hit.append(node)
+			if node.has_method("take_damage"):
+				node.take_damage(_expresso_dmg)
+			if GameState.get_upgrade_level("fornalha_viva") > 0:
+				Malha.skill_cd = maxf(0.0, Malha.skill_cd - GameState.get_upgrade_value("fornalha_viva", 0.8))
+			if node.has_method("apply_knockback"):
+				node.apply_knockback(_expresso_dir.orthogonal() * 18.0 * (1.0 if randf() < 0.5 else -1.0))
+	_expresso_fx_t -= delta
+	if _expresso_fx_t <= 0.0:
+		_expresso_fx_t = 0.06
+		SheetFx.spawn(get_parent(), FX_EXPRESSO, global_position + Vector2(0.0, 4.0), Vector2(87.0, 46.0), 4, 9, 18.0, Vector2(61.0, 27.0), 0.7, _expresso_dir.x < 0.0)
+	if _expresso_t <= 0.0:
+		velocity = _expresso_dir * 60.0
+		_invuln_timer = maxf(_invuln_timer, 0.25)
+		var wave: float = GameState.get_upgrade_value("onda_choque", 0.0)
+		if wave > 0.0:
+			var boost: float = 1.5 if GameState.has_combo("expresso_infernal") else 1.0
+			LineSkills.shockwave(get_parent(), global_position, 50.0 * boost, wave * boost)
+
+
+func _update_gears(delta: float) -> void:
+	var count: int = int(GameState.get_upgrade_value("campo", 0.0))
+	if count <= 0:
+		return
+	_gear_angle += delta * 3.2
+	_gear_tick -= delta
+	_gear_shot -= delta
+	var tick: bool = _gear_tick <= 0.0
+	if tick:
+		_gear_tick = 0.25
+	var shoot: bool = GameState.has_combo("engrenagem_viva") and _gear_shot <= 0.0
+	if shoot:
+		_gear_shot = 1.2
+	for i in range(count):
+		var gp: Vector2 = global_position + Vector2(GEAR_ORBIT, 0.0).rotated(_gear_angle + TAU * float(i) / float(count))
+		BulletManager.hit_enemy_bullets_near(gp, 7.0)
+		if tick:
+			for node in get_tree().get_nodes_in_group("enemies"):
+				if node is Node2D and (node as Node2D).global_position.distance_to(gp) <= 12.0 and node.has_method("take_damage"):
+					node.take_damage(3.0 + 3.0 * float(GameState.get_upgrade_level("campo")))
+		if shoot:
+			var target: Node2D = _get_auto_aim_target()
+			if target != null:
+				BulletManager.spawn_bullet(gp, (target.global_position - gp).normalized(), 260.0, true, get_bullet_damage() * 0.6, 1.0)
+
+
 func _handle_combat() -> void:
-	if Input.is_action_pressed("shoot") and _shoot_timer <= 0.0:
+	var auto_fire: bool = Settings.auto_aim and Settings.touch_mode and not Settings.using_gamepad and _get_auto_aim_target() != null
+	if (Input.is_action_pressed("shoot") or auto_fire) and _shoot_timer <= 0.0:
 		_fire_weapon()
 
-	if Input.is_action_just_pressed("ability") and _pulse_cooldown_timer <= 0.0:
-		_activate_steam_pulse()
+	if Input.is_action_just_pressed("ability"):
+		if Malha.apito_tier() > 0:
+			if Malha.use_skill(self):
+				_pulse_anim_t = 0.0
+		elif _pulse_cooldown_timer <= 0.0:
+			_activate_steam_pulse()
 
 
 func _fire_weapon() -> void:
@@ -313,6 +526,9 @@ func _fire_weapon() -> void:
 	var multi_lvl: int = GameState.get_upgrade_level("tiro_duplo")
 	# ao atirar o Teo encara a mira, então o cano da arte aponta para o octante do disparo
 	var muzzle_pos: Vector2 = global_position + MUZZLE_OFFSETS[_get_dir_index(_aim_dir)]
+	if BulletManager.next_shot_is_lightning():
+		var jumps: int = 1 + GameState.get_upgrade_level("corrente") + (2 if GameState.has_combo("tempestade") else 0)
+		BulletManager.chain_lightning(muzzle_pos, dmg * 1.5, jumps)
 
 	if multi_lvl == 0:
 		BulletManager.spawn_bullet(muzzle_pos, _aim_dir, b_speed, true, dmg, b_life)
@@ -327,7 +543,7 @@ func _fire_weapon() -> void:
 
 
 func _activate_steam_pulse() -> void:
-	var cd_mult: float = 1.0 - GameState.get_upgrade_value("pressao")
+	var cd_mult: float = (1.0 - GameState.get_upgrade_value("pressao")) * Malha.pulse_cooldown_mult()
 	_pulse_cooldown_timer = float(_cfg.get("pulse_cooldown", 14.0)) * cd_mult
 	_pulse_visual_timer = float(Q_TOTAL_FRAMES) / Q_FPS
 	_pulse_anim_t = 0.0
@@ -357,18 +573,34 @@ func _activate_steam_pulse() -> void:
 
 func get_bullet_damage() -> float:
 	var dmg_mult: float = 1.0 + GameState.get_upgrade_value("dano") + GameState.get_upgrade_value("sobrecarga")
-	return float(_cfg.get("base_damage", 10.0)) * dmg_mult
+	return float(_cfg.get("base_damage", 10.0)) * dmg_mult * Malha.damage_mult()
 
 
-func _on_enemy_died(_pos: Vector2, _is_elite: bool) -> void:
+func _on_enemy_died(pos: Vector2, _is_elite: bool) -> void:
+	var fornalha: float = GameState.get_upgrade_value("fornalha", 0.0)
+	if fornalha > 0.0 and (not _fornalha_busy or GameState.has_combo("reacao_cadeia")):
+		var was_busy: bool = _fornalha_busy
+		_fornalha_busy = true
+		var radius: float = 30.0 * (1.5 if GameState.has_combo("reacao_cadeia") else 1.0)
+		SheetFx.spawn(get_parent(), FX_MORTEIRO, pos, Vector2(116.0, 82.0), 4, 8, 16.0, Vector2(58.0, 41.0), radius / 60.0)
+		for node in get_tree().get_nodes_in_group("enemies"):
+			if node is Node2D and (node as Node2D).global_position.distance_to(pos) <= radius and node.has_method("take_damage"):
+				node.take_damage(fornalha)
+		_fornalha_busy = was_busy
 	if _embalo_t > 0.0 and GameState.get_upgrade_level("embalo") > 0 and _dash_cooldown_timer > 0.0:
 		_dash_cooldown_timer = 0.0
 		AudioManager.play_sfx("blip")
 
 
 func _update_trail(delta: float) -> void:
+	_update_gears(delta)
+	if (_dash_timer > 0.0 or _expresso_t > 0.0) and GameState.get_upgrade_level("turbina") > 0:
+		BulletManager.clear_enemy_bullets_in_radius(global_position, GameState.get_upgrade_value("turbina", 22.0))
+	if GameState.has_combo("ciclone"):
+		for point in _trail:
+			BulletManager.clear_enemy_bullets_in_radius(Vector2(point.x, point.y), 9.0)
 	var lvl: int = GameState.get_upgrade_level("rastro")
-	if lvl > 0 and _dash_timer > 0.0:
+	if lvl > 0 and (_dash_timer > 0.0 or _expresso_t > 0.0):
 		_trail_drop_t -= delta
 		if _trail_drop_t <= 0.0:
 			_trail_drop_t = TRAIL_DROP_TIME
@@ -423,8 +655,9 @@ func register_graze(at: Vector2) -> void:
 
 
 func take_damage(amount: int, source_pos: Vector2 = Vector2.ZERO) -> void:
-	if GameState.debug_invincible or _invuln_timer > 0.0 or _dash_timer > 0.0:
+	if GameState.debug_invincible or _invuln_timer > 0.0 or _dash_timer > 0.0 or _couraca_t > 0.0 or _expresso_t > 0.0 or is_scripted():
 		return
+	_reator_t = 0.0
 
 	if _shield_ready:
 		_shield_ready = false
@@ -434,7 +667,16 @@ func take_damage(amount: int, source_pos: Vector2 = Vector2.ZERO) -> void:
 		Settings.rumble(0.3, 0.0, 0.12)
 		return
 
+	if Malha.consume_bilhete():
+		_invuln_timer = 0.8
+		AudioManager.play_sfx("clang")
+		Events.item_obtained.emit("BILHETE RASGADO SALVOU O TEO")
+		return
+
 	GameState.current_hp = maxi(0, GameState.current_hp - amount)
+	if GameState.current_hp <= 0 and Malha.consume_fotografia():
+		GameState.current_hp = 1
+		Events.item_obtained.emit("A FOTOGRAFIA DA FAMÍLIA DEU FORÇAS AO TEO")
 	GameState.damage_taken_in_run += amount
 	_invuln_timer = float(_cfg.get("invuln_time", 1.2))
 	_hurt_flash_timer = 0.22
@@ -455,6 +697,12 @@ func take_damage(amount: int, source_pos: Vector2 = Vector2.ZERO) -> void:
 	Events.request_screen_shake.emit(3.5, 0.18)
 	Events.request_screen_flash.emit(0.08)
 	Events.player_hit.emit(GameState.current_hp, GameState.max_hp)
+
+	var rebites: int = int(GameState.get_upgrade_value("rebites"))
+	if rebites > 0 and GameState.current_hp > 0:
+		var rebite_dmg: float = get_bullet_damage() * (1.0 + 0.5 * float(GameState.get_upgrade_level("rebites") - 1))
+		for i in range(rebites):
+			BulletManager.spawn_bullet(global_position, Vector2.RIGHT.rotated(TAU * float(i) / float(rebites)), 240.0, true, rebite_dmg, 1.0)
 
 	if GameState.current_hp <= 0:
 		TrainClock.is_running = false
@@ -505,8 +753,8 @@ func _draw() -> void:
 		var df: int = clampi(int(get_dash_cooldown_ratio() * 8.0), 0, 7)
 		draw_texture_rect_region(FX_DASH_CD, Rect2(-6.0, 6.0, 13.0, 13.0), Rect2(df * 13.0, 0.0, 13.0, 13.0))
 
-	if _shield_ready:
-		draw_texture(FX_SHIELD, Vector2(-12.0, -12.0))
+	if _shield_ready or (_couraca_t > 0.0 and (_couraca_t > 1.0 or int(_couraca_t * 10.0) % 2 == 0)):
+		draw_texture(FX_SHIELD, Vector2(-12.0, -12.0), Malha.get_line_color("engrenagem") if _couraca_t > 0.0 else Color.WHITE)
 	if _is_focusing or Settings.always_show_hitbox:
 		draw_texture(FX_HITBOX, Vector2(-3.0, -3.0))
 
@@ -544,3 +792,12 @@ func _draw_graze_sparks(canvas: CanvasItem) -> void:
 		for d: Vector2 in [Vector2.LEFT, Vector2.RIGHT, Vector2.UP, Vector2.DOWN]:
 			canvas.draw_rect(Rect2(c + d * reach, Vector2.ONE), col)
 			canvas.draw_rect(Rect2(c + d * (reach - 1.0), Vector2.ONE), col)
+
+
+func _draw_gears(canvas: CanvasItem) -> void:
+	var count: int = int(GameState.get_upgrade_value("campo", 0.0))
+	for i in range(count):
+		var gp: Vector2 = Vector2(GEAR_ORBIT, 0.0).rotated(_gear_angle + TAU * float(i) / float(count))
+		canvas.draw_set_transform(gp.round(), _gear_angle * 2.0, Vector2(0.6, 0.6))
+		canvas.draw_texture(FX_GEAR, -FX_GEAR.get_size() * 0.5)
+	canvas.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)

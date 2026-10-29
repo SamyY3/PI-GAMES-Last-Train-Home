@@ -184,7 +184,10 @@ func _start_wave_2() -> void:
 	_elapsed = 0.0
 	hud.set_wave_info(2, 2)
 	player.reset_pulse_cooldown()
-	hud.set_contextual_tip("{ability} Pulso de Vapor: apaga balas e empurra inimigos!")
+	if Malha.active_skill() != "":
+		hud.set_contextual_tip("{ability} %s: sua habilidade no lugar do Pulso!" % Malha.skill_name())
+	else:
+		hud.set_contextual_tip("{ability} Pulso de Vapor: apaga balas e empurra inimigos!")
 	spawn_enemy("sentinel", Vector2(80.0, 120.0))
 	spawn_enemy("sentinel", Vector2(410.0, 190.0))
 	spawn_enemy("drone", Vector2(360.0, 100.0))

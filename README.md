@@ -17,8 +17,8 @@
 | **Engine** | Godot 4 (GDScript, renderizador GL Compatibility) |
 | **Resolução** | 480x270 nativa com upscale inteiro (janela 1440x810) |
 | **Duração** | ~10–15 minutos por partida |
-| **Modo** | Single-player |
-| **Versão** | 1.6.1 |
+| **Modo** | Single-player · História e Malha Ferroviária |
+| **Versão** | 1.8.4 |
 
 ## Como executar
 
@@ -81,6 +81,38 @@ As teclas principais podem ser remapeadas em **Opções → Teclado**, e os bot�
 - **Desarme:** girar a válvula (alternar A/D), baixar a alavanca, cortar o fio certo e apagar o núcleo — tudo em poucos segundos.
 - **Final:** a chegada à estação da colina ao amanhecer e o reencontro com a família (Mãe, Pai e Lia).
 
+## Modo Malha Ferroviária
+
+Um modo roguelite separado da história, sem diálogos e sem o relógio da bomba, com cerca de 10 minutos por viagem. Ele é aberto pelo botão **MALHA FERROVIÁRIA** do menu principal; a campanha fica no botão **MODO HISTÓRIA**.
+
+- **Níveis de 1 a 10:** cada nível tem mais vida e cadência nos inimigos, balas mais rápidas e menos corações para o Teo. Vencer um nível libera o próximo.
+- **Linhas e habilidades:** no início o jogador escolhe uma Linha. As cartas dela aparecem três vezes mais nos sorteios, e o botão do Pulso usa desde o começo a habilidade da Linha, com recarga própria, pronta no início de cada parada. Cada Linha tem 4 **cartas de habilidade** que mudam como ela funciona (por exemplo, Bombetas, Napalm e Salva Dupla no Morteiro; Onda de Choque e Desvio de Trilho no Expresso; Canhão em Leque, Torre Dupla e Bobina Tesla na Torre). As balas que as habilidades soltam herdam as melhorias de tiro (perfuração, ricochete, mira giroscópica, fragmentação), e o Expresso conta como dash para Rastro de Vapor, Turbina e Embalo.
+  - **Pólvora — Morteiro:** um morteiro cai no ponto mirado, explode, fere tudo em volta e apaga as balas.
+  - **Vapor — Expresso Fantasma:** o Teo dispara como uma locomotiva de vapor, invulnerável, atravessando e ferindo os inimigos e apagando as balas no caminho.
+  - **Engrenagem — Torre de Engrenagens:** monta uma torre que atira sozinha e segura as balas em volta dela.
+- **Mapa:** 9 colunas de paradas ligadas por trilhos que nunca se cruzam, depois a **Estação** obrigatória e o chefe. A cada passo o jogador escolhe uma das paradas ligadas à atual:
+  - **Combate:** ondas sorteadas pela profundidade, às vezes com modificador (túnel, curva ou passageiro), em 8 cenários: os 4 vagões da história e os vagões restaurante, postal, frigorífico e forja.
+  - **Elite:** ondas reforçadas com um Cargueiro. Rende uma carta com mais chance de rara ou épica, um achado, mais fichas e +1 coração.
+  - **Fiscal:** vende uma carta, um achado, um reparo de corações e um sorteio extra, pagos com fichas.
+  - **Dormitório:** recupera corações ou sobe o nível de uma carta que o jogador já tem.
+  - **Evento:** uma situação no vagão com escolhas de risco e recompensa (8 eventos, como a Mala Esquecida, o Apostador e o Vagão-Oficina).
+  - **Estação:** última parada antes do chefe, com descanso para recuperar corações e a loja do Fiscal.
+- **Nível do Teo:** inimigos derrotados soltam engrenagens, puxadas pelo Teo quando ele chega perto. Encher a barra sobe o nível do Teo e abre na hora uma escolha de carta.
+- **Inimigos novos:** o **Bombardeiro** solta bombas que explodem em anel, o **Escudeiro** segura os tiros de frente com o escudo e só fica exposto quando o abaixa para atirar, a **Faísca** corre até o Teo e explode, o **Lança-chamas** cospe um leque curto de fogo, o **Reparador** cura os outros inimigos e o **Ímã** puxa o Teo para perto.
+- **Variantes:** a partir do meio da malha os inimigos podem vir **Blindados** (mais vida), **Velozes**, **Explosivos** (anel de balas ao morrer) ou **Divisores** (viram duas Faíscas), marcados com um losango colorido. Variantes rendem o dobro de engrenagens.
+- **Chefes:** sorteado entre quatro, todos em 3 fases e sem diálogos. O cartaz de apresentação aparece só na entrada; as fases mudam com um aviso no HUD.
+  - **O Maquinista:** a luta da história.
+  - **A Fortaleza:** a couraça segura 70% do dano. Ela só abre quando a Fortaleza bate na parede depois de uma investida, e aí leva dano extra por alguns segundos. Dispara anéis, ergue muralhas de balas com uma brecha, planta fornalhas que explodem e chama drones.
+  - **O Sinaleiro:** no **sinal vermelho** as balas param no ar e quem se mexer leva dano; no verde elas voltam a andar. Some e reaparece pelo vagão, dispara rajadas miradas, enche faixas inteiras de balas, gira a lanterna e chama torretas.
+  - **O Relojoeiro:** **rebobina** as balas, que congelam e voltam pelo mesmo caminho, e repete os próprios golpes como **ecos** em ciano. Gira ponteiros de balas, dispara no ritmo do tique-taque e faz as doze badaladas em volta do Teo.
+- **Cartas e combinações do modo:** além das cartas da história, a Malha tem Rebites Soltos, Remendo de Campo, Corrente Elétrica (raios que pulam entre inimigos), Cartucho de Fragmentação, Fornalha Portátil (inimigos explodem ao morrer), Turbina (o dash apaga balas), Asas de Vapor (2 cargas de dash), Campo Magnético (engrenagens em órbita) e Reator (escudo depois de 12 s sem dano). Combinações novas: Tempestade, Reação em Cadeia, Ciclone, Engrenagem Viva, Artilharia Elétrica, Expresso Infernal e Fábrica de Torres.
+- **Achados e Perdidos:** 10 itens passivos que vêm de eventos, elites e do Fiscal, como o Bilhete Rasgado (o primeiro golpe de cada parada não tira coração) e a Fotografia da Família (uma vez por viagem, um golpe fatal deixa o Teo com 1 coração). Eles aparecem no topo do mapa e na aba de melhorias da pausa.
+- **Sem limite de tempo:** a partida acaba só pela vida. Ao morrer, dá para tentar de novo a mesma parada, com as mesmas ondas, as cartas, fichas e achados do começo dela e no mínimo 3 corações.
+- **Bônus de nível:** cada nível vencido libera um bônus permanente para as próximas viagens, como fichas extras, um achado ou uma carta de habilidade no início, mais um coração máximo e um ímã de engrenagens maior.
+- **Recordes:** vitórias (no total e por Linha), o nível liberado, os bônus e o melhor tempo de cada nível aparecem na tela de escolha da Linha.
+
+Os números do modo (níveis, Linhas, habilidades, economia, mapa, cenários, ondas, chefes, achados e eventos) ficam em `data/malha.json`.
+
 ## Mecânicas
 
 - **Relógio regressivo** com meta por vagão: ao entrar em cada seção, o tempo que sobrou é limitado a um teto, então a pressão nunca some. O que passa do teto ao entrar nos vagões vai para a **reserva**, mostrada ao lado do relógio.
@@ -96,8 +128,8 @@ As teclas principais podem ser remapeadas em **Opções → Teclado**, e os bot�
   - **Curva fechada:** um aviso e, logo depois, o trem empurra o Teo para um lado por alguns segundos.
   - **Passageiro em perigo:** um passageiro aguenta 3 balas. Se ele sobreviver até o vagão ser limpo, Teo ganha uma carta extra.
 - **Recordes e desbloqueios:** a tela de dificuldade mostra o melhor tempo e a melhor nota de cada dificuldade, as vitórias e as combinações descobertas.
-  - **Ferramentas iniciais** são liberadas vencendo e fazem a partida começar com uma carta de nível 1: Botas Velhas (vença uma vez), Chave Inglesa (vença na Média ou Difícil) e Luneta (vença na Difícil).
-  - **Viagem do Dia:** uma partida na Média com a mesma semente para o dia inteiro (mesmas ondas, modificadores e sorteios de cartas), sem ferramenta inicial e com recorde próprio.
+  - **Habilidades da Malha na história:** vencer libera as habilidades das Linhas para usar no lugar do Pulso de Vapor, escolhidas na tela de dificuldade: Morteiro (vença uma vez), Expresso Fantasma (vença na Média ou Difícil) e Torre de Engrenagens (vença na Difícil). Com uma habilidade equipada, as 4 cartas dela entram no sorteio e as cartas que só mexem no Pulso (Pulso Refletor e Freio de Emergência) saem. A habilidade fica pronta no começo de cada vagão.
+  - **Viagem do Dia:** uma partida na Média com a mesma semente para o dia inteiro (mesmas ondas, modificadores e sorteios de cartas), sempre com o Pulso de Vapor e com recorde próprio.
 - **Três dificuldades:**
 
 | | Fácil | Média | Difícil |
@@ -116,10 +148,11 @@ As teclas principais podem ser remapeadas em **Opções → Teclado**, e os bot�
 ```
 ├── project.godot
 ├── assets/        # sprites, áudio (músicas e SFX) e fontes usados pelo jogo
-├── data/          # balance.json, upgrades.json, dialogue_pt_br.json, credits.json
+├── data/          # balance.json, upgrades.json, malha.json, dialogue_pt_br.json, credits.json
 ├── scenes/        # actors, boot, levels, menus, ui
 ├── scripts/
-│   ├── autoload/  # Events, Settings, GameState, TrainClock, AudioManager, SceneRouter
+│   ├── autoload/  # Events, Settings, GameState, TrainClock, Malha, AudioManager, SceneRouter
+│   ├── malha/     # tela do mapa do modo Malha Ferroviária
 │   ├── systems/   # BulletManager (pool de projéteis)
 │   ├── actors/    # player, inimigos e boss
 │   ├── levels/    # um script por nível + desarme e final
@@ -154,6 +187,7 @@ python tools/build_family_sheets.py      # família (final/créditos)
 python tools/build_boss_sheets.py        # O Maquinista
 python tools/build_credits_media.py      # fotos/vídeos dos créditos
 python tools/clean_locomotive.py         # locomotiva
+python tools/build_wagon_door.py         # porta deslizante do vagão (embarque e chegada)
 python tools/generate_sfx.py             # efeitos sonoros
 python tools/generate_music.py           # trilhas do jogo (menu, vagões, chefe, desarme, final)
 python tools/generate_credits_music.py   # tema dos créditos

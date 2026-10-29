@@ -76,7 +76,7 @@ func _ready() -> void:
 	var diff_cfg: Dictionary = GameState.get_difficulty_config()
 	var hp_mult: float = float(diff_cfg.get("enemy_hp_mult", 1.0))
 	_fire_rate_mult = maxf(0.1, float(diff_cfg.get("enemy_fire_rate_mult", 1.0)))
-	max_hp = float(boss_cfg.get("hp", 2400.0)) * hp_mult
+	max_hp = float(boss_cfg.get("hp", 2400.0)) * hp_mult * (float(Malha.data.get("boss_hp_mult", 1.0)) if GameState.is_malha() else 1.0)
 	hp = max_hp
 	_phase2_threshold = float(boss_cfg.get("phase2_threshold", 0.60))
 	_phase3_threshold = float(boss_cfg.get("phase3_threshold", 0.30))
@@ -705,8 +705,12 @@ func _die() -> void:
 	if not is_inside_tree():
 		return
 	var cs: Node = get_tree().get_first_node_in_group("boss_cutscene")
-	if cs != null:
+	if cs != null and not GameState.is_malha():
 		await cs.play_defeat(get_parent(), self)
+	if GameState.is_malha():
+		Malha.complete_current()
+		SceneRouter.goto_scene(Malha.MAP_SCENE)
+		return
 	SceneRouter.goto_scene("res://scenes/levels/Disarm.tscn")
 
 

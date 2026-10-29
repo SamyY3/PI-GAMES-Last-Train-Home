@@ -15,7 +15,7 @@ compatibility/default_parent_skeleton_in_mesh_instance_3d=true
 [application]
 
 config/name="Last Train Home"
-config/version="1.6.1"
+config/version="1.8.4"
 run/main_scene="res://scenes/boot/Boot.tscn"
 config/quit_on_go_back=false
 config/features=PackedStringArray("4.7", "GL Compatibility")
@@ -30,6 +30,7 @@ GameState="*res://scripts/autoload/game_state.gd"
 TrainClock="*res://scripts/autoload/train_clock.gd"
 Progress="*res://scripts/autoload/progress.gd"
 Modals="*res://scripts/autoload/modals.gd"
+Malha="*res://scripts/autoload/malha.gd"
 AudioManager="*res://scripts/autoload/audio_manager.gd"
 SceneRouter="*res://scripts/autoload/scene_router.gd"
 BulletManager="*res://scripts/systems/bullet_manager.gd"
@@ -67,6 +68,6 @@ textures/canvas_textures/default_texture_filter=0
 renderer/rendering_method="gl_compatibility"
 renderer/rendering_method.mobile="gl_compatibility"
 textures/vram_compression/import_etc2_astc=true
+environment/defaults/default_clear_color=Color(0.051, 0.043, 0.071, 1)
 2d/snap/snap_2d_transforms_to_pixel=true
 2d/snap/snap_2d_vertices_to_pixel=true
-environment/defaults/default_clear_color=Color(0.051, 0.043, 0.071, 1)

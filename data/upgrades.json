@@ -13,6 +13,7 @@
       "max_level": 2,
       "rarity": "rare",
       "category": "Ataque",
+      "line": "polvora",
       "values": [2, 3]
     },
     {
@@ -22,6 +23,7 @@
       "max_level": 3,
       "rarity": "common",
       "category": "Ataque",
+      "line": "polvora",
       "values": [0.20, 0.40, 0.60]
     },
     {
@@ -31,6 +33,7 @@
       "max_level": 3,
       "rarity": "common",
       "category": "Ataque",
+      "line": "polvora",
       "values": [0.25, 0.50, 0.75]
     },
     {
@@ -40,6 +43,7 @@
       "max_level": 3,
       "rarity": "common",
       "category": "Mobilidade",
+      "line": "vapor",
       "values": [0.12, 0.24, 0.36]
     },
     {
@@ -49,6 +53,7 @@
       "max_level": 2,
       "rarity": "rare",
       "category": "Ataque",
+      "line": "polvora",
       "values": [1, 2]
     },
     {
@@ -58,6 +63,7 @@
       "max_level": 2,
       "rarity": "common",
       "category": "Defesa",
+      "line": "engrenagem",
       "values": [1, 2]
     },
     {
@@ -67,6 +73,7 @@
       "max_level": 2,
       "rarity": "rare",
       "category": "Defesa",
+      "line": "engrenagem",
       "values": [20.0, 16.0]
     },
     {
@@ -76,15 +83,18 @@
       "max_level": 2,
       "rarity": "common",
       "category": "Mobilidade",
+      "line": "vapor",
       "values": [0.25, 0.50]
     },
     {
       "id": "pressao",
       "name": "Pressão Contínua",
-      "description": "Reduz a recarga do Pulso de Vapor em 30% por nível.",
+      "description": "Reduz a recarga do Pulso de Vapor em 30% por nível (habilidade: 20%).",
+      "description_malha": "Reduz a recarga da habilidade da Linha em 20% por nível.",
       "max_level": 2,
       "rarity": "rare",
       "category": "Utilidade",
+      "line": "vapor",
       "values": [0.30, 0.60]
     },
     {
@@ -94,6 +104,7 @@
       "max_level": 1,
       "rarity": "rare",
       "category": "Ataque",
+      "line": "polvora",
       "values": [1]
     },
     {
@@ -103,6 +114,7 @@
       "max_level": 2,
       "rarity": "epic",
       "category": "Ataque",
+      "line": "polvora",
       "values": [110.0, 220.0]
     },
     {
@@ -112,6 +124,7 @@
       "max_level": 2,
       "rarity": "epic",
       "category": "Ataque",
+      "line": "polvora",
       "values": [0.15, 0.30]
     },
     {
@@ -121,6 +134,7 @@
       "max_level": 1,
       "rarity": "epic",
       "category": "Utilidade",
+      "line": "engrenagem",
       "values": [15]
     },
     {
@@ -130,6 +144,7 @@
       "max_level": 1,
       "rarity": "rare",
       "category": "Defesa",
+      "line": "engrenagem",
       "values": [2.0]
     },
     {
@@ -139,43 +154,284 @@
       "max_level": 1,
       "rarity": "cursed",
       "category": "Ataque",
+      "modes": ["story"],
       "values": [0.5]
     },
     {
       "id": "freio",
+      "pulse": true,
       "name": "Freio de Emergência",
       "description": "Usar o Pulso congela o relógio por 3s, mas -1 coração máximo.",
       "max_level": 1,
       "rarity": "cursed",
       "category": "Utilidade",
+      "modes": ["story"],
       "values": [3.0]
     },
     {
       "id": "rastro",
       "name": "Rastro de Vapor",
       "description": "O dash deixa vapor que queima inimigos. Nv 2: mais dano e duração.",
+      "description_malha": "O dash e o Expresso deixam vapor que queima inimigos. Nv 2: mais dano e duração.",
       "max_level": 2,
       "rarity": "rare",
       "category": "Mobilidade",
+      "line": "vapor",
       "values": [6.0, 10.0]
     },
     {
       "id": "refletor",
+      "pulse": true,
       "name": "Pulso Refletor",
       "description": "O Pulso rebate as balas inimigas em vez de apagá-las.",
       "max_level": 1,
       "rarity": "epic",
       "category": "Utilidade",
+      "line": "vapor",
       "values": [1]
     },
     {
       "id": "embalo",
       "name": "Embalo",
       "description": "Derrotar um inimigo durante o dash (ou logo depois) recarrega o dash.",
+      "description_malha": "Derrotar um inimigo durante o dash ou o Expresso recarrega o dash.",
       "max_level": 1,
       "rarity": "rare",
       "category": "Mobilidade",
+      "line": "vapor",
       "values": [0.3]
+    },
+    {
+      "id": "rebites",
+      "name": "Rebites Soltos",
+      "description": "Ao perder um coração, solta um anel de balas. Nv 2: anel maior e mais forte.",
+      "max_level": 2,
+      "rarity": "rare",
+      "category": "Defesa",
+      "line": "engrenagem",
+      "modes": ["malha"],
+      "values": [12, 20]
+    },
+    {
+      "id": "remendo",
+      "name": "Remendo de Campo",
+      "description": "Ao concluir uma parada, recupera 1 coração por nível.",
+      "max_level": 2,
+      "rarity": "common",
+      "category": "Defesa",
+      "line": "engrenagem",
+      "modes": ["malha"],
+      "values": [1, 2]
+    },
+    {
+      "id": "corrente",
+      "name": "Corrente Elétrica",
+      "description": "A cada 6 tiros sai um raio que pula entre inimigos. Nv 2: a cada 4 tiros, um pulo a mais.",
+      "max_level": 2,
+      "rarity": "rare",
+      "category": "Ataque",
+      "line": "polvora",
+      "modes": ["malha"],
+      "values": [6, 4]
+    },
+    {
+      "id": "fragmentacao",
+      "name": "Cartucho de Fragmentação",
+      "description": "Cada bala que acerta se parte em 3 estilhaços.",
+      "max_level": 1,
+      "rarity": "epic",
+      "category": "Ataque",
+      "line": "polvora",
+      "modes": ["malha"],
+      "values": [3]
+    },
+    {
+      "id": "fornalha",
+      "name": "Fornalha Portátil",
+      "description": "Inimigos derrotados explodem e ferem quem estiver perto. Nv 2: explosão mais forte.",
+      "max_level": 2,
+      "rarity": "rare",
+      "category": "Ataque",
+      "line": "polvora",
+      "modes": ["malha"],
+      "values": [15.0, 25.0]
+    },
+    {
+      "id": "turbina",
+      "name": "Turbina",
+      "description": "O dash sopra para longe as balas inimigas no caminho.",
+      "description_malha": "O dash e o Expresso sopram para longe as balas no caminho.",
+      "max_level": 1,
+      "rarity": "rare",
+      "category": "Mobilidade",
+      "line": "vapor",
+      "modes": ["malha"],
+      "values": [22.0]
+    },
+    {
+      "id": "asas",
+      "name": "Asas de Vapor",
+      "description": "Guarda 2 cargas de dash.",
+      "max_level": 1,
+      "rarity": "epic",
+      "category": "Mobilidade",
+      "line": "vapor",
+      "modes": ["malha"],
+      "values": [1]
+    },
+    {
+      "id": "campo",
+      "name": "Campo Magnético",
+      "description": "2 engrenagens giram em volta do Teo, seguram balas e ferem inimigos. Nv 2: 3 engrenagens.",
+      "max_level": 2,
+      "rarity": "epic",
+      "category": "Defesa",
+      "line": "engrenagem",
+      "modes": ["malha"],
+      "values": [2, 3]
+    },
+    {
+      "id": "reator",
+      "name": "Reator",
+      "description": "Ficar 12s sem levar dano gera um escudo que segura o próximo golpe.",
+      "max_level": 1,
+      "rarity": "rare",
+      "category": "Defesa",
+      "line": "engrenagem",
+      "modes": ["malha"],
+      "values": [12.0]
+    },
+    {
+      "id": "calibre",
+      "name": "Calibre Pesado",
+      "description": "Morteiro: +30% de dano e +15% de raio por nível.",
+      "max_level": 3,
+      "rarity": "common",
+      "category": "Habilidade",
+      "line": "polvora",
+      "skill": "polvora",
+      "values": [0.3, 0.6, 0.9]
+    },
+    {
+      "id": "bombetas",
+      "name": "Bombetas",
+      "description": "Morteiro: a explosão solta estilhaços que herdam suas melhorias de tiro. Nv 2: mais estilhaços.",
+      "max_level": 2,
+      "rarity": "rare",
+      "category": "Habilidade",
+      "line": "polvora",
+      "skill": "polvora",
+      "values": [8, 14]
+    },
+    {
+      "id": "salva_dupla",
+      "name": "Salva Dupla",
+      "description": "Morteiro: lança um segundo morteiro no inimigo mais perto do alvo.",
+      "max_level": 1,
+      "rarity": "epic",
+      "category": "Habilidade",
+      "line": "polvora",
+      "skill": "polvora",
+      "values": [1]
+    },
+    {
+      "id": "napalm",
+      "name": "Napalm",
+      "description": "Morteiro: o chão fica em chamas por 3s e queima quem pisar.",
+      "max_level": 1,
+      "rarity": "rare",
+      "category": "Habilidade",
+      "line": "polvora",
+      "skill": "polvora",
+      "values": [3.0]
+    },
+    {
+      "id": "pistao",
+      "name": "Pistão Duplo",
+      "description": "Expresso: +30% de dano e +20% de distância por nível.",
+      "max_level": 3,
+      "rarity": "common",
+      "category": "Habilidade",
+      "line": "vapor",
+      "skill": "vapor",
+      "values": [0.3, 0.6, 0.9]
+    },
+    {
+      "id": "onda_choque",
+      "name": "Onda de Choque",
+      "description": "Expresso: ao parar, solta uma onda de vapor que fere e empurra. Nv 2: mais forte.",
+      "max_level": 2,
+      "rarity": "rare",
+      "category": "Habilidade",
+      "line": "vapor",
+      "skill": "vapor",
+      "values": [40.0, 80.0]
+    },
+    {
+      "id": "desvio",
+      "name": "Desvio de Trilho",
+      "description": "Expresso: quica nas paredes e corre 60% mais.",
+      "max_level": 1,
+      "rarity": "epic",
+      "category": "Habilidade",
+      "line": "vapor",
+      "skill": "vapor",
+      "values": [0.6]
+    },
+    {
+      "id": "fornalha_viva",
+      "name": "Fornalha Viva",
+      "description": "Expresso: cada inimigo atingido tira 0,8s da recarga.",
+      "max_level": 1,
+      "rarity": "rare",
+      "category": "Habilidade",
+      "line": "vapor",
+      "skill": "vapor",
+      "values": [0.8]
+    },
+    {
+      "id": "engrenagens_extra",
+      "name": "Engrenagens Extras",
+      "description": "Torre: +3s de duração e atira 15% mais rápido por nível.",
+      "max_level": 3,
+      "rarity": "common",
+      "category": "Habilidade",
+      "line": "engrenagem",
+      "skill": "engrenagem",
+      "values": [1, 2, 3]
+    },
+    {
+      "id": "leque",
+      "name": "Canhão em Leque",
+      "description": "Torre: atira 3 balas em leque. Nv 2: 5 balas.",
+      "max_level": 2,
+      "rarity": "rare",
+      "category": "Habilidade",
+      "line": "engrenagem",
+      "skill": "engrenagem",
+      "values": [3, 5]
+    },
+    {
+      "id": "torre_dupla",
+      "name": "Torre Dupla",
+      "description": "Torre: monta duas torres de uma vez.",
+      "max_level": 1,
+      "rarity": "epic",
+      "category": "Habilidade",
+      "line": "engrenagem",
+      "skill": "engrenagem",
+      "values": [2]
+    },
+    {
+      "id": "bobina",
+      "name": "Bobina Tesla",
+      "description": "Torre: solta um raio em cadeia a cada 1,5s.",
+      "max_level": 1,
+      "rarity": "rare",
+      "category": "Habilidade",
+      "line": "engrenagem",
+      "skill": "engrenagem",
+      "values": [1.5]
     }
   ],
   "combos": [
@@ -196,6 +452,48 @@
       "name": "Locomotiva",
       "requires": ["rastro", "valvula"],
       "description": "O rastro de vapor dura o dobro."
+    },
+    {
+      "id": "tempestade",
+      "name": "Tempestade",
+      "requires": ["corrente", "fragmentacao"],
+      "description": "O raio pula em mais 2 inimigos."
+    },
+    {
+      "id": "reacao_cadeia",
+      "name": "Reação em Cadeia",
+      "requires": ["fornalha", "instavel"],
+      "description": "As explosões crescem e uma pode disparar a outra."
+    },
+    {
+      "id": "ciclone",
+      "name": "Ciclone",
+      "requires": ["turbina", "rastro"],
+      "description": "O rastro de vapor também apaga balas."
+    },
+    {
+      "id": "engrenagem_viva",
+      "name": "Engrenagem Viva",
+      "requires": ["campo", "rebites"],
+      "description": "As engrenagens do campo atiram sozinhas."
+    },
+    {
+      "id": "artilharia_eletrica",
+      "name": "Artilharia Elétrica",
+      "requires": ["bombetas", "corrente"],
+      "description": "A explosão do morteiro solta um raio em cadeia."
+    },
+    {
+      "id": "expresso_infernal",
+      "name": "Expresso Infernal",
+      "requires": ["onda_choque", "fornalha"],
+      "description": "A onda de choque fica 50% maior e mais forte."
+    },
+    {
+      "id": "fabrica",
+      "name": "Fábrica de Torres",
+      "requires": ["torre_dupla", "campo"],
+      "description": "As torres seguram balas num raio maior e duram 4s a mais."
     }
   ]
 }

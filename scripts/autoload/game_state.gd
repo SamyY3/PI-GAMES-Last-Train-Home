@@ -7,6 +7,7 @@ var rarity_weights: Dictionary = {}
 var dialogue_db: Dictionary = {}
 
 var difficulty: String = "medium"
+var mode: String = "story"
 var max_hp: int = 5
 var current_hp: int = 5
 var current_wagon: int = 1
@@ -30,7 +31,7 @@ var graze_time_this_level: float = 0.0
 var fiscal_purchases: int = 0
 var fiscal_met: bool = false
 var is_daily: bool = false
-var starter_tool: String = ""
+var story_skill: String = ""
 var wave_variants: Dictionary = {}
 var wagon_modifiers: Dictionary = {}
 var run_rng := RandomNumberGenerator.new()
@@ -73,8 +74,9 @@ func _read_json(path: String) -> Dictionary:
 	return {}
 
 
-func start_new_run(diff_key: String, daily: bool = false) -> void:
+func start_new_run(diff_key: String, daily: bool = false, run_mode: String = "story") -> void:
 	difficulty = diff_key
+	mode = run_mode
 	Settings.last_difficulty = diff_key
 	Settings.save_settings()
 
@@ -104,9 +106,8 @@ func start_new_run(diff_key: String, daily: bool = false) -> void:
 	fiscal_met = false
 
 	TrainClock.start_clock(float(diff_cfg.get("initial_time", 390.0)))
-	starter_tool = "" if daily else Progress.get_selected_tool()
-	if starter_tool != "":
-		add_upgrade(String(Progress.get_tool(starter_tool).get("upgrade", "")))
+	story_skill = "" if daily or run_mode != "story" else Progress.get_selected_skill()
+	Malha.reset_skill()
 	save_wagon_checkpoint()
 
 
@@ -139,6 +140,10 @@ func get_wagon_modifier(wagon: int) -> String:
 
 
 func get_difficulty_config() -> Dictionary:
+	if is_malha():
+		var lvl: Dictionary = Malha.level_config()
+		if not lvl.is_empty():
+			return lvl
 	var diffs: Dictionary = balance_data.get("difficulties", {})
 	return diffs.get(difficulty, diffs.get("medium", {}))
 
@@ -155,7 +160,8 @@ func save_wagon_checkpoint() -> void:
 		"reserve": TrainClock.reserve,
 		"fiscal_purchases": fiscal_purchases,
 		"kills": kills,
-		"sucata_kill_counter": sucata_kill_counter
+		"sucata_kill_counter": sucata_kill_counter,
+		"malha": Malha.snapshot() if is_malha() else {}
 	}
 
 
@@ -175,7 +181,18 @@ func restore_wagon_checkpoint() -> void:
 	fiscal_purchases = int(checkpoint_state.get("fiscal_purchases", 0))
 	kills = int(checkpoint_state.get("kills", kills))
 	sucata_kill_counter = int(checkpoint_state.get("sucata_kill_counter", 0))
+	if is_malha():
+		Malha.restore(checkpoint_state.get("malha", {}))
 	Events.player_healed.emit(current_hp, max_hp)
+
+
+func is_malha() -> bool:
+	return mode == "malha"
+
+
+func upgrade_in_mode(item: Dictionary) -> bool:
+	var modes: Array = item.get("modes", [])
+	return modes.is_empty() or modes.has(mode)
 
 
 func get_fiscal_config() -> Dictionary:

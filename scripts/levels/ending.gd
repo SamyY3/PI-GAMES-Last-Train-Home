@@ -26,7 +26,8 @@ const PLATFORM_TEX: Texture2D = preload("res://assets/sprites/menu/platform_tile
 const LAMP_TEX: Texture2D = preload("res://assets/sprites/menu/station_lamp.png")
 const LOCO_TEX: Texture2D = preload("res://assets/sprites/train/locomotive_anim.png")
 const WAGON_TEX: Texture2D = preload("res://assets/sprites/train/wagon.png")
-const WAGON_DOOR_TEX: Texture2D = preload("res://assets/sprites/train/wagon_door.png")
+const COUPLER_TEX: Texture2D = preload("res://assets/sprites/train/coupler.png")
+const WAGON_DOOR_TEX: Texture2D = preload("res://assets/sprites/train/wagon_door_anim.png")
 const BOGIE_TEX: Texture2D = preload("res://assets/sprites/train/wagon_bogie.png")
 const RAIL_TEX: Texture2D = preload("res://assets/sprites/train/rail_tile.png")
 const BALLAST_TEX: Texture2D = preload("res://assets/sprites/train/ballast_tile.png")
@@ -41,7 +42,8 @@ const TRAIN_STOP_X: float = 300.0
 const TRAIN_BASE_Y: float = 197.0
 const PLATFORM_EDGE_ROW: float = 30.0
 const PLATFORM_FEET_Y: float = 256.0 # no calçamento, bem abaixo da faixa dos trilhos
-const TEO_DOOR_X: float = 148.0
+const TEO_DOOR_X: float = 110.0
+const TEO_DOOR_FEET_Y: float = 204.0
 const MEET_X: float = 292.0
 # Caminho de terra da pintura dawn_home.png, da beira da tela até a porta da casa
 const HOME_PATH: Array[Vector2] = [Vector2(150.0, 268.0), Vector2(232.0, 232.0), Vector2(330.0, 203.0), Vector2(350.0, 192.0)]
@@ -63,6 +65,8 @@ var train_x: float = -160.0
 var door_open: float = 0.0
 var teo_x: float = TEO_DOOR_X
 var teo_alpha: float = 0.0
+var teo_y: float = PLATFORM_FEET_Y
+var teo_door_t: float = 1.0
 var lia_x: float = 340.0
 var lia_running: bool = false
 var reunion_alpha: float = 0.0
@@ -211,9 +215,11 @@ func _draw_station() -> void:
 	var tx: float = round(train_x)
 	for w in range(2):
 		var wx: float = tx - 200.0 + float(w) * 102.0
-		draw_texture(WAGON_TEX, Vector2(wx, TRAIN_BASE_Y - 52.0), warm)
-		if w == 0 and door_open > 0.01:
-			draw_texture(WAGON_DOOR_TEX, Vector2(wx, TRAIN_BASE_Y - 52.0), Color(warm.r, warm.g, warm.b, door_open))
+		draw_texture(COUPLER_TEX, Vector2(wx + 94.0, TRAIN_BASE_Y - 18.0), warm)
+		if w == 0:
+			draw_texture_rect_region(WAGON_DOOR_TEX, Rect2(wx, TRAIN_BASE_Y - 52.0, 96.0, 48.0), Rect2(roundi(clampf(door_open, 0.0, 1.0) * 5.0) * 96.0, 0.0, 96.0, 48.0), warm)
+		else:
+			draw_texture(WAGON_TEX, Vector2(wx, TRAIN_BASE_Y - 52.0), warm)
 		for bx in [wx + 18.0, wx + 76.0]:
 			draw_texture_rect_region(BOGIE_TEX, Rect2(bx - 13.0, TRAIN_BASE_Y - 11.0, 26.0, 12.0), Rect2((frame % 4) * 26.0, 0.0, 26.0, 12.0), warm)
 	draw_texture_rect_region(LOCO_TEX, Rect2(tx + 4.0, TRAIN_BASE_Y - 62.0, 112.0, 64.0), Rect2((frame % 9) * 112.0, 0.0, 112.0, 64.0), warm)
@@ -237,11 +243,13 @@ func _draw_station() -> void:
 
 	# Teo desce do vagão e anda pela plataforma até a família
 	if teo_alpha > 0.01:
-		var walking: bool = teo_x < MEET_X - 1.0 and _stage == Stage.STEP_OFF
-		var row: int = 17 + 2 if walking else 9 + 2
+		var stepping_down: bool = teo_y < PLATFORM_FEET_Y - 0.5
+		var walking: bool = stepping_down or (teo_x < MEET_X - 1.0 and _stage == Stage.STEP_OFF)
+		var row: int = 17 if stepping_down else (17 + 2 if walking else 9 + 2)
 		var nf: int = 6 if walking else 4
 		var fps: float = 10.0 if walking else 5.0
-		_draw_cell(TEO_TEX, 48, int(_anim_t * fps) % nf, row, Vector2(round(teo_x), PLATFORM_FEET_Y + 1.0), 42.0, false, Color(1.0, 0.95, 0.9, teo_alpha))
+		var shade: float = lerpf(0.15, 1.0, teo_door_t)
+		_draw_cell(TEO_TEX, 48, int(_anim_t * fps) % nf, row, Vector2(round(teo_x), round(teo_y) + 1.0), 42.0, false, Color(shade, 0.95 * shade, 0.9 * shade, teo_alpha))
 
 
 # Reencontro: a ilustração do abraço em 2x numa moldura, acima da caixa de diálogo
@@ -304,6 +312,7 @@ func _draw_train(x: float, base_y: float, wheel_t: float) -> void:
 	var frame: int = int(wheel_t / 1.5)
 	for w in range(2):
 		var wx: float = x - 200.0 + float(w) * 102.0
+		draw_texture(COUPLER_TEX, Vector2(wx + 94.0, base_y - 18.0))
 		draw_texture(WAGON_TEX, Vector2(wx, base_y - 52.0))
 		for bx in [wx + 18.0, wx + 76.0]:
 			draw_texture_rect_region(BOGIE_TEX, Rect2(bx - 13.0, base_y - 11.0, 26.0, 12.0), Rect2((frame % 4) * 26.0, 0.0, 26.0, 12.0))
@@ -399,12 +408,15 @@ func _run_cinematic() -> void:
 	AudioManager.play_sfx("clang")
 	await _wait(0.4)
 	teo_x = TEO_DOOR_X
-	_tween_prop("teo_alpha", 1.0, 0.3)
-	await _wait(0.5)
+	teo_y = TEO_DOOR_FEET_Y
+	teo_door_t = 0.0
+	await _tween_prop("teo_alpha", 1.0, 0.3).finished
+	_tween_prop("teo_door_t", 1.0, 0.6)
+	await _tween_prop("teo_y", PLATFORM_FEET_Y, 0.8).finished
 	_caption.text = "— TEO!"
 	lia_running = true
 	_tween_prop("lia_x", MEET_X + 10.0, 2.2, Tween.TRANS_SINE, Tween.EASE_OUT)
-	await _tween_prop("teo_x", MEET_X - 10.0, 2.4, Tween.TRANS_SINE, Tween.EASE_IN_OUT).finished
+	await _tween_prop("teo_x", MEET_X - 10.0, 2.2, Tween.TRANS_SINE, Tween.EASE_IN_OUT).finished
 	lia_running = false
 
 	# --- Reencontro: ilustração do abraço e a conversa com a família
@@ -480,7 +492,7 @@ func _show_results_screen(remaining_bomb: float) -> void:
 	var unlocked: Array = win.get("unlocked", [])
 	if not unlocked.is_empty():
 		rec_str += "
-FERRAMENTA LIBERADA: %s" % ", ".join(PackedStringArray(unlocked)).to_upper()
+HABILIDADE LIBERADA: %s" % ", ".join(PackedStringArray(unlocked)).to_upper()
 
 	var grade_lbl := Label.new()
 	grade_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER

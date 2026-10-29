@@ -106,6 +106,7 @@ var fullscreen: bool = false
 var screen_shake_mode: int = 2
 var reduce_flashes: bool = false
 var auto_aim: bool = false
+var aim_assist: bool = true
 var always_show_hitbox: bool = false
 var show_damage_numbers: bool = true
 var high_contrast_bullets: bool = false
@@ -637,6 +638,7 @@ func save_settings() -> void:
 	cfg.set_value("video", "screen_shake_mode", screen_shake_mode)
 	cfg.set_value("video", "reduce_flashes", reduce_flashes)
 	cfg.set_value("gameplay", "auto_aim", auto_aim)
+	cfg.set_value("gameplay", "aim_assist", aim_assist)
 	cfg.set_value("gameplay", "always_show_hitbox", always_show_hitbox)
 	cfg.set_value("gameplay", "show_damage_numbers", show_damage_numbers)
 	cfg.set_value("gameplay", "high_contrast_bullets", high_contrast_bullets)
@@ -662,6 +664,7 @@ func load_settings() -> void:
 	screen_shake_mode = int(cfg.get_value("video", "screen_shake_mode", 2))
 	reduce_flashes = bool(cfg.get_value("video", "reduce_flashes", false))
 	auto_aim = bool(cfg.get_value("gameplay", "auto_aim", false))
+	aim_assist = bool(cfg.get_value("gameplay", "aim_assist", true))
 	always_show_hitbox = bool(cfg.get_value("gameplay", "always_show_hitbox", false))
 	show_damage_numbers = bool(cfg.get_value("gameplay", "show_damage_numbers", true))
 	high_contrast_bullets = bool(cfg.get_value("gameplay", "high_contrast_bullets", false))

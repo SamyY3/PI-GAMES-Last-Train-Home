@@ -261,4 +261,7 @@ func _draw_button(b: Dictionary, pressed: bool, ready_ratio: float) -> void:
 		_canvas.draw_arc(pos, r, 0.0, TAU, 32, Color(COL_BRASS, 0.9), 1.0)
 	var font: Font = Settings.ui_font
 	var txt_col: Color = COL_DARK if pressed else Color(COL_TEXT, 1.0 if ready_ratio >= 1.0 else 0.5)
-	_canvas.draw_string(font, Vector2(pos.x - r, pos.y + 4.0), String(b["label"]), HORIZONTAL_ALIGNMENT_CENTER, r * 2.0, 10, txt_col)
+	var label: String = String(b["label"])
+	if String(b.get("action", "")) == "ability" and Malha.active_skill() != "":
+		label = String(Malha.get_line(Malha.active_skill()).get("touch_label", label))
+	_canvas.draw_string(font, Vector2(pos.x - r, pos.y + 4.0), label, HORIZONTAL_ALIGNMENT_CENTER, r * 2.0, 10, txt_col)

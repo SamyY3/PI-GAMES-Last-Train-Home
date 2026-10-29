@@ -143,6 +143,10 @@ func play_phase(level: Node2D, boss: Node2D, phase: int) -> void:
 	await _play(level, boss, cfg)
 
 
+func play_card(level: Node2D, boss: Node2D, cfg: Dictionary) -> void:
+	await _play(level, boss, cfg)
+
+
 func play_defeat(level: Node2D, boss: Node2D) -> void:
 	await _play(level, boss, {
 		"tag": "CHEFE DERROTADO",
@@ -173,7 +177,8 @@ func _play(level: Node2D, boss: Node2D, cfg: Dictionary) -> void:
 	_bar_top.position = Vector2(0.0, -BAR_H)
 	_bar_bot.position = Vector2(0.0, 270.0)
 	_art.texture = cfg.get("art", ART_P1)
-	_art.size = _art.texture.get_size()
+	_art.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_art.size = _art.texture.get_size() * float(cfg.get("art_scale", 1.0))
 	_art.position = Vector2(480.0, 270.0 - BAR_H - _art.size.y + 14.0)
 	_art.modulate = cfg.get("art_tint", Color.WHITE)
 	_banner.size = SPLASH_TEX.get_size()

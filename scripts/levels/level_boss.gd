@@ -8,6 +8,8 @@ func _ready() -> void:
 	wagon_number = 5
 	next_scene_path = "res://scenes/levels/Disarm.tscn"
 	super._ready()
+	if GameState.is_malha():
+		Malha.on_stop_start()
 	TrainClock.apply_section_rubber_band("boss_start")
 	AudioManager.play_music("boss_p1_p2")
 	hud.set_wagon_title("LOCOMOTIVA")
@@ -28,6 +30,8 @@ func _ready() -> void:
 
 
 func _on_boss_phase_changed(new_phase: int) -> void:
+	if GameState.is_malha():
+		return
 	# cartaz da fase e, em seguida, a conversa entre o Maquinista e o Teo (o jogo segue pausado)
 	await cutscene.play_phase(self, boss, new_phase)
 	var talk_key: String = "boss_p%d_talk" % new_phase

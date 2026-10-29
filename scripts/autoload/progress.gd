@@ -33,19 +33,19 @@ func get_wins(diff: String) -> int:
 	return int(_cfg.get_value("records", "wins_" + diff, 0))
 
 
-func get_starter_tools() -> Array:
-	return GameState.balance_data.get("starter_tools", [])
+func get_starter_skills() -> Array:
+	return GameState.balance_data.get("starter_skills", [])
 
 
-func get_tool(tool_id: String) -> Dictionary:
-	for t in get_starter_tools():
-		if String(t.get("id", "")) == tool_id:
-			return t
+func get_starter_skill(skill_id: String) -> Dictionary:
+	for s in get_starter_skills():
+		if String(s.get("id", "")) == skill_id:
+			return s
 	return {}
 
 
-func is_tool_unlocked(tool: Dictionary) -> bool:
-	match String(tool.get("unlock", "")):
+func is_skill_unlocked(skill: Dictionary) -> bool:
+	match String(skill.get("unlock", "")):
 		"win_any":
 			return get_total_wins() > 0
 		"win_medium":
@@ -55,21 +55,21 @@ func is_tool_unlocked(tool: Dictionary) -> bool:
 	return false
 
 
-func get_unlocked_tool_ids() -> Array[String]:
+func get_unlocked_skill_ids() -> Array[String]:
 	var ids: Array[String] = []
-	for t in get_starter_tools():
-		if is_tool_unlocked(t):
-			ids.append(String(t.get("id", "")))
+	for s in get_starter_skills():
+		if is_skill_unlocked(s):
+			ids.append(String(s.get("id", "")))
 	return ids
 
 
-func get_selected_tool() -> String:
-	var tool_id: String = String(_cfg.get_value("profile", "starter_tool", ""))
-	return tool_id if get_unlocked_tool_ids().has(tool_id) else ""
+func get_selected_skill() -> String:
+	var skill_id: String = String(_cfg.get_value("profile", "story_skill", ""))
+	return skill_id if get_unlocked_skill_ids().has(skill_id) else ""
 
 
-func set_selected_tool(tool_id: String) -> void:
-	_cfg.set_value("profile", "starter_tool", tool_id)
+func set_selected_skill(skill_id: String) -> void:
+	_cfg.set_value("profile", "story_skill", skill_id)
 	_save()
 
 
@@ -111,7 +111,7 @@ func get_daily_best() -> float:
 
 
 func register_win(diff: String, run_time: float, grade: String, daily: bool) -> Dictionary:
-	var unlocked_before: Array[String] = get_unlocked_tool_ids()
+	var unlocked_before: Array[String] = get_unlocked_skill_ids()
 	_cfg.set_value("records", "total_wins", get_total_wins() + 1)
 	_cfg.set_value("records", "wins_" + diff, get_wins(diff) + 1)
 
@@ -133,7 +133,43 @@ func register_win(diff: String, run_time: float, grade: String, daily: bool) -> 
 	_save()
 
 	var newly: Array[String] = []
-	for tool_id in get_unlocked_tool_ids():
-		if not unlocked_before.has(tool_id):
-			newly.append(String(get_tool(tool_id).get("name", tool_id)))
+	for skill_id in get_unlocked_skill_ids():
+		if not unlocked_before.has(skill_id):
+			newly.append(Malha.skill_name(skill_id))
 	return {"new_record": new_record, "unlocked": newly}
+
+
+func get_malha_wins() -> int:
+	return int(_cfg.get_value("malha", "wins", 0))
+
+
+func get_malha_best_time() -> float:
+	return float(_cfg.get_value("malha", "best_time", -1.0))
+
+
+func get_malha_line_wins(line_id: String) -> int:
+	return int(_cfg.get_value("malha", "wins_" + line_id, 0))
+
+
+func get_malha_unlocked_level() -> int:
+	return int(_cfg.get_value("malha", "unlocked_level", 1))
+
+
+func get_malha_level_best(level: int) -> float:
+	return float(_cfg.get_value("malha", "best_time_l%d" % level, -1.0))
+
+
+func register_malha_win(line_id: String, run_time: float, level: int = 1, max_level: int = 10) -> bool:
+	if level >= get_malha_unlocked_level():
+		_cfg.set_value("malha", "unlocked_level", mini(max_level, level + 1))
+	var prev_level: float = get_malha_level_best(level)
+	if prev_level < 0.0 or run_time < prev_level:
+		_cfg.set_value("malha", "best_time_l%d" % level, run_time)
+	_cfg.set_value("malha", "wins", get_malha_wins() + 1)
+	_cfg.set_value("malha", "wins_" + line_id, get_malha_line_wins(line_id) + 1)
+	var prev: float = get_malha_best_time()
+	var new_record: bool = prev < 0.0 or run_time < prev
+	if new_record:
+		_cfg.set_value("malha", "best_time", run_time)
+	_save()
+	return new_record

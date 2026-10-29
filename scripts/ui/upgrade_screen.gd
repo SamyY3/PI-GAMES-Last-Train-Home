@@ -31,6 +31,7 @@ var _title: Label
 var _hint: Label
 var _shop_hint: Label
 var _shop_price: float = -1.0
+var _kind: String = "normal"
 var _root_control: Control
 var _focused_idx: int = 0
 
@@ -62,11 +63,11 @@ func _build_ui() -> void:
 	_title.add_theme_color_override("font_color", Color("#f2c35b"))
 	_root_control.add_child(_title)
 
-	var start_x: Array[float] = [52.0, 180.0, 308.0]
+	var start_x: Array[float] = [28.0, 172.0, 316.0]
 	for i in range(3):
 		var card := Panel.new()
-		card.position = Vector2(start_x[i], 36.0)
-		card.size = Vector2(120.0, 152.0)
+		card.position = Vector2(start_x[i], 30.0)
+		card.size = Vector2(136.0, 170.0)
 		card.clip_contents = true
 		card.mouse_filter = Control.MOUSE_FILTER_STOP
 		var idx: int = i
@@ -91,7 +92,7 @@ func _build_ui() -> void:
 		_card_curses.append(curse)
 
 		var icon_rect := TextureRect.new()
-		icon_rect.position = Vector2(48.0, 5.0)
+		icon_rect.position = Vector2(56.0, 5.0)
 		icon_rect.size = Vector2(24.0, 24.0)
 		icon_rect.stretch_mode = TextureRect.STRETCH_KEEP_CENTERED
 		card.add_child(icon_rect)
@@ -99,7 +100,7 @@ func _build_ui() -> void:
 
 		var lbl_name := Label.new()
 		lbl_name.position = Vector2(4.0, 30.0)
-		lbl_name.size = Vector2(112.0, 28.0)
+		lbl_name.size = Vector2(128.0, 28.0)
 		lbl_name.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		lbl_name.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 		lbl_name.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -111,7 +112,7 @@ func _build_ui() -> void:
 
 		var lbl_lvl := Label.new()
 		lbl_lvl.position = Vector2(4.0, 58.0)
-		lbl_lvl.size = Vector2(112.0, 14.0)
+		lbl_lvl.size = Vector2(128.0, 14.0)
 		lbl_lvl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		lbl_lvl.add_theme_font_size_override("font_size", 10)
 		lbl_lvl.add_theme_color_override("font_color", Color("#8fb8c4"))
@@ -119,8 +120,8 @@ func _build_ui() -> void:
 		_card_levels.append(lbl_lvl)
 
 		var lbl_desc := Label.new()
-		lbl_desc.position = Vector2(6.0, 74.0)
-		lbl_desc.size = Vector2(108.0, 54.0)
+		lbl_desc.position = Vector2(5.0, 73.0)
+		lbl_desc.size = Vector2(126.0, 74.0)
 		lbl_desc.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		lbl_desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		lbl_desc.add_theme_font_size_override("font_size", 10)
@@ -135,15 +136,15 @@ func _build_ui() -> void:
 		cat_bg.patch_margin_right = 3
 		cat_bg.patch_margin_top = 3
 		cat_bg.patch_margin_bottom = 3
-		cat_bg.position = Vector2(4.0, 130.0)
-		cat_bg.size = Vector2(112.0, 19.0)
+		cat_bg.position = Vector2(4.0, 148.0)
+		cat_bg.size = Vector2(128.0, 19.0)
 		cat_bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		card.add_child(cat_bg)
 		_card_cat_bgs.append(cat_bg)
 
 		var lbl_cat := Label.new()
-		lbl_cat.position = Vector2(4.0, 133.0)
-		lbl_cat.size = Vector2(112.0, 15.0)
+		lbl_cat.position = Vector2(4.0, 151.0)
+		lbl_cat.size = Vector2(128.0, 15.0)
 		lbl_cat.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		lbl_cat.add_theme_font_size_override("font_size", 10)
 		lbl_cat.add_theme_color_override("font_color", Color("#f2c35b"))
@@ -152,7 +153,7 @@ func _build_ui() -> void:
 
 	_reroll_btn = Button.new()
 	Settings.bind_prompt_text(_reroll_btn, "SORTEAR DE NOVO {menu_alt} (1)")
-	_reroll_btn.position = Vector2(165.0, 198.0)
+	_reroll_btn.position = Vector2(165.0, 208.0)
 	_reroll_btn.size = Vector2(150.0, 24.0)
 	_reroll_btn.add_theme_font_size_override("font_size", 10)
 	_reroll_btn.pressed.connect(_do_reroll)
@@ -160,7 +161,7 @@ func _build_ui() -> void:
 
 	_decline_btn = Button.new()
 	Settings.bind_prompt_text(_decline_btn, "RECUSAR {cancel}")
-	_decline_btn.position = Vector2(165.0, 198.0)
+	_decline_btn.position = Vector2(165.0, 208.0)
 	_decline_btn.size = Vector2(150.0, 24.0)
 	_decline_btn.add_theme_font_size_override("font_size", 10)
 	_decline_btn.pressed.connect(_decline_shop)
@@ -172,7 +173,7 @@ func _build_ui() -> void:
 	else:
 		Settings.bind_prompt_text(_hint, "[A/D ou Setas] Selecionar   |   [ENTER ou Clique] Confirmar", "[◀/▶] Selecionar   |   {confirm} Confirmar   |   {menu_alt} Sortear")
 	_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_hint.position = Vector2(0.0, 228.0)
+	_hint.position = Vector2(0.0, 236.0)
 	_hint.size = Vector2(480.0, 16.0)
 	_hint.add_theme_font_size_override("font_size", 10)
 	_hint.add_theme_color_override("font_color", Color("#8fb8c4"))
@@ -180,21 +181,38 @@ func _build_ui() -> void:
 
 	_shop_hint = Label.new()
 	_shop_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_shop_hint.position = Vector2(0.0, 228.0)
+	_shop_hint.position = Vector2(0.0, 236.0)
 	_shop_hint.size = Vector2(480.0, 16.0)
 	_shop_hint.add_theme_font_size_override("font_size", 10)
 	_shop_hint.add_theme_color_override("font_color", Color("#8fb8c4"))
 	_root_control.add_child(_shop_hint)
 
 
-func open_upgrade_choices() -> void:
+func open_upgrade_choices(kind: String = "normal") -> void:
 	_shop_price = -1.0
-	_title.text = "ESCOLHA UMA MELHORIA"
+	_kind = kind
+	_title.text = "AFINAR A MÁQUINA — SUBA O NÍVEL DE UMA CARTA" if kind == "owned" else "ESCOLHA UMA MELHORIA"
+	if kind == "levelup":
+		_title.text = "TEO SUBIU PARA O NÍVEL %d! ESCOLHA UMA MELHORIA" % Malha.xp_level
 	_open()
+
+
+func is_open() -> bool:
+	return _root_control.visible
+
+
+func has_owned_upgradable() -> bool:
+	for item in GameState.upgrades_db:
+		var id_str: String = String(item.get("id", ""))
+		var lvl: int = GameState.get_upgrade_level(id_str)
+		if lvl > 0 and lvl < int(item.get("max_level", 1)):
+			return true
+	return false
 
 
 func open_shop(price: float) -> void:
 	_shop_price = price
+	_kind = "normal"
 	_title.text = "O FISCAL — UMA CARTA POR %s" % TrainClock.format_seconds(price)
 	var from_reserve: float = minf(TrainClock.reserve, price)
 	if from_reserve <= 0.0:
@@ -251,7 +269,7 @@ func _unhandled_input(event: InputEvent) -> void:
 
 func _set_focused_card(idx: int) -> void:
 	_focused_idx = clampi(idx, 0, maxi(0, _cards_data.size() - 1))
-	var start_x: Array[float] = [52.0, 180.0, 308.0]
+	var start_x: Array[float] = [28.0, 172.0, 316.0]
 	for i in range(3):
 		if i >= _cards_data.size():
 			continue
@@ -262,7 +280,7 @@ func _set_focused_card(idx: int) -> void:
 
 		card.add_theme_stylebox_override("panel", Settings.make_ui_style("panel_focus" if i == _focused_idx else "panel"))
 		card.self_modulate = Color.WHITE.lerp(base_col, 0.85 if rarity == "cursed" else 0.35)
-		card.position = Vector2(start_x[i], 30.0 if i == _focused_idx else 36.0)
+		card.position = Vector2(start_x[i], 25.0 if i == _focused_idx else 30.0)
 
 
 func _do_reroll() -> void:
@@ -285,13 +303,18 @@ func _roll_three_cards(exclude_current: bool) -> void:
 		if item is Dictionary:
 			var id_str: String = String(item.get("id", ""))
 			var max_lvl: int = int(item.get("max_level", 1))
-			if GameState.get_upgrade_level(id_str) < max_lvl:
+			var lvl: int = GameState.get_upgrade_level(id_str)
+			if not GameState.upgrade_in_mode(item) or not Malha.card_allowed(item) or (_kind == "owned" and lvl <= 0):
+				continue
+			if lvl < max_lvl:
 				if not exclude_current or not current_ids.has(id_str):
 					available.append(item)
 
 	var weights: Dictionary = GameState.rarity_weights
-	if _shop_price >= 0.0:
+	if _shop_price >= 0.0 or _kind == "shop":
 		weights = GameState.get_fiscal_config().get("rarity_weights", weights)
+	elif _kind == "elite":
+		weights = Malha.data.get("elite_rarity_weights", weights)
 
 	_cards_data.clear()
 	if available.is_empty():
@@ -305,10 +328,11 @@ func _roll_three_cards(exclude_current: bool) -> void:
 				"max_level": 1
 			})
 	else:
-		if not GameState.has_picked_first_upgrade:
+		if not GameState.has_picked_first_upgrade and _kind != "owned":
 			var atk_pool: Array[Dictionary] = []
 			for u in available:
-				if String(u.get("category", "")) == "Ataque" and String(u.get("rarity", "")) != "cursed":
+				var first_ok: bool = String(u.get("line", "")) == Malha.line_id if GameState.is_malha() else String(u.get("category", "")) == "Ataque"
+				if first_ok and String(u.get("rarity", "")) != "cursed":
 					atk_pool.append(u)
 			if not atk_pool.is_empty():
 				var first_atk: Dictionary = atk_pool[GameState.card_rng.randi_range(0, atk_pool.size() - 1)]
@@ -324,19 +348,21 @@ func _roll_three_cards(exclude_current: bool) -> void:
 
 
 func _weighted_pick(pool: Array[Dictionary], weights: Dictionary) -> Dictionary:
-	var total_weight: int = 0
+	var total_weight: float = 0.0
 	for u in pool:
-		var r: String = String(u.get("rarity", "common"))
-		total_weight += int(weights.get(r, 10))
+		total_weight += _card_weight(u, weights)
 
-	var roll: int = GameState.card_rng.randi() % maxi(1, total_weight)
-	var accum: int = 0
+	var roll: float = GameState.card_rng.randf() * total_weight
+	var accum: float = 0.0
 	for u in pool:
-		var r: String = String(u.get("rarity", "common"))
-		accum += int(weights.get(r, 10))
+		accum += _card_weight(u, weights)
 		if roll < accum:
 			return u
 	return pool[0]
+
+
+func _card_weight(u: Dictionary, weights: Dictionary) -> float:
+	return float(weights.get(String(u.get("rarity", "common")), 10)) * Malha.card_weight(u)
 
 
 func _update_card_contents() -> void:
@@ -357,14 +383,22 @@ func _update_card_contents() -> void:
 
 		_card_titles[i].text = String(data.get("name", ""))
 		_card_levels[i].text = "%s · Nv %d -> %d" % [String(RARITY_NAMES.get(rarity, "COMUM")), cur_lvl, next_lvl]
-		_card_descs[i].text = String(data.get("description", ""))
-		_card_cats[i].text = "[%s]" % String(data.get("category", ""))
+		_card_descs[i].text = String(data.get("description_malha", data.get("description", ""))) if GameState.is_malha() else String(data.get("description", ""))
+		var line_info: Dictionary = Malha.get_line(String(data.get("line", ""))) if GameState.is_malha() and data.has("line") else {}
+		_card_cats[i].text = "[%s]" % (String(line_info.get("short", "")) if not line_info.is_empty() else String(data.get("category", "")))
+		if data.has("skill"):
+			_card_cats[i].text = "[HABILIDADE: %s]" % Malha.skill_name(String(data.get("skill", ""))).to_upper().get_slice(" ", 0)
 		var cursed: bool = rarity == "cursed"
 		_card_curses[i].visible = cursed
 		_card_curses[i].queue_redraw()
 		_card_titles[i].add_theme_color_override("font_color", Color("#ffb4a8") if cursed else Color("#fff1c9"))
 		_card_levels[i].add_theme_color_override("font_color", Color("#ff6b5b") if cursed else Color("#8fb8c4"))
-		_card_cats[i].add_theme_color_override("font_color", Color("#ff8a7a") if cursed else Color("#f2c35b"))
+		var cat_col: Color = Color("#f2c35b")
+		if cursed:
+			cat_col = Color("#ff8a7a")
+		elif not line_info.is_empty():
+			cat_col = Malha.get_line_color(String(line_info.get("id", "")))
+		_card_cats[i].add_theme_color_override("font_color", cat_col)
 		_card_cat_bgs[i].self_modulate = Color("#e0574a") if cursed else Color.WHITE
 
 	Settings.bind_prompt_text(_reroll_btn, "SORTEAR DE NOVO {menu_alt} (%d)" % GameState.rerolls_left)

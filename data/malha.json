@@ -1,0 +1,899 @@
+{
+  "lines": [
+    {
+      "id": "polvora",
+      "name": "Linha da Pólvora",
+      "short": "PÓLVORA",
+      "color": "#ff8a3d",
+      "description": "Dano, tiros extras, perfuração e explosões.",
+      "apito_name": "Morteiro",
+      "apito_description": "Lança um morteiro no ponto mirado: explosão que fere tudo em volta e apaga as balas. Evolui com as cartas de habilidade da Linha.",
+      "apito_description_2": "",
+      "touch_label": "BOMBA"
+    },
+    {
+      "id": "vapor",
+      "name": "Linha do Vapor",
+      "short": "VAPOR",
+      "color": "#8fb8c4",
+      "description": "Dash, Pulso, velocidade e rastro de vapor.",
+      "apito_name": "Expresso Fantasma",
+      "apito_description": "O Teo dispara como uma locomotiva de vapor: invulnerável, fere quem atravessa e apaga as balas. Evolui com as cartas de habilidade da Linha.",
+      "apito_description_2": "",
+      "touch_label": "VAPOR"
+    },
+    {
+      "id": "engrenagem",
+      "name": "Linha da Engrenagem",
+      "short": "ENGRENAGEM",
+      "color": "#f2c35b",
+      "description": "Corações, escudo e recuperação.",
+      "apito_name": "Torre de Engrenagens",
+      "apito_description": "Monta uma torre que atira sozinha e segura as balas em volta. Evolui com as cartas de habilidade da Linha.",
+      "apito_description_2": "",
+      "touch_label": "TORRE"
+    }
+  ],
+  "line_card_weight": 3.0,
+  "economy": {
+    "start_fichas": 20,
+    "combat_reward": 15,
+    "combat_reward_per_column": 2,
+    "elite_reward": 35,
+    "elite_reward_per_column": 3,
+    "shop_card_price": 40,
+    "shop_repair_price": 30,
+    "shop_repair_hearts": 2,
+    "shop_reroll_price": 15,
+    "rest_heal_ratio": 0.5,
+    "rest_heal_min": 2,
+    "shop_curio_price": 45,
+    "moeda_discount": 0.7,
+    "station_heal_ratio": 0.5,
+    "station_heal_min": 2
+  },
+  "elite_rarity_weights": {
+    "common": 20,
+    "rare": 50,
+    "epic": 30,
+    "cursed": 10
+  },
+  "map": {
+    "columns": 9,
+    "min_rows": 2,
+    "max_rows": 4,
+    "column_types": [
+      {
+        "combat": 1
+      },
+      {
+        "combat": 7,
+        "event": 3
+      },
+      {
+        "combat": 5,
+        "shop": 2,
+        "event": 3
+      },
+      {
+        "combat": 4,
+        "elite": 3,
+        "shop": 1,
+        "event": 2
+      },
+      {
+        "combat": 3,
+        "elite": 3,
+        "rest": 2,
+        "event": 2
+      },
+      {
+        "combat": 4,
+        "elite": 3,
+        "shop": 1,
+        "event": 2
+      },
+      {
+        "combat": 4,
+        "elite": 3,
+        "rest": 1,
+        "event": 2
+      },
+      {
+        "combat": 4,
+        "elite": 4,
+        "event": 2
+      },
+      {
+        "combat": 5,
+        "elite": 5
+      }
+    ],
+    "modifier_chance": 0.4
+  },
+  "enemy_hp_per_column": 0.06,
+  "boss_hp_mult": 1.0,
+  "bosses": [
+    "maquinista",
+    "fortaleza",
+    "sinaleiro",
+    "relojoeiro"
+  ],
+  "enemy_costs": {
+    "drone": 1,
+    "sentinel": 2,
+    "wrench": 2,
+    "sniper": 2,
+    "turret": 3,
+    "freighter": 6,
+    "bomber": 2,
+    "shield": 3,
+    "spark": 1,
+    "flamer": 3,
+    "medic": 3,
+    "magnet": 3
+  },
+  "wave_budgets": [
+    [
+      4,
+      5,
+      6
+    ],
+    [
+      6,
+      7,
+      8,
+      8
+    ],
+    [
+      7,
+      9,
+      10,
+      11
+    ]
+  ],
+  "tier_enemies": [
+    [
+      "drone",
+      "sentinel",
+      "wrench",
+      "spark",
+      "flamer"
+    ],
+    [
+      "drone",
+      "sentinel",
+      "wrench",
+      "sniper",
+      "turret",
+      "spark",
+      "bomber",
+      "shield",
+      "flamer",
+      "medic",
+      "magnet"
+    ],
+    [
+      "drone",
+      "sentinel",
+      "wrench",
+      "sniper",
+      "turret",
+      "spark",
+      "bomber",
+      "shield",
+      "flamer",
+      "medic",
+      "magnet"
+    ]
+  ],
+  "boss_defs": {
+    "maquinista": {
+      "name": "O MAQUINISTA",
+      "tag": "CHEFE · LOCOMOTIVA",
+      "sub": "Pontual até o fim do mundo.",
+      "description": "O Maquinista em três fases, sem as conversas da história."
+    },
+    "fortaleza": {
+      "name": "A FORTALEZA",
+      "tag": "CHEFE · VAGÃO BLINDADO",
+      "sub": "Um cargueiro que nunca descarrega.",
+      "description": "Cargueiro blindado: a couraça segura quase todo o dano até ela bater na parede depois de uma investida. Dispara anéis, ergue muralhas de balas, planta fornalhas e chama drones.",
+      "hp": 2600,
+      "contact_damage": true,
+      "phase_names": [
+        "BLINDAGEM",
+        "CALDEIRA ABERTA",
+        "DESCARRILADA"
+      ],
+      "phases": [
+        [
+          "salva",
+          "investida",
+          "drones",
+          "salva",
+          "investida"
+        ],
+        [
+          "muralha",
+          "investida",
+          "fornalha",
+          "salva",
+          "drones",
+          "investida"
+        ],
+        [
+          "espiral",
+          "investida",
+          "fornalha",
+          "muralha",
+          "investida",
+          "espiral"
+        ]
+      ]
+    },
+    "sinaleiro": {
+      "name": "O SINALEIRO",
+      "tag": "CHEFE · CABINE DE SINAIS",
+      "sub": "Vermelho quer dizer pare.",
+      "description": "Controla os sinais: no vermelho as balas param e quem se mexer leva dano. Some e reaparece, dispara rajadas miradas, enche faixas do vagão de balas, gira a lanterna e chama torretas.",
+      "hp": 2300,
+      "contact_damage": false,
+      "phase_names": [
+        "SINAL AMARELO",
+        "SINAL VERMELHO",
+        "PANE GERAL"
+      ],
+      "phases": [
+        [
+          "sinal",
+          "trilhos",
+          "vermelho",
+          "sinal",
+          "lanterna"
+        ],
+        [
+          "trilhos",
+          "vermelho",
+          "torretas",
+          "sinal",
+          "lanterna",
+          "trilhos"
+        ],
+        [
+          "vermelho",
+          "lanterna",
+          "trilhos",
+          "sinal",
+          "vermelho",
+          "trilhos"
+        ]
+      ]
+    },
+    "relojoeiro": {
+      "name": "O RELOJOEIRO",
+      "tag": "CHEFE · VAGÃO DOS RELÓGIOS",
+      "sub": "Todo segundo volta para mim.",
+      "description": "Mestre do tempo: rebobina as balas, que voltam pelo mesmo caminho, e repete os próprios golpes como ecos. Ponteiros giratórios, tique-taque mirado e as doze badaladas em volta do Teo.",
+      "hp": 2400,
+      "phase_names": [
+        "CORDA CHEIA",
+        "CONTRATEMPO",
+        "MEIA-NOITE"
+      ],
+      "phases": [
+        [
+          "ponteiros",
+          "tique",
+          "badalada",
+          "rebobinar"
+        ],
+        [
+          "ponteiros",
+          "rebobinar",
+          "eco",
+          "badalada",
+          "tique",
+          "eco"
+        ],
+        [
+          "badalada",
+          "rebobinar",
+          "eco",
+          "ponteiros",
+          "tique",
+          "eco"
+        ]
+      ]
+    }
+  },
+  "curios": [
+    {
+      "id": "bilhete",
+      "name": "Bilhete Rasgado",
+      "description": "O primeiro golpe de cada parada não tira coração."
+    },
+    {
+      "id": "moeda",
+      "name": "Moeda Viciada",
+      "description": "O Fiscal cobra 30% menos, mas os inimigos têm +10% de vida."
+    },
+    {
+      "id": "relogio",
+      "name": "Relógio Parado",
+      "description": "Ao usar a habilidade da Linha, as balas inimigas param por 1,5s."
+    },
+    {
+      "id": "luva",
+      "name": "Luva de Foguista",
+      "description": "O Pulso recarrega 25% mais rápido."
+    },
+    {
+      "id": "oculos",
+      "name": "Óculos de Proteção",
+      "description": "Raspões contam de 50% mais longe."
+    },
+    {
+      "id": "gorjeta",
+      "name": "Pote de Gorjeta",
+      "description": "Cada abate tem 20% de chance de render 1 ficha."
+    },
+    {
+      "id": "apito_lata",
+      "name": "Apito de Lata",
+      "description": "A habilidade da Linha recarrega 30% mais rápido."
+    },
+    {
+      "id": "fotografia",
+      "name": "Fotografia da Família",
+      "description": "Uma vez por viagem, um golpe fatal deixa o Teo com 1 coração."
+    },
+    {
+      "id": "ferradura",
+      "name": "Ferradura Torta",
+      "description": "Cartas raras e épicas aparecem 50% mais."
+    },
+    {
+      "id": "carvao",
+      "name": "Carvão de Primeira",
+      "description": "+20% de dano nas balas, mas -1 coração máximo."
+    }
+  ],
+  "curio_values": {
+    "moeda_enemy_hp": 0.1,
+    "luva_pulse": 0.75,
+    "oculos_graze": 1.5,
+    "gorjeta_chance": 0.2,
+    "apito_lata_mult": 0.7,
+    "ferradura_mult": 1.5,
+    "carvao_damage": 0.2
+  },
+  "events": [
+    {
+      "id": "mala",
+      "title": "MALA ESQUECIDA",
+      "text": "Uma mala de couro trancada balança no bagageiro. Algo dentro faz tique-taque.",
+      "options": [
+        {
+          "label": "FORÇAR O FECHO",
+          "effects": [
+            {
+              "type": "chance",
+              "p": 0.6,
+              "success": [
+                {
+                  "type": "curio"
+                }
+              ],
+              "success_text": "Dentro havia um achado curioso!",
+              "fail": [
+                {
+                  "type": "damage",
+                  "amount": 1
+                }
+              ],
+              "fail_text": "Uma mola salta e acerta o Teo. -1 coração."
+            }
+          ]
+        },
+        {
+          "label": "DEIXAR PARA LÁ",
+          "effects": [],
+          "result": "Melhor não mexer no que faz tique-taque."
+        }
+      ]
+    },
+    {
+      "id": "febre",
+      "title": "PASSAGEIRO COM FEBRE",
+      "text": "Um senhor tosse sem parar e pede ajuda para comprar remédio na próxima estação.",
+      "options": [
+        {
+          "label": "DAR 15 FICHAS",
+          "effects": [
+            {
+              "type": "fichas",
+              "amount": -15
+            },
+            {
+              "type": "curio"
+            }
+          ],
+          "result": "Agradecido, ele entrega um objeto que guardava no bolso.",
+          "requires": {
+            "fichas": 15
+          }
+        },
+        {
+          "label": "SEGUIR EM FRENTE",
+          "effects": [],
+          "result": "O Teo segue viagem com um peso na consciência."
+        }
+      ]
+    },
+    {
+      "id": "apostador",
+      "title": "O APOSTADOR",
+      "text": "Um homem de cartola embaralha cartas sobre uma mala. \"Dobro ou nada, garoto?\"",
+      "options": [
+        {
+          "label": "APOSTAR 20 FICHAS",
+          "effects": [
+            {
+              "type": "fichas",
+              "amount": -20
+            },
+            {
+              "type": "chance",
+              "p": 0.5,
+              "success": [
+                {
+                  "type": "fichas",
+                  "amount": 45
+                }
+              ],
+              "success_text": "Sorte grande! +45 fichas.",
+              "fail": [],
+              "fail_text": "A casa sempre ganha."
+            }
+          ],
+          "requires": {
+            "fichas": 20
+          }
+        },
+        {
+          "label": "RECUSAR",
+          "effects": [],
+          "result": "\"Covarde\", resmunga o apostador."
+        }
+      ]
+    },
+    {
+      "id": "oficina",
+      "title": "VAGÃO-OFICINA",
+      "text": "Ferramentas espalhadas e uma bancada livre. Dá para afinar o equipamento, se o Teo aguentar o tranco.",
+      "options": [
+        {
+          "label": "TRABALHAR SOZINHO (-1 ♥)",
+          "effects": [
+            {
+              "type": "damage",
+              "amount": 1
+            },
+            {
+              "type": "upgrade_owned"
+            }
+          ],
+          "result": "Os dedos ardem, mas a máquina ronrona melhor.",
+          "requires": {
+            "hp": 2,
+            "owned": true
+          }
+        },
+        {
+          "label": "PAGAR O MECÂNICO (25 FICHAS)",
+          "effects": [
+            {
+              "type": "fichas",
+              "amount": -25
+            },
+            {
+              "type": "upgrade_owned"
+            }
+          ],
+          "result": "O mecânico faz o serviço assobiando.",
+          "requires": {
+            "fichas": 25,
+            "owned": true
+          }
+        },
+        {
+          "label": "SAIR DA OFICINA",
+          "effects": [],
+          "result": "Fica para outra vez."
+        }
+      ]
+    },
+    {
+      "id": "caldeira",
+      "title": "CALDEIRA VAZANDO",
+      "text": "Uma caldeira auxiliar chia, prestes a estourar. Consertar vai queimar as mãos, mas deixa o Teo mais resistente.",
+      "options": [
+        {
+          "label": "CONSERTAR (-1 ♥, +1 ♥ MÁXIMO)",
+          "effects": [
+            {
+              "type": "damage",
+              "amount": 1
+            },
+            {
+              "type": "max_hp",
+              "amount": 1
+            }
+          ],
+          "result": "O vapor assenta. O Teo se sente mais forte.",
+          "requires": {
+            "hp": 2
+          }
+        },
+        {
+          "label": "FECHAR A PORTA E CORRER",
+          "effects": [],
+          "result": "Um estrondo ecoa atrás da porta."
+        }
+      ]
+    },
+    {
+      "id": "achados",
+      "title": "ACHADOS E PERDIDOS",
+      "text": "Um balcão empoeirado com objetos sem dono. O atendente cobra uma taxa simbólica.",
+      "options": [
+        {
+          "label": "ESCOLHER UM ACHADO (30 FICHAS)",
+          "effects": [
+            {
+              "type": "fichas",
+              "amount": -30
+            },
+            {
+              "type": "curio_choice",
+              "count": 2
+            }
+          ],
+          "result": "\"Cuide bem dele.\"",
+          "requires": {
+            "fichas": 30,
+            "curio_left": true
+          }
+        },
+        {
+          "label": "SÓ OLHAR",
+          "effects": [],
+          "result": "Nada ali parece valer a taxa."
+        }
+      ]
+    },
+    {
+      "id": "coral",
+      "title": "CORAL DE PASSAGEIROS",
+      "text": "Um grupo canta baixinho no vagão-restaurante. O clima é acolhedor.",
+      "options": [
+        {
+          "label": "SENTAR E DESCANSAR (+2 ♥)",
+          "effects": [
+            {
+              "type": "heal",
+              "amount": 2
+            }
+          ],
+          "result": "O Teo recupera o fôlego."
+        },
+        {
+          "label": "OUVIR AS HISTÓRIAS (+2 SORTEIOS)",
+          "effects": [
+            {
+              "type": "reroll",
+              "amount": 2
+            }
+          ],
+          "result": "As histórias dão novas ideias."
+        }
+      ]
+    },
+    {
+      "id": "carga",
+      "title": "CARGA SUSPEITA",
+      "text": "Caixotes sem etiqueta cheios de fichas. Pegar muitas pode chamar a atenção dos autômatos.",
+      "options": [
+        {
+          "label": "ENCHER OS BOLSOS (+40, -1 ♥ MÁX.)",
+          "effects": [
+            {
+              "type": "fichas",
+              "amount": 40
+            },
+            {
+              "type": "max_hp",
+              "amount": -1
+            }
+          ],
+          "result": "Um autômato arranha o Teo na saída.",
+          "requires": {
+            "max_hp": 3
+          }
+        },
+        {
+          "label": "PEGAR SÓ UM POUCO (+12)",
+          "effects": [
+            {
+              "type": "fichas",
+              "amount": 12
+            }
+          ],
+          "result": "Ninguém percebeu."
+        }
+      ]
+    }
+  ],
+  "levels": [
+    {
+      "label": "Nível 1",
+      "player_hp": 6,
+      "enemy_hp_mult": 0.8,
+      "bullet_speed_mult": 0.85,
+      "enemy_fire_rate_mult": 0.8,
+      "initial_time": 600.0,
+      "target_scale": 1.0,
+      "allow_random_drops": true,
+      "guaranteed_wagon2_drop": false
+    },
+    {
+      "label": "Nível 2",
+      "player_hp": 6,
+      "enemy_hp_mult": 0.87,
+      "bullet_speed_mult": 0.89,
+      "enemy_fire_rate_mult": 0.85,
+      "initial_time": 600.0,
+      "target_scale": 1.0,
+      "allow_random_drops": true,
+      "guaranteed_wagon2_drop": false
+    },
+    {
+      "label": "Nível 3",
+      "player_hp": 6,
+      "enemy_hp_mult": 0.94,
+      "bullet_speed_mult": 0.93,
+      "enemy_fire_rate_mult": 0.9,
+      "initial_time": 600.0,
+      "target_scale": 1.0,
+      "allow_random_drops": true,
+      "guaranteed_wagon2_drop": false
+    },
+    {
+      "label": "Nível 4",
+      "player_hp": 5,
+      "enemy_hp_mult": 1.01,
+      "bullet_speed_mult": 0.97,
+      "enemy_fire_rate_mult": 0.95,
+      "initial_time": 600.0,
+      "target_scale": 1.0,
+      "allow_random_drops": true,
+      "guaranteed_wagon2_drop": false
+    },
+    {
+      "label": "Nível 5",
+      "player_hp": 5,
+      "enemy_hp_mult": 1.08,
+      "bullet_speed_mult": 1.01,
+      "enemy_fire_rate_mult": 1.0,
+      "initial_time": 600.0,
+      "target_scale": 1.0,
+      "allow_random_drops": true,
+      "guaranteed_wagon2_drop": false
+    },
+    {
+      "label": "Nível 6",
+      "player_hp": 5,
+      "enemy_hp_mult": 1.15,
+      "bullet_speed_mult": 1.05,
+      "enemy_fire_rate_mult": 1.05,
+      "initial_time": 600.0,
+      "target_scale": 1.0,
+      "allow_random_drops": true,
+      "guaranteed_wagon2_drop": false
+    },
+    {
+      "label": "Nível 7",
+      "player_hp": 5,
+      "enemy_hp_mult": 1.22,
+      "bullet_speed_mult": 1.09,
+      "enemy_fire_rate_mult": 1.1,
+      "initial_time": 600.0,
+      "target_scale": 1.0,
+      "allow_random_drops": false,
+      "guaranteed_wagon2_drop": false
+    },
+    {
+      "label": "Nível 8",
+      "player_hp": 4,
+      "enemy_hp_mult": 1.29,
+      "bullet_speed_mult": 1.13,
+      "enemy_fire_rate_mult": 1.15,
+      "initial_time": 600.0,
+      "target_scale": 1.0,
+      "allow_random_drops": false,
+      "guaranteed_wagon2_drop": false
+    },
+    {
+      "label": "Nível 9",
+      "player_hp": 4,
+      "enemy_hp_mult": 1.36,
+      "bullet_speed_mult": 1.17,
+      "enemy_fire_rate_mult": 1.2,
+      "initial_time": 600.0,
+      "target_scale": 1.0,
+      "allow_random_drops": false,
+      "guaranteed_wagon2_drop": false
+    },
+    {
+      "label": "Nível 10",
+      "player_hp": 4,
+      "enemy_hp_mult": 1.43,
+      "bullet_speed_mult": 1.21,
+      "enemy_fire_rate_mult": 1.25,
+      "initial_time": 600.0,
+      "target_scale": 1.0,
+      "allow_random_drops": false,
+      "guaranteed_wagon2_drop": false
+    }
+  ],
+  "backgrounds": [
+    {
+      "id": 1,
+      "texture": "res://assets/sprites/backgrounds/wagon_1.png",
+      "music": "wagon_1"
+    },
+    {
+      "id": 2,
+      "texture": "res://assets/sprites/backgrounds/wagon_2.png",
+      "music": "wagon_2"
+    },
+    {
+      "id": 3,
+      "texture": "res://assets/sprites/backgrounds/wagon_3.png",
+      "music": "wagon_3"
+    },
+    {
+      "id": 4,
+      "texture": "res://assets/sprites/backgrounds/wagon_4.png",
+      "music": "wagon_4"
+    },
+    {
+      "id": 5,
+      "texture": "res://assets/sprites/backgrounds/malha_restaurante.png",
+      "music": "wagon_1"
+    },
+    {
+      "id": 6,
+      "texture": "res://assets/sprites/backgrounds/malha_postal.png",
+      "music": "wagon_2"
+    },
+    {
+      "id": 7,
+      "texture": "res://assets/sprites/backgrounds/malha_frigorifico.png",
+      "music": "wagon_3"
+    },
+    {
+      "id": 8,
+      "texture": "res://assets/sprites/backgrounds/malha_forja.png",
+      "music": "wagon_4"
+    }
+  ],
+  "skills": {
+    "polvora": {
+      "cooldown": 8.0,
+      "damage": 90.0,
+      "radius": 46.0
+    },
+    "vapor": {
+      "cooldown": 7.0,
+      "damage": 60.0,
+      "distance": 190.0,
+      "duration": 0.38
+    },
+    "engrenagem": {
+      "cooldown": 14.0,
+      "duration": 8.0,
+      "interval": 0.25,
+      "damage_mult": 0.7
+    }
+  },
+  "pressao_skill_cd": 0.2,
+  "xp": {
+    "base": 8,
+    "step": 5,
+    "magnet_radius": 46.0,
+    "pickup_radius": 10.0,
+    "value_per_cost": 1,
+    "affix_mult": 2
+  },
+  "affixes": {
+    "chance_by_tier": [
+      0.0,
+      0.18,
+      0.3
+    ],
+    "elite_chance": 0.5,
+    "list": {
+      "blindado": {
+        "name": "Blindado",
+        "color": "#8fb8c4",
+        "hp_mult": 1.8,
+        "speed_mult": 0.8
+      },
+      "veloz": {
+        "name": "Veloz",
+        "color": "#f2c35b",
+        "speed_mult": 1.5,
+        "fire_mult": 1.3
+      },
+      "explosivo": {
+        "name": "Explosivo",
+        "color": "#ff3d6e",
+        "death_ring": 8
+      },
+      "divisor": {
+        "name": "Divisor",
+        "color": "#b38cff",
+        "split": 2
+      }
+    }
+  },
+  "level_perks": [
+    {
+      "id": "fichas",
+      "name": "Bolsa de Viagem",
+      "description": "+15 fichas no início."
+    },
+    {
+      "id": "reroll",
+      "name": "Baralho Extra",
+      "description": "+1 sorteio de cartas no início."
+    },
+    {
+      "id": "curio",
+      "name": "Bagagem Esquecida",
+      "description": "Começa com 1 achado."
+    },
+    {
+      "id": "coracao",
+      "name": "Caldeira Reforçada",
+      "description": "+1 coração máximo."
+    },
+    {
+      "id": "skill_card",
+      "name": "Treino da Linha",
+      "description": "Começa com 1 carta de habilidade."
+    },
+    {
+      "id": "ima",
+      "name": "Ímã de Bolso",
+      "description": "Engrenagens são puxadas de 50% mais longe."
+    },
+    {
+      "id": "fichas2",
+      "name": "Cofre do Maquinista",
+      "description": "+25 fichas no início."
+    },
+    {
+      "id": "carta",
+      "name": "Bilhete de Primeira",
+      "description": "Começa com 1 carta rara da Linha."
+    },
+    {
+      "id": "coracao2",
+      "name": "Couraça de Latão",
+      "description": "+1 coração máximo."
+    }
+  ]
+}

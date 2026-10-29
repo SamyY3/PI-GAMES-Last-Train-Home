@@ -23,6 +23,8 @@ class PooledBullet:
 	var splits_on_expire: bool = false
 	var grazing: bool = false
 	var grazed: bool = false
+	var frozen: bool = false
+	var fragment: bool = false
 
 var _pool: Array[PooledBullet] = []
 var _free: Array[int] = []
@@ -33,6 +35,13 @@ var _enemies_cache_frame: int = -1
 const TEX_PLAYER: Texture2D = preload("res://assets/sprites/bullets/player_bolt.png")
 const TEX_ENEMY: Texture2D = preload("res://assets/sprites/bullets/enemy_orb.png")
 const TEX_ENEMY_HC: Texture2D = preload("res://assets/sprites/bullets/enemy_orb_hc.png")
+const ECHO_TINT := Color(0.45, 1.6, 1.8)
+const ARC_TIME: float = 0.16
+
+var _arcs: Array[Dictionary] = []
+var _fx_layer: Node2D
+var _shot_counter: int = 0
+var _last_idx: int = -1
 
 
 func _ready() -> void:
@@ -68,6 +77,7 @@ func _ready() -> void:
 
 func spawn_bullet(pos: Vector2, dir: Vector2, speed: float, is_player: bool,
 		damage: float = 1.0, lifetime: float = 4.0, splits: bool = false) -> void:
+	_last_idx = -1
 	if not is_player and _active_enemy_count >= MAX_ENEMY_BULLETS:
 		return
 	if _free.is_empty():
@@ -84,9 +94,14 @@ func spawn_bullet(pos: Vector2, dir: Vector2, speed: float, is_player: bool,
 	b.splits_on_expire = splits
 	b.grazing = false
 	b.grazed = false
+	b.frozen = false
+	b.fragment = false
+	b.sprite.modulate = Color.WHITE
+	b.sprite.scale = Vector2.ONE
 
 	if is_player:
 		b.sprite.texture = TEX_PLAYER
+		b.sprite.scale = Vector2.ONE * clampf(0.8 + damage / 40.0, 1.0, 1.8)
 		b.sprite.rotation = b.vel.angle()
 		b.pierce_left = GameState.get_upgrade_level("perfurante")
 		b.bounce_left = GameState.get_upgrade_level("ricochete")
@@ -110,6 +125,78 @@ func spawn_bullet(pos: Vector2, dir: Vector2, speed: float, is_player: bool,
 	b.area.global_position = pos
 	b.area.visible = true
 	b.area.set_deferred("monitoring", true)
+	_last_idx = b.idx
+
+
+func spawn_echo(pos: Vector2, dir: Vector2, speed: float) -> void:
+	spawn_bullet(pos, dir, speed, false, 1.0)
+	var idx: int = _last_spawned()
+	if idx >= 0:
+		_pool[idx].sprite.modulate = ECHO_TINT
+
+
+func _last_spawned() -> int:
+	return _last_idx
+
+
+func freeze_enemy_bullets(tint: Color = Color(0.6, 1.4, 1.6)) -> int:
+	var n: int = 0
+	for b in _pool:
+		if b.active and not b.is_player and not b.frozen:
+			b.frozen = true
+			b.sprite.modulate = tint
+			n += 1
+	return n
+
+
+func release_enemy_bullets(reverse: bool, speed_mult: float = 1.0) -> void:
+	for b in _pool:
+		if b.active and not b.is_player and b.frozen:
+			b.frozen = false
+			b.sprite.modulate = Color.WHITE
+			b.vel *= speed_mult
+			if reverse:
+				b.vel = -b.vel
+				b.lifetime = 0.0
+				b.grazed = false
+
+
+func count_frozen() -> int:
+	var n: int = 0
+	for b in _pool:
+		if b.active and b.frozen:
+			n += 1
+	return n
+
+
+func add_arc(points: PackedVector2Array) -> void:
+	_arcs.append({"points": points, "t": ARC_TIME})
+
+
+func chain_lightning(from_pos: Vector2, damage: float, jumps: int, first_range: float = 160.0, jump_range: float = 80.0) -> void:
+	var hit: Array = []
+	var cur: Vector2 = from_pos
+	var pts := PackedVector2Array([from_pos])
+	for j in range(jumps + 1):
+		var best: Node2D = null
+		var best_d: float = (first_range if j == 0 else jump_range)
+		best_d *= best_d
+		for node in get_tree().get_nodes_in_group("enemies"):
+			if node is Node2D and not hit.has(node):
+				var d: float = cur.distance_squared_to((node as Node2D).global_position)
+				if d < best_d:
+					best_d = d
+					best = node
+		if best == null:
+			break
+		hit.append(best)
+		cur = best.global_position
+		pts.append(cur)
+		if best.has_method("take_damage"):
+			best.take_damage(damage)
+	if pts.size() > 1:
+		add_arc(pts)
+		AudioManager.play_sfx("blip", 0.08)
 
 
 func get_active_count() -> int:
@@ -190,10 +277,13 @@ func clear_all_bullets() -> void:
 func _physics_process(delta: float) -> void:
 	refresh_difficulty()
 	var player: Node2D = get_tree().get_first_node_in_group("player") as Node2D
-	var graze_r: float = float(GameState.balance_data.get("graze", {}).get("radius", 16.0))
+	var graze_r: float = float(GameState.balance_data.get("graze", {}).get("radius", 16.0)) * Malha.graze_radius_mult()
 	var graze_r_sq: float = graze_r * graze_r
+	_update_arcs(delta)
 	for b in _pool:
 		if not b.active:
+			continue
+		if b.frozen:
 			continue
 		b.lifetime += delta
 		if b.lifetime >= b.max_lifetime:
@@ -259,8 +349,22 @@ func _on_bullet_hit_area(other: Area2D, b: PooledBullet) -> void:
 func _on_bullet_hit_body(body: Node, b: PooledBullet) -> void:
 	if not b.active:
 		return
+	if b.is_player and body.has_method("blocks_bullet") and body.blocks_bullet(b.vel):
+		AudioManager.play_sfx("clang", 0.1)
+		_deactivate_bullet(b)
+		return
 	if b.is_player and body.has_method("take_damage"):
 		body.take_damage(b.damage)
+		if not b.fragment and GameState.get_upgrade_level("fragmentacao") > 0:
+			for k in range(3):
+				var fd: Vector2 = b.vel.normalized().rotated(deg_to_rad(-35.0 + 35.0 * float(k)))
+				spawn_bullet(b.pos + fd * 8.0, fd, 220.0, true, b.damage * 0.35, 0.35)
+				if _last_idx < 0:
+					break
+				_pool[_last_idx].fragment = true
+				_pool[_last_idx].pierce_left = 0
+				_pool[_last_idx].bounce_left = 0
+				_pool[_last_idx].sprite.scale = Vector2(0.6, 0.6)
 		if b.explosive_chance > 0.0 and randf() < b.explosive_chance:
 			_trigger_unstable_explosion(b.pos, b.damage * 0.6)
 		if b.pierce_left > 0:
@@ -308,3 +412,46 @@ func _deactivate_bullet(b: PooledBullet) -> void:
 	b.area.set_deferred("monitoring", false)
 	if not b.is_player:
 		_active_enemy_count = maxi(0, _active_enemy_count - 1)
+
+
+func next_shot_is_lightning() -> bool:
+	var lvl: int = GameState.get_upgrade_level("corrente")
+	if lvl <= 0:
+		return false
+	_shot_counter += 1
+	var every: int = int(GameState.get_upgrade_value("corrente", 6.0))
+	if _shot_counter >= every:
+		_shot_counter = 0
+		return true
+	return false
+
+
+func _update_arcs(delta: float) -> void:
+	if _fx_layer == null:
+		_fx_layer = Node2D.new()
+		_fx_layer.z_as_relative = false
+		_fx_layer.z_index = 250
+		_fx_layer.draw.connect(_draw_arcs)
+		add_child(_fx_layer)
+	for i in range(_arcs.size() - 1, -1, -1):
+		_arcs[i]["t"] = float(_arcs[i]["t"]) - delta
+		if float(_arcs[i]["t"]) <= 0.0:
+			_arcs.remove_at(i)
+	_fx_layer.queue_redraw()
+
+
+func _draw_arcs() -> void:
+	for arc in _arcs:
+		var pts: PackedVector2Array = arc["points"]
+		var a: float = clampf(float(arc["t"]) / ARC_TIME, 0.0, 1.0)
+		for i in range(pts.size() - 1):
+			var p0: Vector2 = pts[i]
+			var p1: Vector2 = pts[i + 1]
+			var seg := PackedVector2Array([p0])
+			var steps: int = maxi(2, int(p0.distance_to(p1) / 10.0))
+			var perp: Vector2 = (p1 - p0).normalized().orthogonal()
+			for k in range(1, steps):
+				seg.append(p0.lerp(p1, float(k) / float(steps)) + perp * randf_range(-4.0, 4.0))
+			seg.append(p1)
+			_fx_layer.draw_polyline(seg, Color(0.55, 0.85, 1.0, a), 3.0)
+			_fx_layer.draw_polyline(seg, Color(1.0, 1.0, 1.0, a), 1.0)

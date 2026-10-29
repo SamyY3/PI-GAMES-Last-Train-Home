@@ -15,6 +15,7 @@ const MOUNTAINS_TEX: Texture2D = preload("res://assets/sprites/menu/bg_mountains
 const CITY_BACK_TEX: Texture2D = preload("res://assets/sprites/menu/bg_city_back.png")
 const LOCO_TEX: Texture2D = preload("res://assets/sprites/train/locomotive_anim.png")
 const WAGON_TEX: Texture2D = preload("res://assets/sprites/train/wagon.png")
+const COUPLER_TEX: Texture2D = preload("res://assets/sprites/train/coupler.png")
 const BOGIE_TEX: Texture2D = preload("res://assets/sprites/train/wagon_bogie.png")
 const RAIL_TEX: Texture2D = preload("res://assets/sprites/train/rail_tile.png")
 const BALLAST_TEX: Texture2D = preload("res://assets/sprites/train/ballast_tile.png")
@@ -334,6 +335,7 @@ func _draw() -> void:
 	var dim := Color(0.62, 0.62, 0.74)
 	for w in range(3):
 		var wx: float = round(tx + float(w) * 102.0)
+		draw_texture(COUPLER_TEX, Vector2(wx + 94.0, base_y - 18.0), dim)
 		draw_texture(WAGON_TEX, Vector2(wx, base_y - 52.0), dim)
 		for bogie_x in [wx + 18.0, wx + 76.0]:
 			draw_texture_rect_region(BOGIE_TEX, Rect2(bogie_x - 13.0, base_y - 11.0, 26.0, 12.0), Rect2((frame % 4) * 26.0, 0.0, 26.0, 12.0), dim)
