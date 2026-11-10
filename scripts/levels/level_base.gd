@@ -99,13 +99,13 @@ func _ready() -> void:
 	Events.request_screen_shake.connect(_on_request_shake)
 	if GameState.is_malha():
 		Events.xp_dropped.connect(_on_xp_dropped)
-	else:
-		Malha.skill_cd = 0.0
 		_xp_drawer = Node2D.new()
 		_xp_drawer.z_index = 3
 		_xp_drawer.z_as_relative = false
 		_xp_drawer.draw.connect(_draw_xp_gems)
 		add_child(_xp_drawer)
+	else:
+		Malha.skill_cd = 0.0
 	AudioManager.set_music_calm(true)
 	_setup_modifier()
 
