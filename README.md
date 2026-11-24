@@ -18,7 +18,7 @@
 | **Resolução** | 480x270 nativa com upscale inteiro (janela 1440x810) |
 | **Duração** | ~10–15 minutos por partida |
 | **Modo** | Single-player · História e Malha Ferroviária |
-| **Versão** | 1.8.4 |
+| **Versão** | 1.9.0 |
 
 ## Como executar
 
@@ -55,11 +55,11 @@ Para testar os controles de toque no PC, rode o jogo com `-- --touch`.
 | Mover | WASD ou setas | Analógico esquerdo ou D-pad |
 | Mirar | Mouse (ou mira automática, nas Opções) | Analógico direito (solto, mira para onde anda) |
 | Atirar | Clique esquerdo, J ou Z | RT |
-| Dash (invulnerável por instantes) | Espaço | B |
+| Dash (invulnerável por instantes) | Espaço | LT |
 | Pulso de vapor (limpa projéteis e empurra inimigos) | Q ou E | Y |
-| Foco (movimento lento e preciso) | Shift | LT |
+| Foco (movimento lento e preciso) | Shift | LB |
 | Interagir / avançar diálogo | F ou Enter | A |
-| Pular introdução / diálogo (segurar) | Esc | B |
+| Pular introdução, diálogo ou cena final (segurar) | Esc | B |
 | Sortear melhorias / tentar de novo | R | X |
 | Trocar de aba (Opções e Pausa) | Mouse | LB / RB |
 | Pausar | Esc | Start |
@@ -79,7 +79,7 @@ As teclas principais podem ser remapeadas em **Opções → Teclado**, e os bot�
   2. *Pressão Máxima* — Vazamento de Vapor, Investida da Locomotiva, Troca de Via.
   3. *Caldeira em Chamas* — Roda Motriz, Chuva de Carvão, Anéis com brecha e a **Contagem Final**.
 - **Desarme:** girar a válvula (alternar A/D), baixar a alavanca, cortar o fio certo e apagar o núcleo — tudo em poucos segundos.
-- **Final:** a chegada à estação da colina ao amanhecer e o reencontro com a família (Mãe, Pai e Lia).
+- **Final:** a chegada à estação da colina ao amanhecer e o reencontro com a família (Mãe, Pai e Lia). Segurar Esc (B no controle) pula a cena direto para os créditos.
 
 ## Modo Malha Ferroviária
 
@@ -122,13 +122,14 @@ Os números do modo (níveis, Linhas, habilidades, economia, mapa, cenários, on
 - **19 cartas de melhoria** em 4 categorias (ataque, defesa, mobilidade, utilidade) com raridades comum, rara, épica e **maldição**. Exemplos: Tiro Duplo, Munição Perfurante, Balas Elásticas, Mira Giroscópica e Sucata Viva.
   - **Malditas** têm um custo junto com o bônus: Caldeira Sobrecarregada (+50% de dano, mas o relógio corre 10% mais rápido) e Freio de Emergência (o Pulso congela o relógio por 3s, mas tira 1 coração máximo).
   - **Cartas de dash e pulso:** Rastro de Vapor (o dash deixa vapor que fere), Pulso Refletor (o pulso rebate as balas) e Embalo (derrotar um inimigo durante o dash recarrega o dash).
+  - Na história, toda escolha de carta traz ao menos uma carta de ataque, para o dano acompanhar a subida da dificuldade até o Maquinista.
   - **Combinações escondidas:** duas cartas certas juntas ganham um bônus extra e um aviso na tela. São elas: Bala Fantasma (Balas Elásticas + Munição Perfurante), Míssil de Latão (Mira Giroscópica + Pólvora Instável) e Locomotiva (Rastro de Vapor + Válvula de Escape). As combinações descobertas ficam salvas.
 - **Partidas diferentes a cada vez:** os vagões 2, 3 e 4 sorteiam as ondas entre 2 ou 3 variações (o vagão 1, o tutorial, é fixo). Cada um desses vagões ainda pode receber um modificador:
   - **Túnel:** de tempos em tempos o vagão escurece e só a área em volta do Teo fica iluminada.
   - **Curva fechada:** um aviso e, logo depois, o trem empurra o Teo para um lado por alguns segundos.
-  - **Passageiro em perigo:** um passageiro aguenta 3 balas. Se ele sobreviver até o vagão ser limpo, Teo ganha uma carta extra.
+  - **Passageiro em perigo:** um passageiro fica preso no vagão. Quando a luta começa, Teo precisa chegar até ele e segurar o botão de interagir por 1,5s; levar dano interrompe o resgate. Solto, o passageiro corre para perto da saída e fica seguro. Resgatá-lo antes de o vagão ser limpo dá uma carta extra; se ninguém chegar a tempo, ele foge sozinho.
 - **Recordes e desbloqueios:** a tela de dificuldade mostra o melhor tempo e a melhor nota de cada dificuldade, as vitórias e as combinações descobertas.
-  - **Habilidades da Malha na história:** vencer libera as habilidades das Linhas para usar no lugar do Pulso de Vapor, escolhidas na tela de dificuldade: Morteiro (vença uma vez), Expresso Fantasma (vença na Média ou Difícil) e Torre de Engrenagens (vença na Difícil). Com uma habilidade equipada, as 4 cartas dela entram no sorteio e as cartas que só mexem no Pulso (Pulso Refletor e Freio de Emergência) saem. A habilidade fica pronta no começo de cada vagão.
+  - **Habilidades da Malha na história:** vencer libera as habilidades das Linhas para usar no lugar do Pulso de Vapor, escolhidas na tela de dificuldade: Morteiro (vença uma vez), Expresso Fantasma (vença na Média ou Difícil) e Torre de Engrenagens (vença na Difícil). Com uma habilidade equipada, as 4 cartas dela entram no sorteio e as cartas que só mexem no Pulso (Pulso Refletor e Freio de Emergência) saem. Pressão Contínua passa a reduzir a recarga da habilidade. A habilidade fica pronta no começo de cada vagão.
   - **Viagem do Dia:** uma partida na Média com a mesma semente para o dia inteiro (mesmas ondas, modificadores e sorteios de cartas), sempre com o Pulso de Vapor e com recorde próprio.
 - **Três dificuldades:**
 
@@ -136,7 +137,8 @@ Os números do modo (níveis, Linhas, habilidades, economia, mapa, cenários, on
 |---|---|---|---|
 | Vida inicial | 6 | 5 | 4 |
 | Tempo inicial | 08:00 | 06:30 | 05:30 |
-| Vida dos inimigos | x0,8 | x1,0 | x1,25 |
+| Vida dos inimigos | x0,8 | x1,0 | x1,15 |
+| Vida do Maquinista | x0,8 | x1,0 | x1,05 |
 | Velocidade das balas inimigas | x0,85 | x1,0 | x1,15 |
 | Cadência inimiga | x0,8 | x1,0 | x1,2 |
 | Drops aleatórios | sim | sim | não |
@@ -227,3 +229,11 @@ A aba **DEBUG** da pausa reúne esses comandos e mais: ir direto para qualquer s
 6. **Michel Gomes Pinheiro**
 7. **Morya Samyak Arrais Benicio**
 8. **Wesley Furtado Pessoa**
+
+| Função | Integrantes |
+|---|---|
+| Programação | Wesley Furtado Pessoa, José Daniel Macêdo Fechine, Maria Taliciane Pereira da Silva |
+| Roteiro | Maria Taliciane Pereira da Silva |
+| Conceitos e ideias | Michel Gomes Pinheiro, Morya Samyak Arrais Benicio, Lia Costa Andrade, Wesley Furtado Pessoa, Maria Taliciane Pereira da Silva, Clara Sobreira Vidal |
+| Design | Wesley Furtado Pessoa, Ingrid Sampaio Angelim do Nascimento |
+| Testes | José Daniel Macêdo Fechine, Morya Samyak Arrais Benicio, Wesley Furtado Pessoa, Clara Sobreira Vidal |

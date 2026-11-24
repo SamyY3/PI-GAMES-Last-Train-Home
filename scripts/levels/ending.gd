@@ -6,6 +6,11 @@ extends Control
 # 4) Teo desce do vagão e a Lia corre até ele  5) o reencontro (ilustração + diálogo com a família)
 # 6) a família sobe o caminho até a casa  7) cartão-título com a citação  8) créditos  9) resultados da run
 
+signal story_ended
+signal _halt
+
+const SKIP_HOLD_TIME: float = 0.8
+
 enum Stage { CABIN_COUNT, CABIN_SAFE, NIGHT, ARRIVAL, STEP_OFF, REUNION, HOME, TITLE, CREDITS, RESULTS }
 
 const CABIN_TEX: Texture2D = preload("res://assets/sprites/backgrounds/wagon_5.png")
@@ -59,6 +64,12 @@ var _quote_lbl: Label
 var _results_panel: Panel
 var _fader: ColorRect
 var _frame_style: StyleBox
+var _skip_hint: Label
+var _skip_hold: float = 0.0
+var _skipped: bool = false
+var _in_story: bool = false
+var _story_tweens: Array[Tween] = []
+var _dlg: CanvasLayer
 
 # estado das cenas novas (animado por tweens)
 var train_x: float = -160.0
@@ -110,6 +121,12 @@ func _ready() -> void:
 	_results_panel.visible = false
 	add_child(_results_panel)
 
+	_skip_hint = _make_label(Vector2(300.0, 254.0), Vector2(172.0, 14.0), 10, false)
+	_skip_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	_skip_hint.add_theme_color_override("font_color", Color("#8fb8c4"))
+	_skip_hint.add_theme_color_override("font_outline_color", Color("#0d0b12"))
+	_skip_hint.add_theme_constant_override("outline_size", 4)
+
 	_frame_style = Settings.make_ui_style("panel")
 	# véu de transição por cima de tudo (inclusive dos créditos, que entram como nó filho)
 	_fader = ColorRect.new()
@@ -142,7 +159,48 @@ func _process(delta: float) -> void:
 	_last_train_x = train_x
 	_bomb_visor_lbl.visible = _stage <= Stage.CABIN_SAFE
 	_fader.color.a = _fade
+	_process_skip(delta)
 	queue_redraw()
+
+
+func _process_skip(delta: float) -> void:
+	_skip_hint.visible = _in_story
+	if not _in_story:
+		return
+	if Settings.using_gamepad:
+		_skip_hint.text = "Segure [B] para pular"
+	elif Settings.touch_mode:
+		_skip_hint.text = "Segure a tela para pular"
+	else:
+		_skip_hint.text = "Segure [ESC] para pular"
+	if Settings.is_skip_held():
+		_skip_hold += delta
+		if _skip_hold >= SKIP_HOLD_TIME:
+			_skip_story()
+	else:
+		_skip_hold = maxf(0.0, _skip_hold - delta * 2.0)
+	_skip_hint.modulate.a = 0.6 + 0.4 * clampf(_skip_hold / SKIP_HOLD_TIME, 0.0, 1.0)
+
+
+func _skip_story() -> void:
+	_skipped = true
+	_in_story = false
+	for tw in _story_tweens:
+		if tw.is_valid():
+			tw.kill()
+	_story_tweens.clear()
+	if is_instance_valid(_dlg):
+		Modals.pop(_dlg)
+		_dlg.queue_free()
+	get_tree().paused = false
+	AudioManager.set_dialogue_ducking(false)
+	AudioManager.set_train_ambience(false)
+	AudioManager.play_sfx("ui_confirm")
+	reunion_alpha = 0.0
+	_title_lbl.visible = false
+	_quote_lbl.visible = false
+	_caption.text = ""
+	story_ended.emit()
 
 
 func _draw() -> void:
@@ -344,17 +402,22 @@ func _draw_rails(y: float, scroll: float) -> void:
 func _fade_to(target: float, dur: float) -> void:
 	var tw := create_tween()
 	tw.tween_property(self, "_fade", target, dur)
+	if _in_story:
+		_story_tweens.append(tw)
 	await tw.finished
 
 
 func _tween_prop(prop: String, target: Variant, dur: float, trans: Tween.TransitionType = Tween.TRANS_SINE, ease_type: Tween.EaseType = Tween.EASE_IN_OUT) -> Tween:
 	var tw := create_tween()
 	tw.tween_property(self, prop, target, dur).set_trans(trans).set_ease(ease_type)
+	_story_tweens.append(tw)
 	return tw
 
 
 func _wait(seconds: float) -> void:
 	await get_tree().create_timer(seconds).timeout
+	if _skipped:
+		await _halt
 
 
 func _set_stage(st: int, caption: String) -> void:
@@ -368,6 +431,32 @@ func _run_cinematic() -> void:
 	TrainClock.set_disarmed_countdown()
 	AudioManager.set_train_ambience(true, 0.85)
 
+	_in_story = true
+	_play_story()
+	await story_ended
+	_in_story = false
+	_story_tweens.clear()
+
+	# --- Créditos
+	await _fade_to(1.0, 0.6)
+	_title_lbl.visible = false
+	_quote_lbl.visible = false
+	_set_stage(Stage.CREDITS, "")
+	var roll := CreditsRoll.new()
+	roll.from_ending = true
+	add_child(roll)
+	move_child(roll, 0)
+	await _fade_to(0.0, 0.6)
+	await roll.finished
+	await _fade_to(1.0, 0.6)
+	roll.queue_free()
+
+	_set_stage(Stage.RESULTS, "")
+	await _fade_to(0.0, 0.4)
+	_show_results_screen(remaining_bomb_time)
+
+
+func _play_story() -> void:
 	_set_stage(Stage.CABIN_COUNT, "")
 	for sec in [3, 2, 1, 0]:
 		_bomb_visor_lbl.text = "00:0%d" % sec
@@ -423,10 +512,12 @@ func _run_cinematic() -> void:
 	_set_stage(Stage.REUNION, "")
 	await _tween_prop("reunion_alpha", 1.0, 0.8).finished
 	await _wait(1.2)
-	var dlg: CanvasLayer = preload("res://scenes/ui/DialogueBox.tscn").instantiate()
-	add_child(dlg)
-	dlg.start_dialogue("ending_reunion")
-	await dlg.dialogue_finished
+	_dlg = preload("res://scenes/ui/DialogueBox.tscn").instantiate()
+	add_child(_dlg)
+	_dlg.start_dialogue("ending_reunion")
+	await _dlg.dialogue_finished
+	if _skipped:
+		return
 	await _wait(0.6)
 
 	# --- Para casa: a família sobe o caminho da colina
@@ -446,24 +537,7 @@ func _run_cinematic() -> void:
 	_quote_lbl.text = "«%s»" % String(GameState.dialogue_db.get("ending_quote", ""))
 	await _fade_to(0.0, 0.6)
 	await _wait(3.5)
-
-	# --- Créditos
-	await _fade_to(1.0, 0.6)
-	_title_lbl.visible = false
-	_quote_lbl.visible = false
-	_set_stage(Stage.CREDITS, "")
-	var roll := CreditsRoll.new()
-	roll.from_ending = true
-	add_child(roll)
-	move_child(roll, 0)
-	await _fade_to(0.0, 0.6)
-	await roll.finished
-	await _fade_to(1.0, 0.6)
-	roll.queue_free()
-
-	_set_stage(Stage.RESULTS, "")
-	await _fade_to(0.0, 0.4)
-	_show_results_screen(remaining_bomb_time)
+	story_ended.emit()
 
 
 func _show_results_screen(remaining_bomb: float) -> void:

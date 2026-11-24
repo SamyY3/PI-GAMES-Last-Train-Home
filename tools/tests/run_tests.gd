@@ -136,6 +136,14 @@ class Runner extends Node:
 			us._roll_three_cards(true)
 			for c in us._cards_data:
 				expect(not ids.has(String(c.get("id"))), "sortear de novo exclui as atuais")
+			gs.has_picked_first_upgrade = true
+			for _k in range(10):
+				us._roll_three_cards(false)
+				var later_atk: bool = false
+				for c in us._cards_data:
+					if String(c.get("category")) == "Ataque" and String(c.get("rarity")) != "cursed":
+						later_atk = true
+				expect(later_atk, "ofertas seguintes da história também incluem Ataque")
 		us.queue_free()
 
 	func test_bullet_pool() -> void:
@@ -320,6 +328,7 @@ class Runner extends Node:
 		expect(malha.card_allowed(gs.get_upgrade_info("refletor")), "carta do Pulso sai sem habilidade")
 		expect(not malha.card_allowed(gs.get_upgrade_info("calibre")), "carta de habilidade não sai sem habilidade")
 		expect(prog.get_starter_skills().size() == 3, "três habilidades para liberar na história")
+		expect(gs.get_upgrade_description(gs.get_upgrade_info("pressao")).contains("Pulso"), "Pressão Contínua fala do Pulso sem habilidade")
 		gs.story_skill = "polvora"
 		malha.reset_skill()
 		expect(malha.apito_tier() == 1, "Morteiro equipado na história")
@@ -329,6 +338,7 @@ class Runner extends Node:
 		expect(malha.card_allowed(gs.get_upgrade_info("calibre")), "carta do Morteiro sai na história")
 		expect(gs.upgrade_in_mode(gs.get_upgrade_info("calibre")), "cartas de habilidade valem na história")
 		expect(not malha.card_allowed(gs.get_upgrade_info("leque")), "carta da Torre não sai com o Morteiro")
+		expect(gs.get_upgrade_description(gs.get_upgrade_info("pressao")).contains("habilidade"), "Pressão Contínua fala da habilidade equipada")
 		gs.add_upgrade("calibre")
 		expect(malha.apito_tier() == 2, "carta de habilidade sobe o nível na história")
 		gs.start_new_run("medium", true)

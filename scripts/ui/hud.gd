@@ -532,7 +532,7 @@ func _refresh_upgrades_list() -> void:
 
 		badge.mouse_entered.connect(func() -> void:
 			_upgrade_tooltip_lbl.text = "%s (Nv %d)\n%s" % [
-				String(info.get("name", uid)), lvl, String(info.get("description_malha", info.get("description", ""))) if GameState.is_malha() else String(info.get("description", ""))
+				String(info.get("name", uid)), lvl, GameState.get_upgrade_description(info)
 			]
 			_upgrade_tooltip.visible = true
 		)

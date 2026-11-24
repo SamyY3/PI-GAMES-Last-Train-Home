@@ -35,9 +35,9 @@ const PAD_PROMPTS: Dictionary = {
 	"move_left": "◀",
 	"move_right": "▶",
 	"shoot": "RT",
-	"dash": "B",
+	"dash": "LT",
 	"ability": "Y",
-	"focus": "LT",
+	"focus": "LB",
 	"interact": "A",
 	"confirm": "A",
 	"cancel": "B",
@@ -72,11 +72,12 @@ const TOUCH_PROMPTS: Dictionary = {
 const PAD_TRIGGER_BASE: int = 100
 const PAD_LT: int = PAD_TRIGGER_BASE + JOY_AXIS_TRIGGER_LEFT
 const PAD_RT: int = PAD_TRIGGER_BASE + JOY_AXIS_TRIGGER_RIGHT
+const PAD_LAYOUT_VERSION: int = 2
 const DEFAULT_PAD_BINDS: Dictionary = {
 	"shoot": PAD_RT,
-	"dash": JOY_BUTTON_B,
+	"dash": PAD_LT,
 	"ability": JOY_BUTTON_Y,
-	"focus": PAD_LT,
+	"focus": JOY_BUTTON_LEFT_SHOULDER,
 	"interact": JOY_BUTTON_A
 }
 # Start (pausa) e D-pad (movimento/menus) ficam de fora: são fixos
@@ -648,6 +649,7 @@ func save_settings() -> void:
 		cfg.set_value("keybinds", String(act), int(custom_keybinds[act]))
 	for act in custom_pad_binds.keys():
 		cfg.set_value("padbinds", String(act), int(custom_pad_binds[act]))
+	cfg.set_value("padbinds", "layout", PAD_LAYOUT_VERSION)
 	var err: Error = cfg.save(SAVE_PATH)
 	if err != OK:
 		push_warning("Settings: falha ao salvar %s (erro %d)" % [SAVE_PATH, err])
@@ -675,3 +677,7 @@ func load_settings() -> void:
 	for act in DEFAULT_PAD_BINDS.keys():
 		var code: int = int(cfg.get_value("padbinds", String(act), DEFAULT_PAD_BINDS[act]))
 		custom_pad_binds[act] = code if PAD_BIND_NAMES.has(code) else int(DEFAULT_PAD_BINDS[act])
+	if int(cfg.get_value("padbinds", "layout", 1)) < PAD_LAYOUT_VERSION:
+		if int(custom_pad_binds["dash"]) == JOY_BUTTON_B and int(custom_pad_binds["focus"]) == PAD_LT:
+			custom_pad_binds["dash"] = DEFAULT_PAD_BINDS["dash"]
+			custom_pad_binds["focus"] = DEFAULT_PAD_BINDS["focus"]

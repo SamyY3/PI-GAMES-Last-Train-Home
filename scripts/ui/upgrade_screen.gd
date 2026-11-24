@@ -328,14 +328,15 @@ func _roll_three_cards(exclude_current: bool) -> void:
 				"max_level": 1
 			})
 	else:
-		if not GameState.has_picked_first_upgrade and _kind != "owned":
+		var first_pick: bool = not GameState.has_picked_first_upgrade
+		if (first_pick or not GameState.is_malha()) and _kind != "owned":
 			var atk_pool: Array[Dictionary] = []
 			for u in available:
 				var first_ok: bool = String(u.get("line", "")) == Malha.line_id if GameState.is_malha() else String(u.get("category", "")) == "Ataque"
 				if first_ok and String(u.get("rarity", "")) != "cursed":
 					atk_pool.append(u)
 			if not atk_pool.is_empty():
-				var first_atk: Dictionary = atk_pool[GameState.card_rng.randi_range(0, atk_pool.size() - 1)]
+				var first_atk: Dictionary = atk_pool[GameState.card_rng.randi_range(0, atk_pool.size() - 1)] if first_pick else _weighted_pick(atk_pool, weights)
 				_cards_data.append(first_atk)
 				available.erase(first_atk)
 
@@ -383,7 +384,7 @@ func _update_card_contents() -> void:
 
 		_card_titles[i].text = String(data.get("name", ""))
 		_card_levels[i].text = "%s · Nv %d -> %d" % [String(RARITY_NAMES.get(rarity, "COMUM")), cur_lvl, next_lvl]
-		_card_descs[i].text = String(data.get("description_malha", data.get("description", ""))) if GameState.is_malha() else String(data.get("description", ""))
+		_card_descs[i].text = GameState.get_upgrade_description(data)
 		var line_info: Dictionary = Malha.get_line(String(data.get("line", ""))) if GameState.is_malha() and data.has("line") else {}
 		_card_cats[i].text = "[%s]" % (String(line_info.get("short", "")) if not line_info.is_empty() else String(data.get("category", "")))
 		if data.has("skill"):

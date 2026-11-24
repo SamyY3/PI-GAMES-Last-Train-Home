@@ -74,7 +74,7 @@ func _ready() -> void:
 	add_to_group("enemies")
 	var boss_cfg: Dictionary = GameState.balance_data.get("boss", {})
 	var diff_cfg: Dictionary = GameState.get_difficulty_config()
-	var hp_mult: float = float(diff_cfg.get("enemy_hp_mult", 1.0))
+	var hp_mult: float = float(diff_cfg.get("boss_hp_mult", diff_cfg.get("enemy_hp_mult", 1.0)))
 	_fire_rate_mult = maxf(0.1, float(diff_cfg.get("enemy_fire_rate_mult", 1.0)))
 	max_hp = float(boss_cfg.get("hp", 2400.0)) * hp_mult * (float(Malha.data.get("boss_hp_mult", 1.0)) if GameState.is_malha() else 1.0)
 	hp = max_hp

@@ -74,8 +74,9 @@
       "push_speed": 46.0
     },
     "passenger": {
-      "hp": 3,
-      "hit_radius": 9.0
+      "rescue_time": 1.5,
+      "rescue_dist": 30.0,
+      "run_speed": 120.0
     }
   },
   "difficulties": {
@@ -104,7 +105,8 @@
     "hard": {
       "label": "Difícil",
       "player_hp": 4,
-      "enemy_hp_mult": 1.25,
+      "enemy_hp_mult": 1.15,
+      "boss_hp_mult": 1.05,
       "bullet_speed_mult": 1.15,
       "enemy_fire_rate_mult": 1.2,
       "initial_time": 330.0,

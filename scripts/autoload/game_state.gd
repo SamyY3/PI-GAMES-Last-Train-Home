@@ -225,6 +225,14 @@ func get_upgrade_info(upg_id: String) -> Dictionary:
 	return {"id": upg_id, "name": upg_id.to_upper(), "description": ""}
 
 
+func get_upgrade_description(info: Dictionary) -> String:
+	if is_malha():
+		return String(info.get("description_malha", info.get("description", "")))
+	if Malha.active_skill() != "" and info.has("description_skill"):
+		return String(info["description_skill"])
+	return String(info.get("description", ""))
+
+
 func add_upgrade(upg_id: String) -> void:
 	var next_lvl: int = get_upgrade_level(upg_id) + 1
 	upgrades[upg_id] = next_lvl

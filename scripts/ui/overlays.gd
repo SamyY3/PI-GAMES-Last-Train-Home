@@ -493,7 +493,7 @@ func _populate_pause_upgrades() -> void:
 		var item_lbl := Label.new()
 		item_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		item_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		var desc: String = String(info.get("description_malha", info.get("description", ""))) if GameState.is_malha() else String(info.get("description", ""))
+		var desc: String = GameState.get_upgrade_description(info)
 		item_lbl.text = "%s (Nv %d) — %s" % [
 			String(info.get("name", uid)), lvl, desc.replace("\n", " ")
 		]

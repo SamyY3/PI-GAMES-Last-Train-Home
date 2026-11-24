@@ -10,7 +10,8 @@ const DOOR_FRAME_TEX: Texture2D = preload("res://assets/sprites/tiles/door_open_
 const PLAYER_SPAWN: Vector2 = Vector2(44.0, 157.0)
 const FISCAL_POS: Vector2 = Vector2(408.0, 214.0)
 const FISCAL_TALK_DIST: float = 36.0
-const PASSENGER_POS: Dictionary = {2: Vector2(200.0, 214.0), 3: Vector2(240.0, 222.0), 4: Vector2(250.0, 222.0)}
+const PASSENGER_POS: Dictionary = {2: Vector2(300.0, 226.0), 3: Vector2(245.0, 230.0), 4: Vector2(200.0, 226.0)}
+const PASSENGER_SAFE_POS: Vector2 = Vector2(444.0, 236.0)
 const TUNNEL_SHADER_CODE: String = """
 shader_type canvas_item;
 uniform vec2 light_pos;
@@ -61,8 +62,9 @@ var _curve_warned: bool = false
 var _lean_y: float = 0.0
 var _passenger_spr: Sprite2D
 var _passenger_drawer: Node2D
-var _passenger_hp: int = 0
-var _passenger_hurt_t: float = 0.0
+var _passenger_state: String = ""
+var _passenger_hold: float = 0.0
+var _passenger_unlocked: bool = false
 var _passenger_anim_t: float = 0.0
 
 var enemy_scene: PackedScene = preload("res://scenes/actors/Enemy_Base.tscn")
@@ -331,8 +333,11 @@ func unlock_exit_door() -> void:
 	AudioManager.play_sfx("ui_confirm")
 	if hud.has_method("set_contextual_tip"):
 		hud.set_contextual_tip("PORTA ABERTA — SIGA PARA A DIREITA ➔")
-	if _modifier == "passenger" and _passenger_hp > 0:
-		await _reward_passenger()
+	if _modifier == "passenger":
+		if _passenger_state in ["running", "safe"]:
+			await _reward_passenger()
+		else:
+			_passenger_give_up()
 	if wagon_number <= 4 and not GameState.is_malha():
 		_spawn_fiscal()
 
@@ -370,7 +375,8 @@ func _setup_modifier() -> void:
 			_mod_cfg = all_cfg.get("curve", {})
 		"passenger":
 			_mod_cfg = all_cfg.get("passenger", {})
-			_passenger_hp = int(_mod_cfg.get("hp", 3))
+			_passenger_state = "trapped"
+			Events.player_hit.connect(_on_player_hit_passenger)
 			var ppos: Vector2 = PASSENGER_POS.get(wagon_number, Vector2(240.0, 220.0))
 			_passenger_spr = Sprite2D.new()
 			_passenger_spr.texture = load("res://assets/sprites/npcs/npc_nervous.png")
@@ -380,7 +386,7 @@ func _setup_modifier() -> void:
 			add_child(_passenger_spr)
 			_passenger_drawer = Node2D.new()
 			_passenger_drawer.z_index = 255
-			_passenger_drawer.draw.connect(_draw_passenger_hp)
+			_passenger_drawer.draw.connect(_draw_passenger_hint)
 			add_child(_passenger_drawer)
 
 
@@ -400,7 +406,7 @@ func _update_modifier(delta: float) -> void:
 			"curve":
 				hud.show_banner("⚠ TRECHO DE CURVAS")
 			"passenger":
-				hud.show_banner("⚠ PROTEJA O PASSAGEIRO!")
+				pass
 	match _modifier:
 		"tunnel":
 			_update_tunnel(delta, active)
@@ -456,31 +462,71 @@ func _update_curve(delta: float, active: bool) -> void:
 
 
 func _update_passenger(delta: float, active: bool) -> void:
-	if _passenger_spr == null or _passenger_hp <= 0:
+	if _passenger_spr == null:
 		return
 	_passenger_anim_t += delta
-	_passenger_spr.frame = int(_passenger_anim_t * 5.0) % 4
-	if player != null:
-		_passenger_spr.flip_h = player.global_position.x < _passenger_spr.global_position.x
-	if _passenger_hurt_t > 0.0:
-		_passenger_hurt_t -= delta
-		_passenger_spr.modulate = Color(2.0, 0.6, 0.6) if int(_passenger_hurt_t * 16.0) % 2 == 0 else Color.WHITE
-	else:
-		_passenger_spr.modulate = Color.WHITE
 	_passenger_drawer.queue_redraw()
-	if not active:
+	match _passenger_state:
+		"trapped":
+			_passenger_spr.frame = int(_passenger_anim_t * 8.0) % 4
+			_passenger_spr.offset.x = 1.0 if int(_passenger_anim_t * 14.0) % 2 == 0 else 0.0
+			if player != null:
+				_passenger_spr.flip_h = player.global_position.x < _passenger_spr.global_position.x
+			if not active:
+				_passenger_hold = 0.0
+				return
+			if not _passenger_unlocked:
+				if get_tree().get_nodes_in_group("enemies").is_empty():
+					return
+				_passenger_unlocked = true
+				hud.show_banner("⚠ PASSAGEIRO PRESO! SEGURE %s PERTO DELE" % Settings.get_prompt("interact"))
+			if _passenger_in_range() and Input.is_action_pressed("interact"):
+				_passenger_hold += delta
+				if _passenger_hold >= float(_mod_cfg.get("rescue_time", 1.5)):
+					_free_passenger()
+			else:
+				_passenger_hold = maxf(0.0, _passenger_hold - delta * 2.0)
+		"running":
+			_passenger_spr.frame = int(_passenger_anim_t * 12.0) % 4
+			_passenger_spr.offset.y = -absf(sin(_passenger_anim_t * 18.0)) * 2.0
+		_:
+			_passenger_spr.frame = int(_passenger_anim_t * 4.0) % 4
+
+
+func _passenger_in_range() -> bool:
+	return player != null and player.global_position.distance_to(_passenger_spr.global_position) <= float(_mod_cfg.get("rescue_dist", 30.0))
+
+
+func _on_player_hit_passenger(_cur: int, _max_v: int) -> void:
+	if _passenger_state == "trapped" and _passenger_hold > 0.0:
+		_passenger_hold = 0.0
+		hud.show_banner("RESGATE INTERROMPIDO!")
+
+
+func _free_passenger() -> void:
+	_passenger_state = "running"
+	_passenger_hold = 0.0
+	_passenger_spr.offset = Vector2.ZERO
+	AudioManager.play_sfx("clang")
+	hud.show_banner("PASSAGEIRO SOLTO! ELE CORRE PARA A SAÍDA")
+	var safe: Vector2 = PASSENGER_SAFE_POS
+	_passenger_spr.flip_h = safe.x < _passenger_spr.position.x
+	var dur: float = _passenger_spr.position.distance_to(safe) / float(_mod_cfg.get("run_speed", 120.0))
+	var tw := _passenger_spr.create_tween()
+	tw.tween_property(_passenger_spr, "position", safe, dur)
+	tw.parallel().tween_property(_passenger_spr, "z_index", int(safe.y), dur)
+	tw.tween_callback(func() -> void:
+		_passenger_state = "safe"
+		_passenger_spr.offset = Vector2.ZERO
+		_passenger_spr.flip_h = true
+	)
+
+
+func _passenger_give_up() -> void:
+	if _passenger_spr == null or _passenger_state != "trapped":
 		return
-	var hits: int = BulletManager.hit_enemy_bullets_near(_passenger_spr.global_position + Vector2(0.0, 2.0), float(_mod_cfg.get("hit_radius", 9.0)))
-	if hits > 0 and _passenger_hurt_t <= 0.0:
-		_passenger_hp -= 1
-		_passenger_hurt_t = 0.8
-		AudioManager.play_sfx("player_hurt", 0.1)
-		if _passenger_hp <= 0:
-			_passenger_flee()
-
-
-func _passenger_flee() -> void:
-	hud.show_banner("O PASSAGEIRO FUGIU APAVORADO!")
+	_passenger_state = "lost"
+	hud.show_banner("O PASSAGEIRO SE SOLTOU SOZINHO E FUGIU")
 	_passenger_drawer.queue_redraw()
 	var tw := _passenger_spr.create_tween()
 	tw.tween_property(_passenger_spr, "modulate", Color(0.86, 0.91, 0.93, 0.0), 0.4)
@@ -488,15 +534,16 @@ func _passenger_flee() -> void:
 	_passenger_spr = null
 
 
-func _draw_passenger_hp() -> void:
-	if _passenger_spr == null or _passenger_hp <= 0:
+func _draw_passenger_hint() -> void:
+	if _passenger_spr == null or _passenger_state != "trapped" or not _modifier_active():
 		return
-	var max_hp: int = int(_mod_cfg.get("hp", 3))
-	var base: Vector2 = (_passenger_spr.position + Vector2(-float(max_hp) * 2.5, -25.0)).round()
-	for i in range(max_hp):
-		var r := Rect2(base + Vector2(float(i) * 5.0, 0.0), Vector2(4.0, 4.0))
-		_passenger_drawer.draw_rect(r, Color("#0d0b12"))
-		_passenger_drawer.draw_rect(r.grow(-1.0), Color("#ff3d6e") if i < _passenger_hp else Color("#4a4668"))
+	var head: Vector2 = _passenger_spr.position + Vector2(0.0, -22.0)
+	if _passenger_unlocked and _passenger_in_range():
+		draw_centered_f_prompt(_passenger_drawer, head, _passenger_hold / float(_mod_cfg.get("rescue_time", 1.5)))
+	else:
+		draw_speech_bubble_hint(_passenger_drawer, head + Vector2(0.0, 2.0))
+		if int(_passenger_anim_t * 3.0) % 2 == 0:
+			_passenger_drawer.draw_string(Settings.ui_font, head + Vector2(-30.0, -8.0), "SOCORRO!", HORIZONTAL_ALIGNMENT_CENTER, 60.0, 10, Color("#ff3d6e"))
 
 
 func _reward_passenger() -> void:

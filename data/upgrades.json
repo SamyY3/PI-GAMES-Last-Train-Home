@@ -89,7 +89,8 @@
     {
       "id": "pressao",
       "name": "Pressão Contínua",
-      "description": "Reduz a recarga do Pulso de Vapor em 30% por nível (habilidade: 20%).",
+      "description": "Reduz a recarga do Pulso de Vapor em 30% por nível.",
+      "description_skill": "Reduz a recarga da sua habilidade em 20% por nível.",
       "description_malha": "Reduz a recarga da habilidade da Linha em 20% por nível.",
       "max_level": 2,
       "rarity": "rare",

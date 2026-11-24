@@ -34,6 +34,8 @@ const CAST_SPRITES: Dictionary = {
 	"npcs": ["res://assets/sprites/npcs/npc_nervous.png", 48, 0, 4],
 }
 
+const CAST_FEET_Y: float = 64.0
+const CAST_MAX_H: float = 40.0
 const SCROLL_SPEED: float = 22.0
 const FAST_MULT: float = 5.0
 const VIDEO_FPS: float = 10.0
@@ -49,6 +51,7 @@ var _end_y: float = 0.0
 var _done: bool = false
 var _emitted: bool = false
 var _scroll: float = 270.0
+var _name_line_h: float = 13.0
 var _fast_toggle: bool = false
 var _videos: Array[Dictionary] = []   # {atlas: AtlasTexture, cols: int}
 var _cast: Array[Dictionary] = []     # {atlas: AtlasTexture, cell: int, row: int, frames: int}
@@ -91,6 +94,9 @@ func _build_content() -> void:
 		if parsed is Dictionary:
 			data = parsed
 	var y: float = 0.0
+	var probe := _label("A", 10, COL_CREAM)
+	_name_line_h = float(probe.get_line_height())
+	probe.free()
 
 	# Abertura: placa com o título
 	var plate := TextureRect.new()
@@ -128,7 +134,7 @@ func _build_content() -> void:
 				sec_i += 1
 		var text_h: float = 0.0
 		for sec in lines:
-			text_h += 44.0 + float(String(sec.get("name", "")).count("\n")) * 13.0
+			text_h += 44.0 + float(String(sec.get("name", "")).count("\n") + 1) * _name_line_h
 		var ty: float = y + maxf(0.0, (block_h - text_h) * 0.5)
 		for sec in lines:
 			ty = _add_role(sec, Vector2(text_x, ty), 200.0)
@@ -142,11 +148,18 @@ func _build_content() -> void:
 	_content.add_child(cast_title)
 	y += 40.0
 	var cast: Array = data.get("cast", [])
+	var bounds: Array[Rect2i] = []
+	for c in cast:
+		bounds.append(_cast_bounds(String((c as Dictionary).get("sprite", ""))))
 	for i in range(cast.size()):
-		var c: Dictionary = cast[i]
 		var col: int = i % 2
+		if col == 0:
+			var tallest: int = bounds[i].size.y
+			if i + 1 < cast.size():
+				tallest = maxi(tallest, bounds[i + 1].size.y)
+			y += maxf(0.0, float(tallest) - CAST_MAX_H)
 		var cx: float = 40.0 + float(col) * 220.0
-		_add_cast(c, Vector2(cx, y))
+		_add_cast(cast[i], Vector2(cx, y), bounds[i])
 		if col == 1 or i == cast.size() - 1:
 			y += 86.0
 
@@ -186,7 +199,7 @@ func _add_role(sec: Dictionary, pos: Vector2, w: float) -> float:
 	name_lbl.size = Vector2(w, 14.0)
 	_content.add_child(name_lbl)
 	var lines: int = String(sec.get("name", "")).count("\n") + 1
-	return pos.y + 30.0 + float(lines - 1) * 13.0 + 14.0
+	return pos.y + 44.0 + float(lines) * _name_line_h
 
 
 func _add_media(m: Dictionary, pos: Vector2) -> float:
@@ -220,7 +233,22 @@ func _add_media(m: Dictionary, pos: Vector2) -> float:
 	return shown.y + 22.0
 
 
-func _add_cast(c: Dictionary, pos: Vector2) -> void:
+func _cast_bounds(sprite_id: String) -> Rect2i:
+	var spec: Array = CAST_SPRITES.get(sprite_id, [])
+	if spec.size() != 4 or not ResourceLoader.exists(String(spec[0])):
+		return Rect2i()
+	var cell: int = int(spec[1])
+	var img: Image = (load(String(spec[0])) as Texture2D).get_image()
+	if img == null:
+		return Rect2i(0, 0, cell, cell)
+	var used := Rect2i()
+	for f in range(int(spec[3])):
+		var r: Rect2i = img.get_region(Rect2i(f * cell, int(spec[2]) * cell, cell, cell)).get_used_rect()
+		used = r if used.size == Vector2i.ZERO else used.merge(r)
+	return used if used.size != Vector2i.ZERO else Rect2i(0, 0, cell, cell)
+
+
+func _add_cast(c: Dictionary, pos: Vector2, used: Rect2i) -> void:
 	var spec: Array = CAST_SPRITES.get(String(c.get("sprite", "")), [])
 	if spec.size() == 4 and ResourceLoader.exists(String(spec[0])):
 		var cell: int = int(spec[1])
@@ -231,7 +259,7 @@ func _add_cast(c: Dictionary, pos: Vector2) -> void:
 		spr.texture = atlas
 		spr.stretch_mode = TextureRect.STRETCH_KEEP
 		# pés alinhados numa mesma linha de base, independentemente do tamanho da célula
-		spr.position = pos + Vector2(32.0 - cell * 0.5, 70.0 - cell)
+		spr.position = pos + Vector2(32.0 - cell * 0.5, CAST_FEET_Y - float(used.end.y if used.size.y > 0 else cell))
 		_content.add_child(spr)
 		_cast.append({"atlas": atlas, "cell": cell, "row": int(spec[2]), "frames": int(spec[3])})
 	var name_lbl := _label(String(c.get("name", "")), 20, COL_CREAM, true)
