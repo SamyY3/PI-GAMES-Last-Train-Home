@@ -95,16 +95,11 @@ func _process(delta: float) -> void:
 	time_left = maxf(0.0, time_left - delta * speed)
 	Events.timer_changed.emit(time_left)
 
-	_tick_accumulator += delta
-	var tick_interval: float = 1.0
 	if time_left < 10.0 and not is_disarmed:
-		tick_interval = 0.2
-	elif time_left < 60.0 and not is_disarmed:
-		tick_interval = 0.5
-
-	if _tick_accumulator >= tick_interval:
-		_tick_accumulator = 0.0
-		AudioManager.play_sfx("tick")
+		_tick_accumulator += delta
+		if _tick_accumulator >= 0.2:
+			_tick_accumulator = 0.0
+			AudioManager.play_sfx("tick")
 
 	if time_left <= 0.0:
 		is_running = false

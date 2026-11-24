@@ -1,11 +1,15 @@
 extends Node
 
 const SFX_POOL_SIZE: int = 16
+const CALM_TRACKS: Array[String] = ["wagon_1", "wagon_2", "wagon_3", "wagon_4"]
+const CALM_CUTOFF_HZ: float = 1400.0
+const OPEN_CUTOFF_HZ: float = 20500.0
+const CALM_VOLUME: float = 0.6
 
 var _sfx_players: Array[AudioStreamPlayer] = []
 var _music_player: AudioStreamPlayer
-var _music_calm_player: AudioStreamPlayer
 var _music_calm: bool = false
+var _music_filter: AudioEffectLowPassFilter
 var _music_fade: Tween
 var _train_ambience_player: AudioStreamPlayer
 var _current_music_name: String = ""
@@ -31,9 +35,9 @@ func _ready() -> void:
 	)
 	add_child(_music_player)
 
-	_music_calm_player = AudioStreamPlayer.new()
-	_music_calm_player.bus = "Music"
-	add_child(_music_calm_player)
+	_music_filter = AudioEffectLowPassFilter.new()
+	_music_filter.cutoff_hz = OPEN_CUTOFF_HZ
+	AudioServer.add_bus_effect(AudioServer.get_bus_index("Music"), _music_filter)
 
 	_train_ambience_player = AudioStreamPlayer.new()
 	_train_ambience_player.bus = "SFX"
@@ -88,44 +92,52 @@ func play_sfx(sfx_name: String, pitch_variance: float = 0.05) -> void:
 
 
 func _get_sfx_stream(sfx_name: String) -> AudioStream:
-	if _sfx_cache.has(sfx_name):
-		return _sfx_cache[sfx_name]
-	var path: String = "res://assets/audio/sfx/%s.wav" % sfx_name
-	var stream: AudioStream = null
-	if ResourceLoader.exists(path):
-		stream = load(path)
-	else:
-		push_warning("AudioManager: SFX ausente: %s" % path)
-	_sfx_cache[sfx_name] = stream
-	return stream
+	if not _sfx_cache.has(sfx_name):
+		var takes: Array[AudioStream] = []
+		var path: String = "res://assets/audio/sfx/%s.wav" % sfx_name
+		if ResourceLoader.exists(path):
+			takes.append(load(path))
+			var i: int = 2
+			while ResourceLoader.exists("res://assets/audio/sfx/%s_%d.wav" % [sfx_name, i]):
+				takes.append(load("res://assets/audio/sfx/%s_%d.wav" % [sfx_name, i]))
+				i += 1
+		else:
+			push_warning("AudioManager: SFX ausente: %s" % path)
+		_sfx_cache[sfx_name] = takes
+	var cached: Array = _sfx_cache[sfx_name]
+	if cached.is_empty():
+		return null
+	return cached[randi() % cached.size()]
 
 
 func play_music(track_name: String, pitch: float = 1.0) -> void:
 	if _current_music_name == track_name and _music_player.playing:
 		_music_player.pitch_scale = pitch
-		_music_calm_player.pitch_scale = pitch
 		return
-	var path: String = "res://assets/audio/music/%s.wav" % track_name
-	if not ResourceLoader.exists(path):
+	var path: String = music_path(track_name)
+	if path == "":
 		return
 	_current_music_name = track_name
-	_music_player.stream = load(path)
-	var calm_path: String = "res://assets/audio/music/%s_calm.wav" % track_name
-	_music_calm_player.stream = load(calm_path) if ResourceLoader.exists(calm_path) else null
+	var stream: AudioStream = load(path)
+	if stream is AudioStreamOggVorbis:
+		(stream as AudioStreamOggVorbis).loop = true
+	_music_player.stream = stream
 	_music_player.pitch_scale = pitch
-	_music_calm_player.pitch_scale = pitch
 	_apply_music_layers(0.0)
 	_music_player.play()
-	if _music_calm_player.stream != null:
-		_music_calm_player.play()
-	else:
-		_music_calm_player.stop()
+
+
+func music_path(track_name: String) -> String:
+	for ext in ["ogg", "wav"]:
+		var path: String = "res://assets/audio/music/%s.%s" % [track_name, ext]
+		if ResourceLoader.exists(path):
+			return path
+	return ""
 
 
 func stop_music() -> void:
 	_current_music_name = ""
 	_music_player.stop()
-	_music_calm_player.stop()
 
 
 func set_music_calm(calm: bool) -> void:
@@ -136,18 +148,18 @@ func set_music_calm(calm: bool) -> void:
 
 
 func _apply_music_layers(fade_time: float) -> void:
-	var calm_on: bool = _music_calm and _music_calm_player.stream != null
-	var main_vol: float = 0.0 if calm_on else 1.0
-	var calm_vol: float = 1.0 if calm_on else 0.0
+	var calm_on: bool = _music_calm and CALM_TRACKS.has(_current_music_name)
+	var vol: float = CALM_VOLUME if calm_on else 1.0
+	var cutoff: float = CALM_CUTOFF_HZ if calm_on else OPEN_CUTOFF_HZ
 	if _music_fade != null:
 		_music_fade.kill()
 	if fade_time <= 0.0:
-		_music_player.volume_linear = main_vol
-		_music_calm_player.volume_linear = calm_vol
+		_music_player.volume_linear = vol
+		_music_filter.cutoff_hz = cutoff
 		return
 	_music_fade = create_tween().set_parallel()
-	_music_fade.tween_property(_music_player, "volume_linear", main_vol, fade_time)
-	_music_fade.tween_property(_music_calm_player, "volume_linear", calm_vol, fade_time)
+	_music_fade.tween_property(_music_player, "volume_linear", vol, fade_time)
+	_music_fade.tween_property(_music_filter, "cutoff_hz", cutoff, fade_time).set_trans(Tween.TRANS_EXPO)
 
 
 func set_dialogue_ducking(active: bool) -> void:

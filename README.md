@@ -18,7 +18,7 @@
 | **Resolução** | 480x270 nativa com upscale inteiro (janela 1440x810) |
 | **Duração** | ~10–15 minutos por partida |
 | **Modo** | Single-player · História e Malha Ferroviária |
-| **Versão** | 1.9.0 |
+| **Versão** | 1.10.0 |
 
 ## Como executar
 
@@ -143,7 +143,7 @@ Os números do modo (níveis, Linhas, habilidades, economia, mapa, cenários, on
 | Cadência inimiga | x0,8 | x1,0 | x1,2 |
 | Drops aleatórios | sim | sim | não |
 
-- **Trilha sonora por cena:** menu, embarque, cada um dos quatro vagões, cabine, as fases do Maquinista, desarme, final e créditos têm músicas próprias. Nos vagões, a música tem uma camada calma para a exploração e os diálogos e passa para a versão completa quando surgem inimigos.
+- **Trilha sonora por cena:** menu, embarque, cada um dos quatro vagões, cabine, as fases do Maquinista, desarme, final e créditos têm músicas próprias. As músicas são do álbum *Three Red Hearts*, de Abstraction: Sanctuary (menu), Puzzle Pieces (embarque), Go, Pixel War 1, Deep Blue e Modern Bits (vagões 1 a 4), Penultimate (cabine), Pixel War 2 e Rumble at the Gates (Maquinista), Out of Time (desarme), Three Red Hearts (final) e Princess Quest (créditos). Nos vagões, durante a exploração e os diálogos, a música fica abafada e mais baixa e volta ao normal quando surgem inimigos.
 
 ## Estrutura do projeto
 
@@ -190,9 +190,10 @@ python tools/build_boss_sheets.py        # O Maquinista
 python tools/build_credits_media.py      # fotos/vídeos dos créditos
 python tools/clean_locomotive.py         # locomotiva
 python tools/build_wagon_door.py         # porta deslizante do vagão (embarque e chegada)
-python tools/generate_sfx.py             # efeitos sonoros
-python tools/generate_music.py           # trilhas do jogo (menu, vagões, chefe, desarme, final)
-python tools/generate_credits_music.py   # tema dos créditos
+python tools/generate_sfx.py             # apito e ambiente do trem (sintetizados)
+python tools/import_sfx.py "<zip do Pixel Combat>" assets/audio/sfx   # demais efeitos sonoros
+python tools/generate_music.py           # trilhas antigas sintetizadas (não usadas desde a v1.10.0)
+python tools/generate_credits_music.py   # tema antigo dos créditos (não usado desde a v1.10.0)
 ```
 
 ## Atalhos de debug (só no editor e em builds de debug)
@@ -217,7 +218,9 @@ A aba **DEBUG** da pausa reúne esses comandos e mais: ir direto para qualquer s
 
 - Pixel art e ilustrações feitas com o auxílio do [PixelLab](https://www.pixellab.ai).
 - Fontes **DotGothic16** e **Jersey 10** sob a SIL Open Font License (licenças em `assets/fonts/`).
-- Músicas chiptune e efeitos sonoros sintetizados pela equipe.
+- Músicas do álbum **Three Red Hearts**, de [Abstraction](https://abstractionmusic.com/) ([Music Loop Bundle](https://tallbeard.itch.io/music-loop-bundle)), em domínio público (CC0).
+- Apito e ambiente do trem sintetizados pela equipe.
+- Efeitos sonoros de **Helton Yan's Pixel Combat**, de Helton Yan, sob a licença [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Os sons foram cortados, convertidos para mono e tiveram o volume ajustado (`tools/import_sfx.py`).
 
 ## Equipe
 

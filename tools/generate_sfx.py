@@ -5,6 +5,7 @@ import numpy as np
 
 SR = 44100
 OUT = sys.argv[1]
+SYNTH_KEEP = {"whistle", "train_ambience"}
 rng = np.random.default_rng(7)
 
 
@@ -89,6 +90,8 @@ def at(x, delay):
 
 
 def save(name, x, gain=0.9, fade=0.004):
+    if name not in SYNTH_KEEP:
+        return
     x = np.asarray(x, dtype=float)
     f = int(fade * SR)
     if f and len(x) > 2 * f:

@@ -167,6 +167,22 @@ class Runner extends Node:
 			expect(is_equal_approx(AudioServer.get_bus_volume_db(idx), settings.music_bus_db()), "volume salvo aplicado no boot")
 		else:
 			expect(AudioServer.is_bus_mute(idx), "música em 0% começa muda")
+		var audio: Node = get_node("/root/AudioManager")
+		for sfx in ["player_shoot", "enemy_hit", "ui_confirm", "whistle", "train_ambience"]:
+			expect(audio._get_sfx_stream(sfx) != null, "SFX %s carrega" % sfx)
+		expect((audio._sfx_cache["player_shoot"] as Array).size() == 6, "tiro tem 6 variações")
+		expect((audio._sfx_cache["ui_confirm"] as Array).size() == 1, "confirmar tem 1 variação")
+		for track in ["menu", "intro", "wagon_1", "wagon_2", "wagon_3", "wagon_4", "cabin", "boss_p1_p2", "boss_p3", "disarm", "ending", "credits"]:
+			expect(audio.music_path(track).ends_with(".ogg"), "música %s em OGG" % track)
+		audio.play_music("wagon_1")
+		expect((audio._music_player.stream as AudioStreamOggVorbis).loop, "música toca em loop")
+		audio.set_music_calm(true)
+		audio._apply_music_layers(0.0)
+		expect(audio._music_filter.cutoff_hz < 2000.0, "calmaria do vagão abafa a música")
+		audio.play_music("boss_p3")
+		expect(audio._music_filter.cutoff_hz > 20000.0, "música do chefe não é abafada")
+		audio.set_music_calm(false)
+		audio.stop_music()
 
 	func test_modals() -> void:
 		var a := Node.new()
